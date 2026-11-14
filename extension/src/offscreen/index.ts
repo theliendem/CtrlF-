@@ -1,6 +1,7 @@
 // Offscreen document. Owner: A. Hosts the engine; does all fetching and parsing for the dig (A3).
 import type { Msg, OffscreenEnvelope } from '../../../shared/contracts';
 import { createEngine, ENGINE_KIND } from './engine';
+import './debug';
 
 const engine = createEngine();
 
