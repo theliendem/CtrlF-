@@ -14,7 +14,7 @@
 - Offscreen console: `await ctrlfpp.dig('question', 'https://canvas.wisc.edu/courses/<id>')` prints the dig live.
 - **Canvas API works from the extension with the browser's login** (tested on a real course: 200, course JSON). No content-script fallback needed.
 - `extension/src/sources/`: `loadDoc(url)` routes any URL (Canvas API / PDF / plain HTML). `canvasDoc(webUrl)` maps Canvas web URLs (home, syllabus, modules, module, pages, page, assignments, assignment, announcements, discussion topic, files) to API calls; links stay web URLs so the tree mirrors the course. `fromCanvas(courseId, origin)` walks a whole course. `fromHtml(html, url)`, `isSafeToFetch(url, text)`, `safeGet(url)` (GET-only, 8 s timeout, skip list).
-- Offscreen console helpers: `await ctrlfpp.walk('<courseId>')`, `await ctrlfpp.probePdf('<courseId>')`, `await ctrlfpp.loadDoc(url)`.
+- The offscreen document now starts as soon as the extension loads (model warm before first search). Offscreen console helpers: `await ctrlfpp.walk('<courseId>')`, `await ctrlfpp.probePdf('<courseId>')`, `await ctrlfpp.loadDoc(url)`.
 - **Task 0 merged.** `cd extension && npm install && npm run build`, then Load unpacked on `extension/dist`.
 - `shared/contracts.ts`, `shared/engine-api.ts`, `shared/engine-stub.ts` (keyword overlap, same interface as the real engine).
 - Message routing: content -> `SEARCH_PAGE` -> background -> offscreen (stub engine) -> `SEARCH_RESULTS` reply. Ctrl+Shift+F (Cmd+Shift+F) sends `OPEN_SEARCH` to the tab.

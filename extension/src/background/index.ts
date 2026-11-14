@@ -82,6 +82,13 @@ function openLocator(url: string, locator: Locator, text: string) {
   return chrome.tabs.create({ url: textFragmentUrl(url, text) });
 }
 
+// Start the engine as soon as the extension loads (install, reload, browser start, worker wake-up),
+// so the model is warm before the first search.
+const warmUp = () => ensureOffscreen().catch((e) => console.error('[ctrlfpp] offscreen start failed', e));
+chrome.runtime.onInstalled.addListener(warmUp);
+chrome.runtime.onStartup.addListener(warmUp);
+warmUp();
+
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'open-search') return;
   const tabId = tab?.id ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
