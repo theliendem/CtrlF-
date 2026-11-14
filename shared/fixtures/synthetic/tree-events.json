@@ -1,0 +1,366 @@
+[
+  {
+    "nodeId": "n0",
+    "parentId": null,
+    "url": "https://canvas.wisc.edu/courses/12345",
+    "title": "CS 999: Intro to Digging",
+    "state": "digging",
+    "score": 0.1,
+    "t": 0
+  },
+  {
+    "nodeId": "n1",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+    "title": "Syllabus",
+    "state": "queued",
+    "score": 0.62,
+    "t": 600
+  },
+  {
+    "nodeId": "n2",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/modules",
+    "title": "Modules",
+    "state": "queued",
+    "score": 0.55,
+    "t": 600
+  },
+  {
+    "nodeId": "n3",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/announcements",
+    "title": "Announcements",
+    "state": "queued",
+    "score": 0.4,
+    "t": 600
+  },
+  {
+    "nodeId": "n4",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/grades",
+    "title": "Grades",
+    "state": "skipped",
+    "score": 0.05,
+    "t": 650
+  },
+  {
+    "nodeId": "n5",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/calendar",
+    "title": "Calendar",
+    "state": "skipped",
+    "score": 0.12,
+    "t": 650
+  },
+  {
+    "nodeId": "n0",
+    "parentId": null,
+    "url": "https://canvas.wisc.edu/courses/12345",
+    "title": "CS 999: Intro to Digging",
+    "state": "dead",
+    "score": 0.1,
+    "t": 1200
+  },
+  {
+    "nodeId": "n1",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+    "title": "Syllabus",
+    "state": "digging",
+    "score": 0.62,
+    "t": 1300
+  },
+  {
+    "nodeId": "n2",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/modules",
+    "title": "Modules",
+    "state": "digging",
+    "score": 0.55,
+    "t": 1300
+  },
+  {
+    "nodeId": "n1",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+    "title": "Syllabus",
+    "state": "relevant",
+    "score": 0.48,
+    "t": 2600,
+    "snippet": "Rules about allowed materials for each exam are in the Exam Policies PDF.",
+    "hit": {
+      "passageId": "s4",
+      "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+      "score": 0.48,
+      "text": "Both midterms are in class. Rules about allowed materials for each exam are in the Exam Policies PDF under Week 1 in Modules.",
+      "locator": {
+        "kind": "dom",
+        "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[3]",
+        "start": 0,
+        "end": 125
+      }
+    }
+  },
+  {
+    "nodeId": "n6",
+    "parentId": "n1",
+    "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+    "title": "Exam Policies (PDF)",
+    "state": "queued",
+    "score": 0.81,
+    "t": 2700
+  },
+  {
+    "nodeId": "n2",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/modules",
+    "title": "Modules",
+    "state": "dead",
+    "score": 0.2,
+    "t": 3100
+  },
+  {
+    "nodeId": "n7",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+    "title": "Week 1: Getting started",
+    "state": "queued",
+    "score": 0.58,
+    "t": 3200
+  },
+  {
+    "nodeId": "n8",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+    "title": "Week 2: Crawling",
+    "state": "queued",
+    "score": 0.37,
+    "t": 3200
+  },
+  {
+    "nodeId": "n9",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+    "title": "Week 3: Ranking",
+    "state": "skipped",
+    "score": 0.22,
+    "t": 3200
+  },
+  {
+    "nodeId": "n6",
+    "parentId": "n1",
+    "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+    "title": "Exam Policies (PDF)",
+    "state": "digging",
+    "score": 0.81,
+    "t": 3400
+  },
+  {
+    "nodeId": "n7",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+    "title": "Week 1: Getting started",
+    "state": "digging",
+    "score": 0.58,
+    "t": 3400
+  },
+  {
+    "nodeId": "n3",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/announcements",
+    "title": "Announcements",
+    "state": "digging",
+    "score": 0.4,
+    "t": 3400
+  },
+  {
+    "nodeId": "n3",
+    "parentId": "n0",
+    "url": "https://canvas.wisc.edu/courses/12345/announcements",
+    "title": "Announcements",
+    "state": "dead",
+    "score": 0.15,
+    "t": 5200
+  },
+  {
+    "nodeId": "n7",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+    "title": "Week 1: Getting started",
+    "state": "dead",
+    "score": 0.25,
+    "t": 6000
+  },
+  {
+    "nodeId": "n10",
+    "parentId": "n7",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+    "title": "How to get help",
+    "state": "queued",
+    "score": 0.39,
+    "t": 6100
+  },
+  {
+    "nodeId": "n6",
+    "parentId": "n1",
+    "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+    "title": "Exam Policies (PDF)",
+    "state": "hit",
+    "score": 0.86,
+    "t": 7400,
+    "snippet": "A basic four-function or scientific calculator is permitted on both midterms.",
+    "hit": {
+      "passageId": "s12",
+      "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+      "score": 0.86,
+      "text": "A basic four-function or scientific calculator is permitted on both midterms. Graphing calculators and phones are not.",
+      "locator": {
+        "kind": "pdf",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "page": 2,
+        "start": 0,
+        "end": 118
+      }
+    }
+  },
+  {
+    "nodeId": "n8",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+    "title": "Week 2: Crawling",
+    "state": "digging",
+    "score": 0.37,
+    "t": 7600
+  },
+  {
+    "nodeId": "n10",
+    "parentId": "n7",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+    "title": "How to get help",
+    "state": "digging",
+    "score": 0.39,
+    "t": 7600
+  },
+  {
+    "nodeId": "n10",
+    "parentId": "n7",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+    "title": "How to get help",
+    "state": "dead",
+    "score": 0.18,
+    "t": 9800
+  },
+  {
+    "nodeId": "n8",
+    "parentId": "n2",
+    "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+    "title": "Week 2: Crawling",
+    "state": "dead",
+    "score": 0.2,
+    "t": 10400
+  },
+  {
+    "nodeId": "n11",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+    "title": "Lab 1 handout.pdf",
+    "state": "queued",
+    "score": 0.42,
+    "t": 10500
+  },
+  {
+    "nodeId": "n12",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+    "title": "Final project guidelines",
+    "state": "queued",
+    "score": 0.36,
+    "t": 10500
+  },
+  {
+    "nodeId": "n11",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+    "title": "Lab 1 handout.pdf",
+    "state": "digging",
+    "score": 0.42,
+    "t": 11000
+  },
+  {
+    "nodeId": "n12",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+    "title": "Final project guidelines",
+    "state": "digging",
+    "score": 0.36,
+    "t": 11000
+  },
+  {
+    "nodeId": "n11",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+    "title": "Lab 1 handout.pdf",
+    "state": "dead",
+    "score": 0.12,
+    "t": 14300
+  },
+  {
+    "nodeId": "n12",
+    "parentId": "n8",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+    "title": "Final project guidelines",
+    "state": "relevant",
+    "score": 0.41,
+    "t": 16200,
+    "snippet": "The final presentation is ten minutes, followed by five minutes of questions.",
+    "hit": {
+      "passageId": "s9",
+      "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+      "score": 0.41,
+      "text": "The final presentation is ten minutes, followed by five minutes of questions from the class.",
+      "locator": {
+        "kind": "dom",
+        "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[2]",
+        "start": 0,
+        "end": 92
+      }
+    }
+  },
+  {
+    "nodeId": "n13",
+    "parentId": "n12",
+    "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+    "title": "Rubric",
+    "state": "skipped",
+    "score": 0.18,
+    "t": 16400
+  },
+  {
+    "nodeId": "n14",
+    "parentId": "n6",
+    "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+    "title": "Practice midterm.pdf",
+    "state": "queued",
+    "score": 0.66,
+    "t": 17000
+  },
+  {
+    "nodeId": "n14",
+    "parentId": "n6",
+    "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+    "title": "Practice midterm.pdf",
+    "state": "digging",
+    "score": 0.66,
+    "t": 17200
+  },
+  {
+    "nodeId": "n14",
+    "parentId": "n6",
+    "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+    "title": "Practice midterm.pdf",
+    "state": "dead",
+    "score": 0.22,
+    "t": 19800
+  }
+]
