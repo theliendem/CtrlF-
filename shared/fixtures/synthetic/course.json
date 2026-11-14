@@ -1,0 +1,325 @@
+[
+  {
+    "url": "https://canvas.wisc.edu/courses/12345",
+    "title": "CS 999: Intro to Digging",
+    "kind": "canvas",
+    "passages": [
+      {
+        "id": "s0",
+        "url": "https://canvas.wisc.edu/courses/12345",
+        "text": "Welcome to CS 999! Start with the syllabus and the Week 1 module.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[1]",
+          "start": 0,
+          "end": 65
+        }
+      },
+      {
+        "id": "s1",
+        "url": "https://canvas.wisc.edu/courses/12345",
+        "text": "Lecture recordings are posted within a day of each class.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[2]",
+          "start": 0,
+          "end": 57
+        }
+      }
+    ],
+    "links": [
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+        "text": "Syllabus",
+        "context": "syllabus course policies grading late work"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/modules",
+        "text": "Modules",
+        "context": "modules weekly materials"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/announcements",
+        "text": "Announcements",
+        "context": "announcements news updates"
+      }
+    ]
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+    "title": "Course Syllabus",
+    "kind": "canvas",
+    "passages": [
+      {
+        "id": "s2",
+        "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+        "text": "Assignments submitted after the deadline lose 10% per day. Nothing is accepted more than five days after the due date.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[1]",
+          "start": 0,
+          "end": 118
+        }
+      },
+      {
+        "id": "s3",
+        "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+        "text": "Each student has three free extension days for the semester that can be used on any homework without asking first.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[2]",
+          "start": 0,
+          "end": 114
+        }
+      },
+      {
+        "id": "s4",
+        "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+        "text": "Both midterms are in class. Rules about allowed materials for each exam are in the Exam Policies PDF under Week 1 in Modules.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[3]",
+          "start": 0,
+          "end": 125
+        }
+      },
+      {
+        "id": "s5",
+        "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+        "text": "Office hours are held Wednesdays from 3 to 5 PM in Room 4310, or by appointment over email.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[4]",
+          "start": 0,
+          "end": 91
+        }
+      }
+    ],
+    "links": [
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "Exam Policies (PDF)",
+        "context": "Exams: rules about allowed materials for each exam syllabus"
+      }
+    ]
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/modules",
+    "title": "Modules",
+    "kind": "canvas",
+    "passages": [],
+    "links": [
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+        "text": "Week 1: Getting started",
+        "context": "module week 1 getting started exam policies"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+        "text": "Week 2: Crawling",
+        "context": "module week 2 crawling lab"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+        "text": "Week 3: Ranking",
+        "context": "module week 3 ranking"
+      }
+    ]
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+    "title": "Week 1: Getting started",
+    "kind": "canvas",
+    "passages": [],
+    "links": [
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "Exam Policies.pdf",
+        "context": "Week 1 file exam policies pdf"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+        "text": "How to get help",
+        "context": "Week 1 page help office hours piazza"
+      }
+    ]
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+    "title": "Week 2: Crawling",
+    "kind": "canvas",
+    "passages": [],
+    "links": [
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+        "text": "Lab 1 handout.pdf",
+        "context": "Week 2 file lab handout crawling"
+      },
+      {
+        "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+        "text": "Final project guidelines",
+        "context": "Week 2 page final project"
+      }
+    ]
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+    "title": "How to get help",
+    "kind": "canvas",
+    "passages": [
+      {
+        "id": "s6",
+        "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+        "text": "Post questions on Piazza first; TAs answer within one business day.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[1]",
+          "start": 0,
+          "end": 67
+        }
+      },
+      {
+        "id": "s7",
+        "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+        "text": "For anything personal, such as grades or accommodations, email the instructor directly instead of posting.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[2]",
+          "start": 0,
+          "end": 106
+        }
+      }
+    ],
+    "links": []
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+    "title": "Final project guidelines",
+    "kind": "canvas",
+    "passages": [
+      {
+        "id": "s8",
+        "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+        "text": "Teams can have two to four people. Solo projects need instructor approval by week 6.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[1]",
+          "start": 0,
+          "end": 84
+        }
+      },
+      {
+        "id": "s9",
+        "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+        "text": "The final presentation is ten minutes, followed by five minutes of questions from the class.",
+        "locator": {
+          "kind": "dom",
+          "xpath": "/html[1]/body[1]/div[1]/main[1]/div[1]/p[2]",
+          "start": 0,
+          "end": 92
+        }
+      }
+    ],
+    "links": []
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+    "title": "Exam Policies.pdf",
+    "kind": "pdf",
+    "passages": [
+      {
+        "id": "s10",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "CS 999 Exam Policies. This document covers both midterms and the final project presentation.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+          "page": 1,
+          "start": 0,
+          "end": 92
+        }
+      },
+      {
+        "id": "s11",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "Exams start at the beginning of lecture. Arriving more than 15 minutes late means you cannot start the exam.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+          "page": 1,
+          "start": 93,
+          "end": 201
+        }
+      },
+      {
+        "id": "s12",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "A basic four-function or scientific calculator is permitted on both midterms. Graphing calculators and phones are not.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+          "page": 2,
+          "start": 0,
+          "end": 118
+        }
+      },
+      {
+        "id": "s13",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "You may bring one double-sided 8.5 by 11 inch sheet of handwritten notes to each midterm.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+          "page": 2,
+          "start": 119,
+          "end": 208
+        }
+      },
+      {
+        "id": "s14",
+        "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+        "text": "Regrade requests must be submitted within one week of exams being returned.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+          "page": 2,
+          "start": 209,
+          "end": 284
+        }
+      }
+    ],
+    "links": []
+  },
+  {
+    "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+    "title": "Lab 1 handout.pdf",
+    "kind": "pdf",
+    "passages": [
+      {
+        "id": "s15",
+        "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+        "text": "Lab 1: write a crawler that only issues GET requests and respects a page budget.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+          "page": 1,
+          "start": 0,
+          "end": 80
+        }
+      },
+      {
+        "id": "s16",
+        "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+        "text": "Labs are due Friday at 11:59 PM and are graded on completion.",
+        "locator": {
+          "kind": "pdf",
+          "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+          "page": 1,
+          "start": 81,
+          "end": 142
+        }
+      }
+    ],
+    "links": []
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Ctrl+F++",
+  "version": "0.1.0",
+  "description": "Find what you mean, not just what you typed. Then dig through linked pages to find it.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "sidePanel", "offscreen", "scripting", "activeTab"],
+  "host_permissions": ["https://canvas.wisc.edu/*"],
+  "optional_host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Ctrl+F++ (open dig panel)" },
+  "side_panel": { "default_path": "src/sidepanel/index.html" },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "open-search": {
+      "suggested_key": { "default": "Ctrl+Shift+F", "mac": "Command+Shift+F" },
+      "description": "Open the Ctrl+F++ search bar"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/pdfviewer/index.html", "assets/*", "engine/*"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

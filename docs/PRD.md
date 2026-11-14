@@ -189,6 +189,10 @@ Every dig logs which links it followed and whether they paid off. Databricks tra
 
 Pages, Canvas API responses and PDFs all go into the engine; only scores, passages and tree updates come out.
 
+## Contracts
+
+The source of truth is shared/contracts.ts (message types, Passage, Hit, TreeEvent, DigLog, LinkWeights) and shared/engine-api.ts (the engine interface). The live PRD doc's type sketch is older than those files; where they differ, the code wins.
+
 ## Canvas specifics
 
 On Canvas, dig through the Canvas REST API instead of scraping pages. It works with the browser's existing login, returns clean text, and the course structure (modules, items, files) maps straight onto the dig tree.

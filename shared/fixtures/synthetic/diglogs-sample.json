@@ -1,0 +1,3002 @@
+[
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.062,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.413,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.5,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.098,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.126,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.259,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.476,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.41,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.315,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.538,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.19,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.819,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.22,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.564,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.356,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.493,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.722,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.088,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.523,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.835,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.343,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.371,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.257,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.537,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.655,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.647,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.667,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.395,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.536,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.452,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.504,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.667,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.549,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.523,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.403,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.049,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.392,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.253,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.539,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.103,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.545,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.448,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.629,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.767,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.156,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.271,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.35,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.572,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.55,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.476,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.683,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.35,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.097,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.064,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.086,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.415,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.673,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.215,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.035,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.585,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.602,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.167,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.532,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.043,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.269,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.665,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.145,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.596,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.53,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.191,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.399,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.381,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.363,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.291,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.347,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.383,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.495,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.123,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.744,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.105,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.484,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.489,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.695,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.211,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.358,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.716,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.602,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.629,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.072,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.657,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.331,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.49,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.196,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.326,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.482,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.633,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.601,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.543,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.317,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.601,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.385,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.437,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.443,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.578,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.527,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.552,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.796,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.309,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.102,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.788,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.43,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.077,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.645,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.487,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.159,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.678,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.548,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.186,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.235,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.351,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.275,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.24,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.441,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.326,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.388,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.215,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.465,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.23,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.357,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.319,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.229,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.823,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.208,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.644,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.349,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.051,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.373,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.18,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.796,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.236,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.249,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.421,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.541,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.496,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.634,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.639,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.292,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.61,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.795,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.417,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.46,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.375,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.634,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.393,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.168,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.107,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.798,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.205,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.637,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.705,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.676,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.519,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.557,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.221,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.653,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.297,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.287,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.382,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.168,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.383,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.033,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.302,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.508,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.361,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.1,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.241,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.43,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.775,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.429,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.215,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.632,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.189,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.293,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.218,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.579,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.654,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.632,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.295,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.005,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.404,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.591,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.25,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.129,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.629,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.544,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.699,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.831,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.121,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.371,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.376,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.258,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.081,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.512,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.144,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.311,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.284,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.526,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.718,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.093,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.385,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.072,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.247,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.045,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.269,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.394,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.672,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.623,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.225,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.571,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.254,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.641,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.657,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.618,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.581,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.316,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.645,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.101,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.014,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.355,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.823,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.355,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.459,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.618,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.505,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.153,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.349,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.642,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.302,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.576,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.203,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.213,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.323,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.19,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.81,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.576,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.658,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.314,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.451,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.455,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.515,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.44,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.091,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.442,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.492,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "relevant"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.446,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.587,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.265,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.324,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.656,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.118,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.145,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "when are office hours",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.249,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.637,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.385,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.205,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.246,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.595,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.199,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/rubric",
+  "depth": 2,
+  "relevance": 0.489,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.211,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.803,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.248,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.309,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/assignments/syllabus",
+  "depth": 1,
+  "relevance": 0.352,
+  "isPdf": false,
+  "isSyllabus": true,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.47,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.608,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.171,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.444,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.445,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.244,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.096,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.298,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.31,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.366,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.399,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/files/778/download",
+  "depth": 3,
+  "relevance": 0.575,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.398,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "how do I ask for a regrade",
+  "url": "https://canvas.wisc.edu/courses/12345/announcements",
+  "depth": 1,
+  "relevance": 0.58,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/project-guidelines",
+  "depth": 2,
+  "relevance": 0.636,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "relevant"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules",
+  "depth": 1,
+  "relevance": 0.685,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "hit"
+ },
+ {
+  "query": "what happens if I miss an exam",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.202,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.062,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I use a calculator on the midterm",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.374,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.629,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 2,
+  "outcome": "hit"
+ },
+ {
+  "query": "how late can I turn in homework",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/3",
+  "depth": 2,
+  "relevance": 0.555,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 3,
+  "outcome": "hit"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/2",
+  "depth": 2,
+  "relevance": 0.026,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "dead"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/pages/how-to-get-help",
+  "depth": 2,
+  "relevance": 0.303,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "is the lab graded",
+  "url": "https://canvas.wisc.edu/courses/12345/files/777/download",
+  "depth": 3,
+  "relevance": 0.156,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ },
+ {
+  "query": "can I bring notes to the exam",
+  "url": "https://canvas.wisc.edu/courses/12345/files/779/download",
+  "depth": 3,
+  "relevance": 0.844,
+  "isPdf": true,
+  "isSyllabus": false,
+  "keywordHits": 0,
+  "outcome": "hit"
+ },
+ {
+  "query": "how big can project teams be",
+  "url": "https://canvas.wisc.edu/courses/12345/modules/1",
+  "depth": 2,
+  "relevance": 0.478,
+  "isPdf": false,
+  "isSyllabus": false,
+  "keywordHits": 1,
+  "outcome": "dead"
+ }
+]
