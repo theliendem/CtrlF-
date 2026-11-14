@@ -141,6 +141,8 @@ export type Msg =
   | { type: 'EXPORT_DIGLOGS' }
   /** background -> sidepanel (reply to EXPORT_DIGLOGS). */
   | { type: 'DIGLOGS_FILE'; filename: string; json: string; count: number }
+  /** offscreen -> background (internal): new DigLog rows to persist in chrome.storage.local. */
+  | { type: 'DIGLOGS_APPEND'; logs: DigLog[] }
   /** offscreen -> background, once the engine has loaded. */
   | { type: 'ENGINE_READY'; engine: 'stub' | 'real'; weightsVersion: string };
 
