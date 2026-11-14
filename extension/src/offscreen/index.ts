@@ -50,7 +50,10 @@ async function devDig(query: string, url: string, settings: Partial<typeof DEFAU
     d.onMsg = (m) => {
       if (m.type === 'TREE_EVENT') {
         const e = m.event;
-        if (e.state !== 'queued' && e.state !== 'skipped' && e.state !== 'digging') console.log(`${e.t}ms ${e.state.padEnd(8)} ${e.score.toFixed(2)} ${e.title}`, e.snippet ?? '');
+        if (e.state !== 'queued' && e.state !== 'skipped' && e.state !== 'digging') {
+          const path = e.url.replace(/^https?:\/\/[^/]+/, '');
+          console.log(`${e.t}ms ${e.state.padEnd(8)} ${e.score.toFixed(2)} ${e.title}  [${path}]`, e.snippet ? `\n    "${e.snippet}"` : '');
+        }
       } else if (m.type === 'DIG_DONE') {
         console.log(`DONE ${m.reason}: ${m.pagesSearched} pages, ${m.hits.length} hits`);
         console.table(m.hits.slice(0, 10).map((h) => ({ score: h.score.toFixed(2), url: h.url, text: h.text.slice(0, 100) })));

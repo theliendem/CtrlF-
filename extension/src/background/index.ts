@@ -93,7 +93,19 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'open-search') return;
   const tabId = tab?.id ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.id;
   if (tabId == null) return;
-  chrome.tabs.sendMessage(tabId, { type: 'OPEN_SEARCH' } satisfies Msg).catch((e) => console.warn('[ctrlfpp] no content script in tab', e));
+  const msg: Msg = { type: 'OPEN_SEARCH' };
+  try {
+    await chrome.tabs.sendMessage(tabId, msg);
+  } catch {
+    // Tabs opened before the extension was (re)loaded have no content script. The command grants
+    // activeTab, so inject it now and retry once.
+    try {
+      await chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: ['content.js'] });
+      await chrome.tabs.sendMessage(tabId, msg);
+    } catch (e) {
+      console.warn('[ctrlfpp] cannot open search in this tab (chrome:// or web store page?)', e);
+    }
+  }
 });
 
 chrome.runtime.onMessage.addListener((raw: Msg | OffscreenEnvelope, sender, sendResponse) => {
