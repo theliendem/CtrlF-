@@ -66,6 +66,18 @@ export function isHub(url: string): boolean {
   return /^\/courses\/\d+\/(assignments\/syllabus|modules(\/\d+)?|announcements|assignments)\/?$/.test(new URL(url).pathname);
 }
 
+/** Registrable domain, roughly: transportation.wisc.edu and www.wisc.edu are the same site. */
+export function siteOf(hostname: string): string {
+  const parts = hostname.toLowerCase().split('.');
+  if (parts.length <= 2 || /^\d+$/.test(parts[parts.length - 1])) return hostname;
+  // Two-part public suffixes like co.uk, ac.uk, com.au.
+  const twoPart = /^(co|ac|gov|edu|org|net|com)$/.test(parts[parts.length - 2]) && parts[parts.length - 1].length === 2;
+  return parts.slice(twoPart ? -3 : -2).join('.');
+}
+
+/** Links that are never readable pages (PDFs are fine). */
+const NOT_A_PAGE = /\.(png|jpe?g|gif|svg|webp|ico|bmp|mp[34]|m4a|mov|avi|webm|wav|zip|gz|tgz|rar|7z|dmg|exe|msi|apk|iso|css|js|json|xml|rss|atom|ics|vcf|docx?|xlsx?|pptx?|csv|txt)$/i;
+
 /** Max skipped stubs drawn per parent, so a link-heavy page doesn't flood the tree. */
 const MAX_STUBS_PER_PARENT = 12;
 const SNIPPET_LEN = 140;
@@ -135,7 +147,7 @@ export class Dig {
     if (this.settings.scope === 'any') return true;
     const a = new URL(this.rootUrl);
     const b = new URL(url);
-    if (a.host !== b.host) return false;
+    if (siteOf(a.hostname) !== siteOf(b.hostname)) return false;
     // On Canvas, stay inside the course we started in (plus bare /files/:id links).
     const ca = canvasCourseOf(this.rootUrl);
     if (ca) {
@@ -259,7 +271,7 @@ export class Dig {
         continue;
       }
       if (this.seen.has(key) || local.has(key)) continue;
-      if (!this.inScope(l.url) || !isSafeToFetch(l.url, l.text)) continue;
+      if (!this.inScope(l.url) || !isSafeToFetch(l.url, l.text) || NOT_A_PAGE.test(new URL(l.url).pathname)) continue;
       local.add(key);
       fresh.push(l);
     }

@@ -33,6 +33,8 @@
 
 ## Notes
 
+- **Manifest: `<all_urls>` is now a required host permission** (was optional). The content script already runs on all sites, so the install warning is the same, and without it the dig can't fetch non-Canvas pages from the offscreen document. Nobody needs to build a permission prompt.
+- **Scope 'same-site' = same registrable domain** (transportation.wisc.edu and www.wisc.edu count as one site). On Canvas it's still the same course. Links to images/zips/Office files/etc. are never followed.
 - **C:** `content.js` can now be injected programmatically on top of the manifest one in rare cases. Guard your content script against running twice (e.g. `if (window.__ctrlfpp) return; window.__ctrlfpp = true`).
 - **The crawl runs in the offscreen document, not the service worker** (MV3 workers get killed when idle and would lose the queue). `TREE_EVENT` and `DIG_DONE` are sent from there via `chrome.runtime.sendMessage`; the side panel receives them the same way.
 - **C, tree semantics:** `dead` = page searched, nothing relevant on it. A dead node can still have queued children (hub pages like Modules). Node ids are `n0` (root), `n1`, ... and each node reuses its id across state changes. At most 12 `skipped` stubs per parent.
