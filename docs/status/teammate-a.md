@@ -4,6 +4,9 @@
 
 ## Works now
 
+- **Canvas API works from the extension with the browser's login** (tested on a real course: 200, course JSON). No content-script fallback needed.
+- `extension/src/sources/`: `loadDoc(url)` routes any URL (Canvas API / PDF / plain HTML). `canvasDoc(webUrl)` maps Canvas web URLs (home, syllabus, modules, module, pages, page, assignments, assignment, announcements, discussion topic, files) to API calls; links stay web URLs so the tree mirrors the course. `fromCanvas(courseId, origin)` walks a whole course. `fromHtml(html, url)`, `isSafeToFetch(url, text)`, `safeGet(url)` (GET-only, 8 s timeout, skip list).
+- Offscreen console helpers: `await ctrlfpp.walk('<courseId>')`, `await ctrlfpp.probePdf('<courseId>')`, `await ctrlfpp.loadDoc(url)`.
 - **Task 0 merged.** `cd extension && npm install && npm run build`, then Load unpacked on `extension/dist`.
 - `shared/contracts.ts`, `shared/engine-api.ts`, `shared/engine-stub.ts` (keyword overlap, same interface as the real engine).
 - Message routing: content -> `SEARCH_PAGE` -> background -> offscreen (stub engine) -> `SEARCH_RESULTS` reply. Ctrl+Shift+F (Cmd+Shift+F) sends `OPEN_SEARCH` to the tab.
@@ -12,7 +15,7 @@
 
 ## Next
 
-- A2: first real Canvas API call from the extension (cookie check), then `fromHtml`, `fromCanvas`, `isSafeToFetch`.
+- Check Canvas PDF downloads from the extension (redirect host), then A3: best-first crawler + TREE_EVENTs + DigLogs.
 
 ## Needs from others
 
@@ -20,6 +23,7 @@
 
 ## Notes
 
+- **B:** `canvasDoc` calls your `fromPdf(downloadUrl)` for Canvas PDFs. The URL is Canvas's `files/:id/download?...verifier=` link, which redirects to file storage; fetch it with `credentials: 'include'`. Please use `safeGet` from `sources/safety.ts` for the fetch.
 - **Contract changes vs. the PRD (read before coding):**
   - `Hit` carries `url`, `text`, `locator` (not just `passageId`, `score`).
   - `Passage` has `url`. `Engine.search(query, k, url?)` scopes to one page; `Engine.remove(url)` drops a page.
