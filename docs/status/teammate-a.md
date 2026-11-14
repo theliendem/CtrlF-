@@ -4,6 +4,8 @@
 
 ## Works now
 
+- **Live dig on a real Canvas course (MATH345): 46 pages, ~5.4 s, finished on its own with no errors.** It covered home, syllabus, modules, module items, announcements, assignments, pages and ~30 PDFs. With the stub, every match scores 0.50 (word overlap) and PDFs are empty until B's `fromPdf` lands.
+- Cmd/Ctrl+Shift+F now works in tabs opened before the extension was reloaded (background injects `content.js` and retries).
 - **The dig works (A3).** `START_DIG` runs a real best-first crawl: 4 at once, 8 s timeout (20 s for files), depth/budget/scope from `chrome.storage.sync['digSettings']` merged with the message's `settings`, pauses after 3 strong hits with `DIG_DONE reason:'ask'` (`RESUME_DIG` continues), `STOP_DIG` stops (resumable). A `TREE_EVENT` goes out on every node state change. Tested offline on `course.json`: the budget is respected, no duplicate fetches, and the PDF hit is found 2 levels deep.
 - `START_DIG` from the side panel can omit `url`/`tabId`; background fills in the active tab. It also opens the side panel when sent from the page (needs a user click).
 - `START_DIG` with `url: 'fixture'` still replays `tree-events.json` (dev).
@@ -31,6 +33,7 @@
 
 ## Notes
 
+- **C:** `content.js` can now be injected programmatically on top of the manifest one in rare cases. Guard your content script against running twice (e.g. `if (window.__ctrlfpp) return; window.__ctrlfpp = true`).
 - **The crawl runs in the offscreen document, not the service worker** (MV3 workers get killed when idle and would lose the queue). `TREE_EVENT` and `DIG_DONE` are sent from there via `chrome.runtime.sendMessage`; the side panel receives them the same way.
 - **C, tree semantics:** `dead` = page searched, nothing relevant on it. A dead node can still have queued children (hub pages like Modules). Node ids are `n0` (root), `n1`, ... and each node reuses its id across state changes. At most 12 `skipped` stubs per parent.
 - **Canvas hubs** (syllabus, modules, a module, announcements, assignments list) are always queued, just above `minScore`, because they rarely share words with a question but lead everywhere.
