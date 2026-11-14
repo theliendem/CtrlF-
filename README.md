@@ -17,7 +17,7 @@ A Chrome extension that finds what you mean, not just what you typed, and digs t
 1. `cd extension && npm install && npm run build`
 2. Go to chrome://extensions and turn on Developer mode.
 3. Click "Load unpacked" and pick extension/dist.
-4. After pulling new changes, rebuild and click the reload icon on the extension card.
+4. After pulling new changes from main, rebuild and click the reload icon on the extension card.
 
 ## Who owns what
 

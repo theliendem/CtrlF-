@@ -1,6 +1,6 @@
 # Teammate C status
 
-*Newest first. Update after every push.*
+*Newest first. Update in every PR.*
 
 ## Works now
 

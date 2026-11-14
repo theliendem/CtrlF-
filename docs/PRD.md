@@ -237,7 +237,7 @@ Task details: docs/tasks/teammate-a.md through teammate-d.md. Team rules: CLAUDE
 
 **Timeline:**
 
-1. Saturday, first hour: A's Task 0 pushed to main; B's benchmark result in docs/status/teammate-b.md; D's Canvas captures uploaded.
+1. Saturday, first hour: A's Task 0 merged to main; B's benchmark result in docs/status/teammate-b.md; D's Canvas captures uploaded.
 2. Saturday 6 PM checkpoint: Phase 1 works end to end on a Canvas page.
 3. Saturday midnight checkpoint: the crawler finds a PDF answer two levels deep and the tree draws it.
 4. Sunday 6 AM: animations, click-to-highlight and the Databricks dashboard done. Feature freeze.

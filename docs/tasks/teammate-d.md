@@ -2,7 +2,7 @@
 
 You don't need Claude Code for any of this. Everything happens in your browser: Canvas, github.com, and Databricks. Your work decides whether the demo uses real data, whether we win the Databricks track, and how the pitch lands. Start on Part 1 right now. Teammates A and B need your Canvas data in the first hour.
 
-**How to add files on GitHub:** open the repo on github.com, go to the folder, click "Add file," then "Upload files" (or "Create new file"). Commit straight to main with a message starting with [D]. To edit a file, open it and click the pencil icon.
+**How to add files on GitHub:** open the repo on github.com, go to the folder, click "Add file," then "Upload files" (or "Create new file"). Write a commit message starting with [D], then choose "Create a new branch for this commit and start a pull request" (don't commit straight to main). On the next page click "Create pull request", then "Merge pull request". To edit a file, open it and click the pencil icon; the same branch-and-merge steps apply.
 
 **Keep the repo private.** It will contain course material.
 

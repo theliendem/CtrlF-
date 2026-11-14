@@ -41,9 +41,9 @@ Build it against shared/fixtures/synthetic/tree-events.json, replayed with its r
 - It accepts a pdf Locator (page plus character offsets, coordinated with B) and scrolls to and highlights that passage.
 - It works with the same Ctrl+Shift+F search bar, so Phase 1 works inside PDFs too.
 
-## Push rhythm
+## Merge rhythm
 
-Push after the search bar opens, after highlights work, after the tree replays from the fixture, and after every visual improvement. Put a GIF or a short description of what changed in your status file so A and D can see progress without pulling.
+Merge a PR after the search bar opens, after highlights work, after the tree replays from the fixture, and after every visual improvement. Put a GIF or a short description of what changed in your status file so A and D can see progress without pulling.
 
 ## Done when
 

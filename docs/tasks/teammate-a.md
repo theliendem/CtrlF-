@@ -36,7 +36,7 @@ You own the skeleton everyone else builds on, the Canvas and HTML sources, the c
    - diglogs-sample.json: about 300 synthetic DigLog rows, so D can start Databricks
    - link-weights.default.json: hand-set weights
 7. **Status files.** Create docs/status/teammate-a.md through teammate-d.md from the template (Works now / Next / Needs from others / Notes).
-8. **Verify, then push.** `npm run build` passes, the extension loads in Chrome, and the side panel opens with a placeholder. Push with `[A] scaffold, contracts, stub engine, fixtures`. Tell your human to tell B and C to start.
+8. **Verify, then merge.** `npm run build` passes, the extension loads in Chrome, and the side panel opens with a placeholder. Push it on a branch (`a/scaffold`), open a PR titled `[A] scaffold, contracts, stub engine, fixtures`, and merge it. Tell your human to tell B and C to start.
 
 ## Task A2: sources (extension/src/sources/, except pdf.ts)
 
