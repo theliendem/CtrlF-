@@ -16,20 +16,45 @@ async function walk(courseId: string, origin = ORIGIN, max = 40) {
   return rows;
 }
 
-async function probePdf(courseId: string, origin = ORIGIN) {
-  type Item = { type: string; title: string; content_id?: number };
+/** Find a PDF in the course (module File items, then /files/ links inside docs) and check its download works. */
+async function probePdf(courseId: string, origin = ORIGIN, maxDocs = 60) {
+  const fileIds = new Set<string>();
+  type Item = { type: string; content_id?: number };
   const mods = await canvasGetAll<{ items?: Item[] }>(`${origin}/api/v1/courses/${courseId}/modules?include[]=items&per_page=50`);
-  const files = mods.flatMap((m) => m.items ?? []).filter((i) => i.type === 'File' && i.content_id);
-  for (const it of files) {
-    const f = await canvasGet<{ url: string; filename: string; 'content-type': string }>(`${origin}/api/v1/courses/${courseId}/files/${it.content_id}`);
-    if (f['content-type'] !== 'application/pdf') continue;
-    const res = await safeGet(f.url, { timeoutMs: 20000 });
-    const bytes = (await res.arrayBuffer()).byteLength;
-    const out = { file: f.filename, status: res.status, finalHost: new URL(res.url).host, type: res.headers.get('content-type'), bytes, ok: res.ok && bytes > 1000 ? 'PASS' : 'FAIL' };
-    console.log(out);
-    return out;
+  for (const it of mods.flatMap((m) => m.items ?? [])) if (it.type === 'File' && it.content_id) fileIds.add(String(it.content_id));
+  if (fileIds.size === 0) {
+    let n = 0;
+    for await (const d of fromCanvas(courseId, origin)) {
+      for (const l of d.links) {
+        const m = new URL(l.url).pathname.match(/\/files\/(\d+)/);
+        if (m) fileIds.add(m[1]);
+      }
+      if (fileIds.size >= 5 || ++n >= maxDocs) break;
+    }
   }
-  console.log('no PDF module items found');
+  console.log(`probePdf: ${fileIds.size} file link(s) found`);
+  for (const id of fileIds) {
+    let f: { url: string; filename: string; 'content-type': string };
+    try {
+      f = await canvasGet(`${origin}/api/v1/courses/${courseId}/files/${id}`);
+    } catch (e) {
+      console.log('file', id, 'not readable:', String(e));
+      continue;
+    }
+    if (f['content-type'] !== 'application/pdf') continue;
+    try {
+      const res = await safeGet(f.url, { timeoutMs: 20000 });
+      const bytes = (await res.arrayBuffer()).byteLength;
+      const out = { file: f.filename, status: res.status, finalHost: new URL(res.url).host, type: res.headers.get('content-type'), bytes, ok: res.ok && bytes > 1000 ? 'PASS' : 'FAIL' };
+      console.log(out);
+      return out;
+    } catch (e) {
+      const out = { file: f.filename, downloadUrl: f.url, ok: 'FAIL', error: String(e) };
+      console.log(out, '(a TypeError "Failed to fetch" here = redirect host needs a host permission)');
+      return out;
+    }
+  }
+  console.log('no readable PDF found in this course');
   return null;
 }
 

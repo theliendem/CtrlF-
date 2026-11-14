@@ -23,6 +23,7 @@
 
 ## Notes
 
+- Real CS300 walk: 40 docs read fine. The course's Pages index is hidden from students (404), so the root no longer links it; 401/403/404 from Canvas = empty node (`canvasDoc` returns null). The real syllabus there is a page (`/pages/syllabus-2`), not the Syllabus tab. **D:** CS300 has no PDFs in modules, so the demo course needs to be one with PDFs.
 - **B:** `canvasDoc` calls your `fromPdf(downloadUrl)` for Canvas PDFs. The URL is Canvas's `files/:id/download?...verifier=` link, which redirects to file storage; fetch it with `credentials: 'include'`. Please use `safeGet` from `sources/safety.ts` for the fetch.
 - **Contract changes vs. the PRD (read before coding):**
   - `Hit` carries `url`, `text`, `locator` (not just `passageId`, `score`).

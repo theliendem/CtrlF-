@@ -143,6 +143,16 @@ function modules(origin: string, cid: string): Promise<Module[]> {
  * course URL we know how to read (the caller may fall back to fromHtml, or skip it).
  */
 export async function canvasDoc(url: string): Promise<SourceDoc | null> {
+  try {
+    return await canvasDocInner(url);
+  } catch (e) {
+    // Hidden tabs / unpublished items / no access: an empty node, not a crash.
+    if (e instanceof CanvasApiError && [401, 403, 404].includes(e.status)) return null;
+    throw e;
+  }
+}
+
+async function canvasDocInner(url: string): Promise<SourceDoc | null> {
   const u = new URL(url);
   const origin = u.origin;
   const path = u.pathname.replace(/\/+$/, '');
@@ -175,7 +185,7 @@ export async function canvasDoc(url: string): Promise<SourceDoc | null> {
       link(`${C}/modules`, 'Modules', 'modules weekly materials files pages'),
       link(`${C}/announcements`, 'Announcements', 'announcements news updates'),
       link(`${C}/assignments`, 'Assignments', 'assignments homework due dates'),
-      link(`${C}/pages`, 'Pages', 'course pages'),
+      // No 'Pages' link: many courses hide the pages index from students (404). Pages are reached via modules/syllabus.
     );
     return doc;
   }
@@ -210,7 +220,7 @@ export async function canvasDoc(url: string): Promise<SourceDoc | null> {
     for (const md of await modules(origin, cid)) {
       const it = md.items?.find((i) => i.id === itemId);
       const l = it && moduleItemLink(origin, cid, md, it);
-      if (l) return canvasDoc(l.url);
+      if (l) return canvasDocInner(l.url);
     }
     return null;
   }
