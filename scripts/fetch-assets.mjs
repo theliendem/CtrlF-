@@ -2,8 +2,9 @@
 // Nothing is downloaded at runtime. Safe to re-run.
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(new URL(import.meta.url).pathname), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MODEL = 'all-MiniLM-L6-v2';
 const HF = `https://huggingface.co/Xenova/${MODEL}/resolve/main`;
 const modelFiles = ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model_quantized.onnx', 'onnx/model_fp16.onnx'];
