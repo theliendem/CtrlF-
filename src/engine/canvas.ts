@@ -56,10 +56,10 @@ export function parseHtml(html: string, url: string, title: string): PageText {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   title ||= doc.title?.trim() ?? '';
   const canonical = doc.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ?? undefined;
-  doc.querySelectorAll('script,style,noscript,iframe,form').forEach((el) => el.remove());
-  // Menu links are dig candidates; menu text is not page content.
-  const links = pageLinks(doc, title, (a) => a.getAttribute('href')!);
-  doc.querySelectorAll('nav,header,footer,[hidden],[aria-hidden="true"],[role="navigation"],[role="banner"],[role="contentinfo"]').forEach((el) => el.remove());
+  doc.querySelectorAll('script,style,noscript,form').forEach((el) => el.remove());
+  // Menu links and embedded file previews are dig candidates; neither is page content.
+  const links = pageLinks(doc, title, (el) => el.getAttribute('href') ?? el.getAttribute('src')!);
+  doc.querySelectorAll('iframe,nav,header,footer,[hidden],[aria-hidden="true"],[role="navigation"],[role="banner"],[role="contentinfo"]').forEach((el) => el.remove());
   const blocks: string[] = title ? [title] : [];
   let current: Element | null = null;
   let text = '';

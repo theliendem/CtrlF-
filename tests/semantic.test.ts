@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isCanvasHub, linkText, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
+import { isCanvasHub, isFileLink, linkText, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
 import { runBestFirst } from '../src/background/queue.ts';
 import { LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, type DigEntry, type DigRun } from '../src/shared/types.ts';
 
@@ -81,6 +81,20 @@ test('keepAll keeps vaguely titled links, uncapped, still best first', async () 
   assert.equal(picked.length, 22);
   assert.equal(picked[0].title, 'Late work policy');
   assert.ok(picked.some((l) => l.title === 'U2 homework' && l.score === LINK_MIN));
+});
+
+test('file links are always kept, even with vague names and past the cap', async () => {
+  const base = 'https://canvas.wisc.edu/courses/123';
+  const links = [
+    { url: `${base}/files/42`, title: 'Lecture5.pdf', heading: '' },
+    { url: 'https://site.edu/notes/u2.pdf', title: 'U2', heading: '' },
+    ...Array.from({ length: 20 }, (_, i) => ({ url: `https://site.edu/x${i}`, title: `Deadline note ${i}`, heading: '' })),
+  ];
+  const picked = await semanticLinks('can I hand it in late', links, 2, true, fakeEmbed);
+  assert.ok(picked.some((l) => l.title === 'Lecture5.pdf' && l.score! >= LINK_MIN));
+  assert.ok(picked.some((l) => l.title === 'U2'));
+  assert.equal(picked.length, LINK_PEEK + 2);
+  assert.ok(isFileLink(`${base}/files/42`) && isFileLink('https://site.edu/a.DOCX') && !isFileLink(`${base}/pages/files`));
 });
 
 function entry(id: string, priority: number): DigEntry {

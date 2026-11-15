@@ -22,7 +22,7 @@ test('file types accept supported formats and reject legacy formats and images',
 });
 
 test('Canvas file URLs deduplicate preview, download, and global file routes', () => {
-  for (const path of ['/files/42/download?download_frd=1', '/courses/123/files/42/preview', '/courses/123/files/42', '/courses/123/files?preview=42']) {
+  for (const path of ['/files/42/download?download_frd=1', '/courses/123/files/42/preview', '/courses/123/files/42/file_preview?annotate=0', '/courses/123/files/42', '/courses/123/files?preview=42']) {
     assert.equal(safeLink(path, base, context), `${base}/files/42`);
   }
   assert.equal(safeLink('/courses/999/files/42', base, context), null);

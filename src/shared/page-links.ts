@@ -14,22 +14,24 @@ function navHeading(a: Element): string {
 }
 
 /**
- * hrefOf: the live page passes the resolved href; fetched HTML passes the raw attribute (resolved later
- * against where the page landed). visible: the live page skips content links the reader can't see.
+ * Links include iframes: Canvas embeds a file's preview as an iframe of /files/:id/file_preview.
+ * hrefOf: the live page passes the resolved href or src; fetched HTML passes the raw attribute (resolved
+ * later against where the page landed). visible: the live page skips content links the reader can't see.
  */
 export function pageLinks(root: ParentNode, title: string, hrefOf: (a: Element) => string, visible: (el: Element) => boolean = () => true): DigLink[] {
   const links: DigLink[] = [];
   let heading = title;
-  for (const el of root.querySelectorAll('h1,h2,h3,h4,h5,h6,a[href]')) {
+  for (const el of root.querySelectorAll('h1,h2,h3,h4,h5,h6,a[href],iframe[src]')) {
     if (el.closest(SKIP)) continue;
     // Collapsed menu entries are still options (a textbook's table of contents folds its sections).
     const inNav = el.closest(NAV) !== null;
     if (!inNav && !visible(el)) continue;
-    if (el.tagName !== 'A') {
+    if (/^H\d$/.test(el.tagName)) {
       if (!inNav) heading = el.textContent?.trim() || title;
       continue;
     }
-    links.push({ url: hrefOf(el), title: el.textContent?.trim() || '', heading: inNav ? navHeading(el) : heading });
+    const text = el.tagName === 'IFRAME' ? el.getAttribute('title') : el.textContent;
+    links.push({ url: hrefOf(el), title: text?.trim() || '', heading: inNav ? navHeading(el) : heading });
   }
   return links;
 }

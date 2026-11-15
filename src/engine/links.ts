@@ -15,7 +15,7 @@ export function safeLink(raw: string, base: string, context: CanvasContext): str
     if (url.origin !== context.origin || url.username || url.password) return null;
     const path = decodeURIComponent(url.pathname);
     if (/(?:^|[\W_])(logout|delete|submit|submissions?|quizzes?|grades?|inbox|people|users|accounts?|help)(?:$|[\W_])/i.test(path)) return null;
-    const fileId = path.match(new RegExp(`^(?:/courses/${context.courseId})?/files/(\\d+)(?:/(?:download|preview))?$`));
+    const fileId = path.match(new RegExp(`^(?:/courses/${context.courseId})?/files/(\\d+)(?:/(?:download|preview|file_preview))?$`));
     const prefix = `/courses/${context.courseId}`;
     if (path === `${prefix}/files` && /^\d+$/.test(url.searchParams.get('preview') ?? '')) return `${context.origin}${prefix}/files/${url.searchParams.get('preview')}`;
     if (fileId) return `${context.origin}${prefix}/files/${fileId[1]}`;

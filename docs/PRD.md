@@ -27,7 +27,7 @@ Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2
    - Exception: every link on the start page, and every item on a Canvas module or list page, joins the queue regardless of score or the cap, because titles like "U2 homework" don't say what's inside. They're still ordered by score.
 6. **Digging.** The queue is best-first: the highest-scoring unvisited link anywhere in the tree goes next. Each opened page is extracted, scored and highlighted in the tree, and its links go through step 5.
    - **Stopping early (Semantic).** Once 3 pages below the start page have a strong hit (score 0.45 or more), no new reads start and the status says it stopped early. A "Keep searching" link next to the status resumes the same queue to the end, with no further early stops. Exact always runs to the end.
-7. **Files.** PDF, PowerPoint (.pptx) and Word (.docx) files found on a page become child nodes. They're read page by page or slide by slide, and the node turns green as soon as any part matches.
+7. **Files.** PDF, PowerPoint (.pptx) and Word (.docx) files found on a page become child nodes. That includes files embedded as previews (a Canvas file_preview iframe). Semantic always follows file links, whatever they're named, since a name like "Lecture5.pdf" says little about what's inside; they're still ordered by score. They're read page by page or slide by slide, and the node turns green as soon as any part matches.
 8. **Stopping.** The dig stops when it hits the page budget, when no unvisited link scores high enough, or when the user presses Stop.
 9. **Results.** Green nodes appear in the tree and in a small scrollable list under it. Clicking one opens it with the relevant parts highlighted.
 

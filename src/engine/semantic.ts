@@ -4,6 +4,7 @@ import { CONFLICT_FACTOR, LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SEMANTIC_RELE
 import { chunk } from './chunk';
 import { keywordScore, parseQuery } from './keywords';
 import { dot, highlightPieces, scorePassages } from './score';
+import { siteFileKind } from './links';
 
 export type Embed = (texts: string[]) => Promise<Float32Array[]>;
 
@@ -63,9 +64,18 @@ export function isCanvasHub(url: string): boolean {
   }
 }
 
+/** A file link: a Canvas /files/:id, or a .pdf, .pptx or .docx. Names like "Lecture5.pdf" say little about what's inside. */
+export function isFileLink(url: string): boolean {
+  try {
+    return /\/files\/\d+$/.test(new URL(url).pathname) || siteFileKind(url) !== null;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Score links by meaning against the query, best first: drop weak ones and keep the top LINK_PEEK.
- * Canvas hubs are always kept (at least LINK_MIN) and don't count toward the cap.
+ * Canvas hubs and files are always kept (at least LINK_MIN) and don't count toward the cap.
  * keepAll keeps every link the same way: a title like "U2 homework" says nothing about what's inside.
  * depth is the depth the linked page would sit at.
  */
@@ -77,7 +87,7 @@ export async function semanticLinks(query: string, links: DigLink[], depth: numb
   const scored = links.map((link, i) => {
     const { kw, conflict } = keywordScore(q, texts[i]);
     const score = (W_COS * dot(qVec, vecs[i]) + W_KW * kw) * (conflict ? CONFLICT_FACTOR : 1) - LINK_DEPTH_PENALTY * depth;
-    const kept = keepAll || (canvas && isCanvasHub(link.url));
+    const kept = keepAll || isFileLink(link.url) || (canvas && isCanvasHub(link.url));
     return { link: { ...link, score: kept ? Math.max(score, LINK_MIN) : score }, kept };
   });
   const byScore = (a: { link: DigLink }, b: { link: DigLink }): number => b.link.score! - a.link.score!;

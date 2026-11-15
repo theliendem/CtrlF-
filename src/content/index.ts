@@ -36,7 +36,7 @@ function extract(): PageText {
 }
 
 function extractLinks(): DigLink[] {
-  return pageLinks(document, document.title, (a) => (a as HTMLAnchorElement).href, (el) => el.checkVisibility({ visibilityProperty: true }));
+  return pageLinks(document, document.title, (el) => el instanceof HTMLIFrameElement ? el.src : (el as HTMLAnchorElement).href, (el) => el.checkVisibility({ visibilityProperty: true }));
 }
 
 // ---- Highlighting ----
