@@ -14,7 +14,7 @@ export function wordCount(blocks: string[]): number {
 }
 
 export async function fetchSite(url: string, context: SiteContext, signal: AbortSignal, parse = parseHtml): Promise<SiteFetch> {
-  if (!siteLink(url, url, context)) throw new Error('Blocked unsafe link');
+  if (!siteLink(url, url, context, true)) throw new Error('Blocked unsafe link');
   const response = await fetch(url, { method: 'GET', credentials: 'include', redirect: 'follow', signal });
   const finalUrl = response.url || url;
   // The redirect itself was a GET; reading an off-site page it landed on is not.

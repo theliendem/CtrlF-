@@ -4,9 +4,9 @@ import { installMemoryHooks, memorySnapshot } from '../debug/memory';
 installMemoryHooks();
 import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type MemReport, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
-import { loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
+import { loadModel, semanticIndexLinks, semanticLinks, semanticPassages } from '../engine/semantic';
 import { discoverCourse, readCanvas } from '../engine/canvas';
-import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
+import { digLink, filterLinks, indexLinks, isCanvas, siteLink, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
 import { pdfSections } from '../engine/pdf';
 import { fetchSite } from '../engine/site';
@@ -39,8 +39,12 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     signal.throwIfAborted();
     const visited = new Set(msg.visited);
     const links = canDig ? await pick(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : [];
+    // Semantic, other sites: index pages to fall back on if none of these links can be followed.
+    const indexes = canDig && mode === 'semantic' && !isCanvas(context)
+      ? await semanticIndexLinks(msg.query, indexLinks(page.links, base, context).filter((link) => !visited.has(link.url)), msg.depth + 1)
+      : [];
     signal.throwIfAborted();
-    return { title: page.title, passages, links, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base, identity: pageIdentity(base, page.canonical, page.blocks) };
+    return { title: page.title, passages, links, indexLinks: indexes, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base, identity: pageIdentity(base, page.canonical, page.blocks) };
   };
 
   /** Read a file section by section; report each better match as it is found. */
@@ -90,7 +94,8 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
       }
       return await finish({ url: msg.url, title: '', blocks: [], links }, msg.url);
     }
-    if (!digLink(msg.url, msg.url, context)) throw new Error('Blocked unsafe link');
+    const allowed = digLink(msg.url, msg.url, context) ?? (msg.index && !isCanvas(context) ? siteLink(msg.url, msg.url, context, true) : null);
+    if (!allowed) throw new Error('Blocked unsafe link');
     const seen = recall<CachedRead>(msg.url);
     if (seen && 'file' in seen) return await readFile(seen.file, replaySections(seen.sections), seen.finalUrl);
     if (seen?.needsTab) return { title: seen.page.title, passages: [], links: [], needsTab: true, finalUrl: seen.finalUrl };

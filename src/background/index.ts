@@ -2,7 +2,6 @@
 import {
   LINK_MIN,
   hitStrength,
-  relevantScore,
   type HighlightPassage,
   type Passage,
   type SearchMode,
@@ -22,6 +21,7 @@ import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLin
 import { wordCount, MIN_WORDS } from '../engine/site';
 import { pageIdentity } from '../engine/identity';
 import { runBestFirst, runBranchBatches } from './queue';
+import { indexHops, MatchBar } from './matching';
 import { normalizeSettings } from '../shared/settings';
 import { memorySnapshot } from '../debug/memory'; // TEMP: RAM benchmark
 
@@ -93,6 +93,8 @@ const nodes = new Map<string, TreeNode>();
 const highlightedTabs = new Set<number>();
 /** Mode of the current search (file progress arrives later and is scored the same way). */
 let mode: SearchMode = 'exact';
+/** What counts as a match in the current search (rises with the best semantic match). */
+let bar = new MatchBar('exact');
 /** Identity keys (final URL, canonical URL, text fingerprint) of every page read in this search. */
 let readPages = new Set<string>();
 
@@ -144,6 +146,7 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return;
 
   mode = settings.mode;
+  bar = new MatchBar(mode);
   readPages = new Set();
   const exact = mode === 'exact';
 
@@ -178,7 +181,7 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
-  const hits = res.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+  const hits = bar.matches(res.passages).matches.slice(0, MAX_HIGHLIGHTS);
   console.log(`[ctrlf++] scored ${res.passages.length} passages in ${res.ms} ms`, res.passages.slice(0, 10));
   emit({
     ...root,
@@ -204,7 +207,7 @@ async function search(query: string, windowId: number): Promise<void> {
     status(`Current page searched. Dig failed: ${seed.error}`, false);
     return;
   }
-  enqueue(dig, root, seed.links);
+  if (!enqueue(dig, root, seed.links) && !exact) enqueueIndexes(dig, root, seed.indexLinks ?? []);
   showSkipped(dig, root, seed.skipped ?? []);
   const runQueue = exact ? runBranchBatches : runBestFirst;
   await runQueue(dig, async ({ node }) => {
@@ -212,7 +215,7 @@ async function search(query: string, windowId: number): Promise<void> {
     emit({ ...node, state: 'reading', deferred: false });
     status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
     try {
-      let result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'dig-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
+      let result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'dig-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen], index: node.index });
       if (run !== runId) return;
       if (result.error) throw new Error(result.error);
       if (result.needsTab) result = await readInTab(result.finalUrl ?? node.url, dig, node);
@@ -223,7 +226,8 @@ async function search(query: string, windowId: number): Promise<void> {
         return;
       }
       emitResult(node, result);
-      enqueue(dig, node, result.links);
+      // A dead end (nothing worth following): fall back on this page's index pages, if any.
+      if (!enqueue(dig, node, result.links) && !exact) enqueueIndexes(dig, node, result.indexLinks ?? []);
       showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
@@ -236,11 +240,20 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return;
   settlePending();
   const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
+  if (!exact && !found) {
+    // An honest dead end: like Ctrl+F, the dig only reaches what this page leads to.
+    status(dig.started <= 1
+      ? `Nothing on this page leads toward “${query}”. Start from a page closer to the topic.`
+      : `Nothing related found in ${dig.started - dig.failed} pages. Start from a page closer to the topic.`, false);
+    return;
+  }
   status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ` · ${settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
 }
 
-function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
-  if (parent.depth >= run.settings.maxDepth) return;
+/** Queue a page's links. Returns how many were queued (0 = a dead end). */
+function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): number {
+  if (parent.depth >= run.settings.maxDepth) return 0;
+  let added = 0;
   for (const link of links) {
     const url = digLink(link.url, parent.url, run.context);
     if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < LINK_MIN)) continue;
@@ -252,14 +265,49 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
     if (run.settings.mode === 'exact') node.exactQuery = run.query;
     run.queue.push({ node, priority: link.score ?? 1 });
     emit(node);
+    added++;
+  }
+  return added;
+}
+
+/**
+ * Semantic dead end: queue the page's best index pages (contents, portals, topic lists). They're read
+ * only for their links, which must clear the normal bar, and never become results. At most
+ * MAX_INDEX_HOPS index pages in a row.
+ */
+function enqueueIndexes(run: DigRun, parent: TreeNode, links: DigLink[]): void {
+  const hops = indexHops(parent);
+  if (hops === null || parent.depth >= run.settings.maxDepth || isCanvas(run.context)) return;
+  for (const link of links) {
+    if (run.seen.has(link.url)) continue;
+    run.seen.add(link.url);
+    const node: TreeNode = { id: link.url, parentId: parent.id, url: link.url, title: link.title || link.url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0, index: true, indexHops: hops };
+    run.queue.push({ node, priority: link.score ?? 0 });
+    emit(node);
   }
 }
 
 function emitResult(node: TreeNode, result: DigReadResult): void {
-  const matches = result.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+  // Index pages are read only for their links: never a result.
+  const { matches: all, raised } = node.index ? { matches: [], raised: false } : bar.matches(result.passages);
+  const matches = all.slice(0, MAX_HIGHLIGHTS);
   emit({ ...node, deferred: false, url: isFile(node) ? node.url : result.finalUrl ?? node.url, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
     state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' '),
     strength: matches.length ? hitStrength(mode, matches[0].score) : undefined });
+  if (raised) recheckMatches();
+}
+
+/** The bar rose: earlier matches now far below the best one stop counting. */
+function recheckMatches(): void {
+  // LATER: the starting tab keeps its highlights even if the starting page stops counting as a match.
+  for (const node of [...nodes.values()]) {
+    if (node.state !== 'hit' || !node.hits?.length) continue;
+    const kept = bar.keep(node.hits);
+    if (kept.length === node.hits.length) continue;
+    emit(kept.length
+      ? { ...node, hits: kept, snippet: kept[0].marks.join(' '), strength: hitStrength(mode, kept[0].score) }
+      : { ...node, state: 'ruled-out', hits: [], snippet: undefined, strength: undefined });
+  }
 }
 
 // ---------- JavaScript-built pages ----------
@@ -278,6 +326,7 @@ async function readInTab(url: string, run: DigRun, node: TreeNode): Promise<DigR
 
 async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<DigReadResult> {
   // LATER: cache tab-rendered pages too, so JavaScript-built pages also work offline.
+  // LATER: offer index-page fallbacks for tab-rendered pages too.
   if (run.id !== runId) throw new Error('Search stopped');
   const win = await chrome.windows.create({ url, state: 'minimized', focused: false });
   const tabId = win?.tabs?.[0]?.id;

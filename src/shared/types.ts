@@ -45,6 +45,9 @@ export interface TreeNode {
   hidden?: boolean;
   /** Waiting in the real queue, but not yet revealed in the graph. */
   deferred?: boolean;
+  /** Semantic: read only to find links (never a result); indexHops counts index pages in a row. */
+  index?: boolean;
+  indexHops?: number;
   exactQuery?: string;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];
@@ -62,7 +65,11 @@ export interface PageText {
   links: DigLink[];
 }
 
-export interface DigLink { url: string; title: string; heading: string; score?: number }
+export interface DigLink {
+  url: string; title: string; heading: string; score?: number;
+  /** Semantic: an index page (contents, portal, category…), read only for its links at a dead end. */
+  index?: boolean;
+}
 export type SearchMode = 'exact' | 'semantic';
 export interface ExactMatch { start: number; end: number; text: string }
 export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
@@ -92,6 +99,8 @@ export interface DigReadResult {
   finalUrl?: string;
   /** Identity of what was read (canonical URL, text fingerprint), so aliases of a read page are dropped. */
   identity?: string[];
+  /** Semantic: this page's index links, best first, used only if none of its ordinary links can be followed. */
+  indexLinks?: DigLink[];
 }
 export interface DigEntry { node: TreeNode; priority: number }
 export interface DigRun { id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
@@ -124,7 +133,7 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
 export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[] }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
-export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
+export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[]; index?: boolean }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
 /** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth. */
 export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext }
@@ -183,6 +192,17 @@ export const LINK_PEEK = 15;
 export const LINK_DEPTH_PENALTY = 0.02;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
+
+/**
+ * Semantic: a match must be within this of the best match found so far in the search. A page that
+ * only shares a word ("Shopping list" for "linked list", 0.71) drops out once the real one (0.86) turns up.
+ * Measured on live Wikipedia with the bundled model.
+ */
+export const NEAR_BEST = 0.1;
+/** Semantic: index links kept per page (best first), used only at a dead end. */
+export const INDEX_PEEK = 3;
+/** Semantic: at most this many index pages in a row before an ordinary page. */
+export const MAX_INDEX_HOPS = 2;
 
 /** Semantic scores at or above this count as full strength (fully green). */
 const SEMANTIC_TOP = 0.65;

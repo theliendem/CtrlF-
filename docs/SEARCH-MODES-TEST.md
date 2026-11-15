@@ -18,3 +18,13 @@ After reloading the extension, run a search with matching and nonmatching branch
 ## Branch rotation and gradual reveal
 
 Search from Modules with several modules available. The graph should not display a wall of waiting nodes. Nodes appear when their actual reads start. The queue chooses 1–3 random siblings, then switches to another parent when one is available, with up to four reads in flight. A gray parent with hidden waiting children must stay visible. Stop should keep found results, cancel remaining reads, and never reveal the hidden backlog. Exact search still queues all eligible links; the same page/depth limits apply.
+
+## Semantic: index pages at dead ends, and matches near the best
+
+Settings: Semantic, 200 pages, depth 5.
+
+1. On the English Wikipedia **Main Page**, search `linked list`. Nothing on the Main Page is about it, so the dig falls back on index pages (Content portals, Lists, A–Z index). Those nodes never turn green or appear in results. Expect **Linked list**, **Data structure**, **Doubly linked list** and **XOR linked list** as the results. A replay of this dig with the real model found exactly those four.
+2. Watch the results list early in the dig: weak matches like "List" can appear, then disappear once **Linked list** is found. Only matches within 0.1 of the best one stay.
+3. Search `Harry Potter` from the Main Page. Expect the Harry Potter articles as results. Pages that only share a name ("Harry Kane") may flash in and then drop out.
+4. On a page with no way toward the topic, expect **Nothing on this page leads toward "…". Start from a page closer to the topic.**
+5. Canvas behaves as before: a question like `can I turn stuff in late` still matches the late policy, because it's the best match found.
