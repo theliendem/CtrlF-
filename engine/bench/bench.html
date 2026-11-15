@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Candle MiniLM WASM bench</title>
+<style>body{font:14px ui-monospace,monospace;margin:16px;background:#fff;color:#111}pre{white-space:pre-wrap}</style>
+<h3>Candle all-MiniLM-L6-v2, WASM (SIMD128, 1 thread)</h3>
+<button id="go">Run</button>
+<pre id="out"></pre>
+<script type="module">
+  // Serve engine/bench/ over http (see README.md) and open /bench.html.
+  import init, { WasmEmbedder } from './candle-bench/pkg/candle_bench.js';
+
+  const out = document.getElementById('out');
+  const log = (s) => { out.textContent += s + '\n'; console.log(s); };
+  const ms = (t) => `${t.toFixed(0)} ms`;
+  const mb = (b) => `${(b / 1048576).toFixed(0)} MB`;
+  const bytes = (p) => fetch(p).then((r) => r.arrayBuffer()).then((b) => new Uint8Array(b));
+  const result = (window.benchResult = {});
+
+  async function run() {
+    out.textContent = '';
+    const t0 = performance.now();
+    const wasm = await init();
+    const [w, tok, cfg, texts] = await Promise.all([
+      bytes('model/model.safetensors'),
+      bytes('model/tokenizer.json'),
+      bytes('model/config.json'),
+      fetch('data/passages.json').then((r) => r.json()),
+    ]);
+    const t1 = performance.now();
+    const emb = new WasmEmbedder(w, tok, cfg);
+    const t2 = performance.now();
+    result.fetchMs = t1 - t0;
+    result.constructMs = t2 - t1;
+    result.loadMs = t2 - t0;
+    log(`load: ${ms(result.loadMs)} (wasm init + fetch ${ms(result.fetchMs)}, build model ${ms(result.constructMs)})`);
+    log(`passages: ${texts.length}, tokens: ${emb.token_count(texts)}`);
+    log(`wasm memory after load: ${mb(wasm.memory.buffer.byteLength)}`);
+
+    // Warm-up, then a short query (what search latency pays).
+    emb.embed(['warm up']);
+    const q = 'can I turn stuff in late';
+    let tq = performance.now();
+    for (let i = 0; i < 10; i++) emb.embed([q]);
+    result.queryMs = (performance.now() - tq) / 10;
+    log(`query embed ("${q}"): ${result.queryMs.toFixed(1)} ms`);
+
+    for (const batch of [1, 8, 32]) {
+      const t = performance.now();
+      let vecs;
+      for (let i = 0; i < texts.length; i += batch) vecs = emb.embed(texts.slice(i, i + batch));
+      const total = performance.now() - t;
+      result[`b${batch}`] = { totalMs: total, msPerPassage: total / texts.length };
+      log(`batch ${String(batch).padStart(2)}: total ${ms(total)}, ${(total / texts.length).toFixed(1)} ms/passage  | wasm memory ${mb(wasm.memory.buffer.byteLength)}`);
+      await new Promise((r) => setTimeout(r)); // let the page repaint
+    }
+    result.wasmMemoryBytes = wasm.memory.buffer.byteLength;
+    if (performance.memory) log(`JS heap used: ${mb(performance.memory.usedJSHeapSize)}`);
+    result.done = true;
+    log('done');
+  }
+  document.getElementById('go').onclick = () => run().catch((e) => log('ERROR ' + (e.stack || e)));
+</script>
