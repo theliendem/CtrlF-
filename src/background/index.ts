@@ -413,8 +413,8 @@ async function clearTab(tabId: number): Promise<void> {
   }
 }
 
-async function openResult(node: TreeNode): Promise<void> {
-  if (!node.hits?.length) return;
+async function openResult(node: TreeNode, next?: TreeNode): Promise<void> {
+  if (!node.hits?.length && !next) return;
   if (node.kind === 'pdf') {
     // A Canvas file opens on its preview page (Canvas's own PDF viewer); its /download URL often saves the file instead.
     // Other PDFs open in Chrome's viewer at the hit's page. Neither viewer can be scripted, so the passage isn't highlighted.
@@ -424,7 +424,8 @@ async function openResult(node: TreeNode): Promise<void> {
     return;
   }
   const run = runId;
-  const tab = await chrome.tabs.create({ url: node.parentUrl ?? node.url, active: true });
+  // A bridge opens itself and highlights the link it led on through; a match opens where it was found.
+  const tab = await chrome.tabs.create({ url: next ? node.url : node.parentUrl ?? node.url, active: true });
   if (tab.id === undefined) return;
   const tabId = tab.id;
   // Wait for Canvas to render its body, then retry highlights briefly for delayed content.
@@ -432,9 +433,11 @@ async function openResult(node: TreeNode): Promise<void> {
     if (run !== runId) return;
     const current = await chrome.tabs.get(tabId);
     if (current.status === 'complete') {
-      const message: ContentMsg = isFile(node)
+      const message: ContentMsg = next
+        ? { type: 'highlight-file', fileId: next.fileId, url: next.url, title: next.linkTitle ?? next.title }
+        : isFile(node)
         ? { type: 'highlight-file', fileId: node.fileId, url: node.url, title: node.linkTitle ?? node.title }
-        : node.exactQuery ? { type: 'highlight-exact', query: node.exactQuery } : { type: 'highlight', passages: passageHighlights(node.hits) };
+        : node.exactQuery ? { type: 'highlight-exact', query: node.exactQuery } : { type: 'highlight', passages: passageHighlights(node.hits ?? []) };
       const shown = await toTab<number>(tabId, message);
       highlightedTabs.add(tabId);
       if (shown > 0) return;
@@ -475,7 +478,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       stop(false);
       break;
     case 'open-result':
-      void openResult(msg.node).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
+      void openResult(msg.node, msg.next).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
     case 'file-progress': {
       if (msg.run !== runId) break;

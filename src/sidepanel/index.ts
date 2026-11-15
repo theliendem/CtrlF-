@@ -1,6 +1,6 @@
 // Side panel: search box, live graph, results list, settings.
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
-import { Graph, strengthColor } from './graph';
+import { Graph, bridges, strengthColor } from './graph';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '@fontsource/ibm-plex-sans-condensed/400.css';
@@ -97,7 +97,8 @@ const graph = new Graph($('graph'), (id) => openResult(id));
 const send = (msg: RuntimeMsg): void => void chrome.runtime.sendMessage(msg).catch(() => {});
 const openResult = (nodeId: string): void => {
   const node = nodes.get(nodeId);
-  if (node) send({ to: 'sw', type: 'open-result', node });
+  const next = nodes.get(bridges(nodes.values()).get(nodeId) ?? '');
+  if (node) send({ to: 'sw', type: 'open-result', node, next });
 };
 
 /** The query of the search on screen, for "Keep searching". */
@@ -179,7 +180,9 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: s
 };
 
 function renderResults(): void {
-  const hits = [...nodes.values()].filter((n) => n.state === 'hit').sort((a, b) => b.best - a.best);
+  // Bridges led to matches but aren't matches themselves, so they stay out of the list.
+  const bridge = bridges(nodes.values());
+  const hits = [...nodes.values()].filter((n) => n.state === 'hit' && !bridge.has(n.id)).sort((a, b) => b.best - a.best);
   resultsBox.hidden = hits.length === 0;
   resultsEl.replaceChildren(
     ...hits.map((n, i) => {

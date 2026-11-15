@@ -44,8 +44,6 @@
   --hit-stroke: var(--found);
   --reading-fill: var(--marker);
   --reading-stroke: var(--marker-deep);
-  --trail-fill: color-mix(in srgb, var(--found) 30%, var(--paper));
-  --trail-stroke: color-mix(in srgb, var(--found) 60%, var(--paper));
   --ruled-fill: var(--edge);
   --edge-w: 1.5;
   --edge-found: color-mix(in srgb, var(--found) 50%, var(--edge));
@@ -258,7 +256,7 @@ body {
 .graph-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; user-select: none; }
 .graph-svg.panning { cursor: grabbing; }
 .edge { fill: none; stroke: var(--edge); stroke-width: var(--edge-w); transition: stroke 0.4s ease; }
-.edge.trail, .edge.hit { stroke: var(--edge-found); }
+.edge.bridge, .edge.hit { stroke: var(--edge-found); }
 .edge.reading { stroke: var(--edge-reading); }
 .edge.collecting { animation: collect-edge var(--cleanup-delay) ease-in forwards; }
 .node { cursor: pointer; animation: appear 0.35s ease-out; }
@@ -277,7 +275,8 @@ body {
 .node.reading .halo { stroke: var(--reading-stroke); stroke-width: 2; animation: ripple 1.1s ease-out infinite; }
 .node.hit .dot { r: 7px; fill: var(--hit-fill); stroke: var(--hit-stroke); }
 .node.hit .halo { stroke: var(--hit-fill); stroke-width: 2; animation: ripple 0.9s ease-out 2; }
-.node.trail .dot { fill: var(--trail-fill); stroke: var(--trail-stroke); }
+/* A bridge isn't a match, so it's never the match color: a hollow ring on the green path to one. */
+.node.bridge .dot { r: 5.5px; fill: var(--paper); stroke: var(--ink-soft); stroke-width: 2.25; }
 .node.ruled-out .dot { r: 5px; fill: var(--ruled-fill); stroke: var(--ruled-fill); }
 .node.not-followed .dot, .node.unreadable .dot { r: 4px; stroke: var(--ink-soft); stroke-dasharray: 2 2; opacity: 0.6; }
 .node text { fill: var(--label-fg); font: var(--w-label) 11.5px var(--font-label); paint-order: stroke; stroke: var(--label-halo); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }

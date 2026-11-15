@@ -1,6 +1,6 @@
 import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
-import { Graph } from '../src/sidepanel/graph.ts';
+import { Graph, bridges } from '../src/sidepanel/graph.ts';
 import type { TreeNode } from '../src/shared/types.ts';
 
 // Minimal SVG surface; tests exercise the real graph updates and cleanup timers.
@@ -118,14 +118,39 @@ test('stopping hidden queued children allows dead ancestors to disappear without
   assert.deepEqual(titles(), []);
 });
 
-test('ancestors of a hit show as a trail, even when their own read was ruled out', (t) => {
+test('ancestors of a hit show as bridges, even when their own read was ruled out', (t) => {
   const { graph } = setup(t);
   const host = (graph as unknown as { dots: Element }).dots;
   graph.upsert(node('root', 'ruled-out'));
   graph.upsert(node('middle', 'ruled-out', 'root'));
   graph.upsert(node('leaf', 'hit', 'middle'));
   const cls = (id: string) => host.children.find((el) => el.querySelector('title')?.textContent.startsWith(id))?.attrs.get('class');
-  assert.equal(cls('root'), 'node trail');
-  assert.equal(cls('middle'), 'node trail');
+  assert.equal(cls('root'), 'node bridge');
+  assert.equal(cls('middle'), 'node bridge');
   assert.equal(cls('leaf'), 'node hit');
+});
+
+const scored = (id: string, parentId: string | null, score: number): TreeNode =>
+  ({ ...node(id, 'hit', parentId), hits: [{ text: id, marks: [id], score, cos: 0, kw: 0 }] });
+
+test('a weak hit that leads to a stronger one is a bridge; strong hits stay hits', () => {
+  const tree = [
+    scored('english', null, 0.27), // barely relevant, but led somewhere better
+    scored('rowling', 'english', 0.6),
+    scored('strong-parent', null, 0.5), // relevant itself: stays a hit
+    scored('strong-child', 'strong-parent', 0.7),
+    scored('weak-leaf', null, 0.3), // nothing below it: stays a hit
+  ];
+  const b = bridges(tree);
+  assert.deepEqual([...b.keys()], ['english']);
+  assert.equal(b.get('english'), 'rowling');
+});
+
+test('a bridge points at the child on the path to its best hit below', () => {
+  const tree = [node('root', 'ruled-out'), node('a', 'ruled-out', 'root'), scored('a1', 'a', 0.4), node('b', 'ruled-out', 'root'), scored('b1', 'b', 0.8)];
+  const b = bridges(tree);
+  assert.equal(b.get('root'), 'b');
+  assert.equal(b.get('a'), 'a1');
+  assert.equal(b.get('b'), 'b1');
+  assert.ok(!b.has('a1') && !b.has('b1'));
 });

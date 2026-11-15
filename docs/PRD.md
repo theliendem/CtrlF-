@@ -96,7 +96,7 @@ Module and item titles count as the peek on Canvas, so no extra fetch is needed.
 | queued | Small hollow circle |
 | reading | Yellow, gently pulsing |
 | relevant (hit) | Bright green, with a label |
-| trail | Faint green: every ancestor of a hit, so you can see the path that found it |
+| bridge | Hollow gray ring on a green path: a page that isn't a match itself but led to matches below it. That's every ancestor of a hit, plus barely relevant hits (under 0.45) with a stronger hit below. Bridges stay out of the results list; clicking one opens it with the link it led on through highlighted |
 | ruled out | Fades to gray, shrinks and disappears over about a second while the tree re-flows around it |
 | not followed / can't read | Gray stub (only if the settings toggles say to show them) |
 
@@ -142,7 +142,7 @@ Why the offscreen document: Manifest V3 service workers get shut down when idle 
 2. **Current page.** Extract, chunk, embed, hybrid-score, highlight on the page, show the root node, list results.
 3. **Canvas dig.** API source, peek via titles, best-first queue, node events, a basic graph.
 4. **Files.** PDF, PPTX and DOCX reading, file nodes, click behavior.
-5. **Graph polish.** Horizontal layout, smooth re-flow, pulsing yellow, trail, fade-out, follow camera, counter.
+5. **Graph polish.** Horizontal layout, smooth re-flow, pulsing yellow, bridges, fade-out, follow camera, counter.
 6. **Other sites.** HTML fetch, empty-page fallback to a minimized tab, the off-site rule.
 7. **Settings.** The four settings and both toggles.
 8. **Demo hardening.** Run the demo questions on the demo course until they pass every time; warm the cache; record a backup video.
@@ -157,7 +157,7 @@ Run it on one known Canvas course with three or so prepared questions whose answ
 
 1. Ctrl+Shift+F, then type the question.
 2. The current page lights up with highlights.
-3. The tree spreads right, yellow nodes pulse, gray ones fade away, and green ones light up with their trails.
+3. The tree spreads right, yellow nodes pulse, gray ones fade away, and green ones light up with bridges leading to them.
 4. Click a green PDF node: the PDF opens in Canvas's viewer, and the card says "Page 4".
 5. Show the results list.
 6. Turn Wi-Fi off and run it again from the cache to prove it's on-device.

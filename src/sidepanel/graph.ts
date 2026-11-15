@@ -1,7 +1,7 @@
 // Live dig tree: root on the left, children to the right, siblings stacked.
 // Positions ease toward their layout targets every frame, so nodes slide in from their parent and the
 // tree re-flows without snapping. A camera follows the reading nodes until the user pans or zooms.
-import type { TreeNode } from '../shared/types';
+import { SEMANTIC_STRONG, type TreeNode } from '../shared/types';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const DX = 96;
@@ -13,6 +13,32 @@ const CAM_TAU = 420;
 const MANUAL_MS = 5000;
 const LABEL_MAX = 30;
 const GRAY = new Set(['ruled-out', 'not-followed', 'unreadable']);
+
+const topScore = (n: TreeNode): number => n.hits?.[0]?.score ?? 0;
+
+/**
+ * Bridges: pages that aren't relevant themselves but lead to hits below them. That's every ancestor of a
+ * hit that isn't a hit, plus weak hits (under SEMANTIC_STRONG) with a stronger hit below. Maps each bridge
+ * to its child on the path to its best hit below, so a click can show the link that leads on.
+ */
+export function bridges(nodes: Iterable<TreeNode>): Map<string, string> {
+  const byId = new Map<string, TreeNode>();
+  for (const n of nodes) byId.set(n.id, n);
+  const best = new Map<string, { score: number; next: string }>();
+  for (const hit of byId.values()) {
+    if (hit.state !== 'hit' || hit.hidden) continue;
+    const score = topScore(hit);
+    let child = hit;
+    let parent = hit.parentId ? byId.get(hit.parentId) : undefined;
+    while (parent) {
+      const weak = parent.state !== 'hit' || (topScore(parent) < SEMANTIC_STRONG && topScore(parent) < score);
+      if (weak && (best.get(parent.id)?.score ?? -1) < score) best.set(parent.id, { score, next: child.id });
+      child = parent;
+      parent = parent.parentId ? byId.get(parent.parentId) : undefined;
+    }
+  }
+  return new Map([...best].map(([id, { next }]) => [id, next]));
+}
 
 /** Results-list color by strength: red just over the cutoff, green for the closest matches. Graph nodes stay plain green. */
 export function strengthColor(strength = 1): string {
@@ -151,7 +177,7 @@ export class Graph {
   private protectedAncestors(): Set<string> {
     const protectedIds = new Set<string>();
     for (const node of this.nodes.values()) {
-      if (node.hidden || !['hit', 'reading', 'queued', 'trail'].includes(node.state)) continue;
+      if (node.hidden || !['hit', 'reading', 'queued'].includes(node.state)) continue;
       let parentId = node.parentId;
       while (parentId && !protectedIds.has(parentId)) {
         protectedIds.add(parentId);
@@ -161,27 +187,14 @@ export class Graph {
     return protectedIds;
   }
 
-  /** Every ancestor of a hit shows as a faint green trail, whatever its own result. */
-  private trailIds(): Set<string> {
-    const trail = new Set<string>();
-    for (const node of this.nodes.values()) {
-      if (node.state !== 'hit' || node.hidden) continue;
-      let parentId = node.parentId;
-      while (parentId && !trail.has(parentId)) {
-        trail.add(parentId);
-        parentId = this.nodes.get(parentId)?.parentId ?? null;
-      }
-    }
-    return trail;
-  }
-
   private scheduleCleanup(): void {
     const protectedIds = this.protectedAncestors();
-    const trail = this.trailIds();
+    const bridge = bridges(this.nodes.values());
     for (const [id, el] of this.els) {
       const node = this.nodes.get(id)!;
       const removable = GRAY.has(node.state) && !protectedIds.has(id);
-      const shown = node.state !== 'hit' && trail.has(id) ? 'trail' : node.state;
+      const shown = bridge.has(id) ? 'bridge' : node.state;
+      if (shown === 'bridge') el.tip.textContent = `${node.title}\n${node.url}\nbridge: leads to matches below`;
       const cls = `${shown}${removable ? ' collecting' : ''}`;
       el.g.setAttribute('class', `node ${cls}`);
       el.edge?.setAttribute('class', `edge ${cls}`);

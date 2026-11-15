@@ -9,7 +9,7 @@ export type NodeState =
   | 'queued'
   | 'reading'
   | 'hit' // relevant: bright green with a label
-  | 'trail' // ancestor of a hit
+  | 'bridge' // display only: not relevant itself, but on the path to hits below it
   | 'ruled-out'
   | 'not-followed'
   | 'unreadable';
@@ -112,7 +112,8 @@ export interface StopMsg { to: 'sw'; type: 'stop' }
 /** Continue a dig that paused itself; query and windowId rerun the search if the worker lost it. */
 export interface ResumeMsg { to: 'sw'; type: 'resume'; query: string; windowId: number }
 /** Carries the whole node: the service worker may have been restarted and lost its tree since the dig. */
-export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode }
+/** next: for a bridge, its child on the path to a hit; the opened page highlights the link to it. */
+export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode; next?: TreeNode }
 export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number; url: string; result: DigReadResult }
 
 // ---------- Service worker -> side panel ----------

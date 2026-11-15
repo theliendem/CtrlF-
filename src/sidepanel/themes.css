@@ -36,8 +36,6 @@
   --node-fill: var(--paper);
   --node-stroke: var(--ink-soft);
   --hit-stroke: #ffffff;
-  --trail-fill: var(--paper);
-  --trail-stroke: rgb(255 255 255 / 0.85);
   --ruled-fill: #4f77a5;
   --edge-found: rgb(255 255 255 / 0.85);
   --edge-reading: var(--marker);
@@ -54,7 +52,7 @@
   background-position: var(--grid-x) var(--rule-y);
 }
 :root[data-theme="blueprint"] .edge { stroke-dasharray: 4 3; }
-:root[data-theme="blueprint"] .edge.trail, :root[data-theme="blueprint"] .edge.hit { stroke-dasharray: none; stroke-width: 1.75; }
+:root[data-theme="blueprint"] .edge.bridge, :root[data-theme="blueprint"] .edge.hit { stroke-dasharray: none; stroke-width: 1.75; }
 :root[data-theme="blueprint"] .settings { background: transparent; border: 1px solid var(--ink-soft); }
 :root[data-theme="blueprint"] .settings select, :root[data-theme="blueprint"] .settings input[type="number"] { background: var(--paper); border-color: var(--ink-soft); }
 :root[data-theme="blueprint"] .btn.primary { background: var(--ink); color: var(--paper); }
@@ -98,8 +96,6 @@
   --node-stroke: #a58c74;
   --reading-fill: #fff1d0;
   --reading-stroke: #fff1d0;
-  --trail-fill: rgb(242 193 78 / 0.3);
-  --trail-stroke: rgb(242 193 78 / 0.7);
   --ruled-fill: #5a4535;
   --edge-w: 2;
   --edge-found: rgb(242 193 78 / 0.75);
@@ -155,8 +151,6 @@
   --field-ring: none;
   --reading-fill: var(--g-cyan);
   --reading-stroke: var(--g-cyan);
-  --trail-fill: color-mix(in srgb, var(--g-red) 20%, var(--paper));
-  --trail-stroke: color-mix(in srgb, var(--g-red) 55%, var(--paper));
   --edge-w: 1;
   --edge-found: color-mix(in srgb, var(--g-red) 60%, var(--edge));
   --edge-reading: var(--g-cyan);
@@ -228,8 +222,6 @@
   --field-ring: inset 0 0 0 1px var(--blue);
   --reading-fill: var(--blue);
   --reading-stroke: var(--blue);
-  --trail-fill: #ffe0c2;
-  --trail-stroke: #f5a35c;
   --ruled-fill: var(--edge);
   --edge-found: #f5a35c;
   --edge-reading: color-mix(in srgb, var(--blue) 60%, var(--edge));
@@ -249,8 +241,6 @@
     --blue: #a8c7fa;
     --found: #ff9f43;
     --stop: #f2b8b5;
-    --trail-fill: #5a3a1c;
-    --trail-stroke: #c27a35;
     --edge-found: #c27a35;
   }
 }
@@ -299,8 +289,6 @@
   --hit-stroke: var(--ink);
   --reading-fill: var(--hl-yellow);
   --reading-stroke: var(--ink);
-  --trail-fill: #d9fbe3;
-  --trail-stroke: var(--ink);
   --ruled-fill: #e2e2e2;
   --edge: #c9c9c9;
   --edge-found: var(--ink);
