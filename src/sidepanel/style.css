@@ -313,20 +313,6 @@ body {
   box-decoration-break: clone;
 }
 #results li.top .snippet mark { background: var(--mark-top-bg); color: var(--mark-top-fg); font-weight: var(--mark-top-w); }
-.file-page {
-  margin-top: 6px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: 650 12px/1.4 var(--font-ui);
-  text-decoration: underline;
-  text-decoration-color: var(--reading-stroke);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-.file-page:hover { text-decoration-color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) {
   .node, .node .dot, .node .halo, .status.running::before { animation: none !important; }

@@ -94,9 +94,9 @@ const nodes = new Map<string, TreeNode>();
 const graph = new Graph($('graph'), (id) => openResult(id));
 
 const send = (msg: RuntimeMsg): void => void chrome.runtime.sendMessage(msg).catch(() => {});
-const openResult = (nodeId: string, openFile = false): void => {
+const openResult = (nodeId: string): void => {
   const node = nodes.get(nodeId);
-  if (node) send({ to: 'sw', type: 'open-result', node, openFile });
+  if (node) send({ to: 'sw', type: 'open-result', node });
 };
 
 form.addEventListener('submit', (e) => {
@@ -186,15 +186,6 @@ function renderResults(): void {
         const snip = el('div', 'snippet');
         snip.append(el('mark', '', n.snippet));
         body.append(snip);
-      }
-      if (n.kind === 'pdf' && n.pageNumber) {
-        const openPage = el('button', 'file-page', `Open at page ${n.pageNumber}`);
-        openPage.type = 'button';
-        openPage.addEventListener('click', (event) => {
-          event.stopPropagation();
-          openResult(n.id, true);
-        });
-        body.append(openPage);
       }
       li.append(el('span', 'strength'), fileIcon(n.kind), body);
       li.addEventListener('click', () => openResult(n.id));

@@ -110,7 +110,7 @@ export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: 
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface StopMsg { to: 'sw'; type: 'stop' }
 /** Carries the whole node: the service worker may have been restarted and lost its tree since the dig. */
-export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode; openFile?: boolean }
+export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode }
 export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number; url: string; result: DigReadResult }
 
 // ---------- Service worker -> side panel ----------

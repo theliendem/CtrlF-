@@ -67,7 +67,7 @@ Module and item titles count as the peek on Canvas, so no extra fetch is needed.
 
 | Type | How it's read | Clicking a green file node |
 | --- | --- | --- |
-| PDF | pdf.js, page by page | Goes to the page the file is on, scrolls to and highlights the file's link; the sidebar card shows "Page 4" plus the snippet, with an "Open at page 4" button (the file URL + #page=4) |
+| PDF | pdf.js, page by page | Opens the PDF itself: a Canvas file opens on its preview page in Canvas's viewer; other PDFs open in Chrome's viewer at the hit's page (#page=4). The sidebar card shows "Page 4" plus the snippet. Neither viewer can be scripted, so the passage isn't highlighted inside the file |
 | PowerPoint (.pptx) | Unzip (JSZip), read slide XML in order | Same, with "Slide 14" plus the snippet |
 | Word (.docx) | Unzip (JSZip), read document XML | Same, with the snippet |
 
@@ -156,7 +156,7 @@ Run it on one known Canvas course with three or so prepared questions whose answ
 1. Ctrl+Shift+F, then type the question.
 2. The current page lights up with highlights.
 3. The tree spreads right, yellow nodes pulse, gray ones fade away, and green ones light up with their trails.
-4. Click a green PDF node: it lands on the right page with the file highlighted and "Page 4" in the card.
+4. Click a green PDF node: the PDF opens in Canvas's viewer, and the card says "Page 4".
 5. Show the results list.
 6. Turn Wi-Fi off and run it again from the cache to prove it's on-device.
 

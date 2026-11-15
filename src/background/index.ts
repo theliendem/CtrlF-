@@ -359,10 +359,13 @@ async function clearTab(tabId: number): Promise<void> {
   }
 }
 
-async function openResult(node: TreeNode, openFile = false): Promise<void> {
+async function openResult(node: TreeNode): Promise<void> {
   if (!node.hits?.length) return;
-  if (openFile && node.kind === 'pdf' && node.pageNumber) {
-    const url = node.fileId ? `${node.url}/download?inline=1#page=${node.pageNumber}` : `${node.url}#page=${node.pageNumber}`;
+  if (node.kind === 'pdf') {
+    // A Canvas file opens on its preview page (Canvas's own PDF viewer); its /download URL often saves the file instead.
+    // Other PDFs open in Chrome's viewer at the hit's page. Neither viewer can be scripted, so the passage isn't highlighted.
+    // LATER: an in-extension pdf.js viewer could highlight inside the file.
+    const url = node.fileId ? node.url : node.pageNumber ? `${node.url}#page=${node.pageNumber}` : node.url;
     await chrome.tabs.create({ url, active: true });
     return;
   }
@@ -408,7 +411,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       stop(false);
       break;
     case 'open-result':
-      void openResult(msg.node, msg.openFile).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
+      void openResult(msg.node).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
     case 'file-progress': {
       if (msg.run !== runId) break;
