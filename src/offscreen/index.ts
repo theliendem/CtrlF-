@@ -1,11 +1,12 @@
 // Offscreen document: the engine. Scoring, fetching and parsing pages and files.
-import { RELEVANT, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type PageText, type RuntimeMsg, type ScorePageResult } from '../shared/types';
+import { RELEVANT, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
 import { pdfSections } from '../engine/pdf';
 import { fetchSite } from '../engine/site';
+import { recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
 
 const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
@@ -35,9 +36,8 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   };
 
   /** Read a file section by section; report each better match as it is found. */
-  const readFile = async (file: FileData, base: string): Promise<DigReadResult> => {
+  const readFile = async (file: Pick<FileData, 'kind' | 'title'>, sections: AsyncIterable<FileSection>, base: string): Promise<DigReadResult> => {
     clearTimeout(timer);
-    const sections = file.kind === 'pdf' ? pdfSections(file.bytes, signal) : officeSections(file.bytes, file.kind, signal);
     let result: DigReadResult = { title: file.title, kind: file.kind, passages: [], links: [] };
     let hasText = false;
     const fileLinks: DigLink[] = [];
@@ -64,19 +64,37 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     return result;
   };
 
+  /** Freshly downloaded bytes: read them, remembering the sections for next time. */
+  const readBytes = (file: FileData, finalUrl: string): Promise<DigReadResult> => {
+    const sections = file.kind === 'pdf' ? pdfSections(file.bytes, signal) : officeSections(file.bytes, file.kind, signal);
+    return readFile(file, recordSections(msg.url, file, finalUrl, sections), finalUrl);
+  };
+
   try {
     if (msg.seed) {
       // The starting page: its own links, plus the course map on Canvas.
-      const links = isCanvas(context) ? [...msg.seed, ...await discoverCourse(context, signal)] : msg.seed;
+      let links = msg.seed;
+      if (isCanvas(context)) {
+        const key = `course-map:${context.origin}/${context.courseId}`;
+        const map = recall<DigLink[]>(key) ?? remember(key, await discoverCourse(context, signal));
+        links = [...msg.seed, ...map];
+      }
       return await finish({ url: msg.url, title: '', blocks: [], links }, msg.url);
     }
     if (!digLink(msg.url, msg.url, context)) throw new Error('Blocked unsafe link');
+    const seen = recall<CachedRead>(msg.url);
+    if (seen && 'file' in seen) return await readFile(seen.file, replaySections(seen.sections), seen.finalUrl);
+    if (seen?.needsTab) return { title: seen.page.title, passages: [], links: [], needsTab: true, finalUrl: seen.finalUrl };
+    if (seen) return await finish(seen.page, seen.finalUrl);
     if (isCanvas(context)) {
-      if (/\/files\/\d+$/.test(new URL(msg.url).pathname)) return await readFile(await downloadCanvasFile(msg.url, context, signal), msg.url);
-      return await finish(await readCanvas(msg.url, context, signal), msg.url);
+      if (/\/files\/\d+$/.test(new URL(msg.url).pathname)) return await readBytes(await downloadCanvasFile(msg.url, context, signal), msg.url);
+      const page = await readCanvas(msg.url, context, signal);
+      remember<CachedRead>(msg.url, { page, needsTab: false, finalUrl: msg.url });
+      return await finish(page, msg.url);
     }
     const got = await fetchSite(msg.url, context, signal);
-    if ('file' in got) return await readFile(got.file, got.finalUrl);
+    if ('file' in got) return await readBytes(got.file, got.finalUrl);
+    remember<CachedRead>(msg.url, { page: got.page, needsTab: got.needsTab, finalUrl: got.finalUrl });
     if (got.needsTab) return { title: got.page.title, passages: [], links: [], needsTab: true, finalUrl: got.finalUrl };
     return await finish(got.page, got.finalUrl);
   } finally {

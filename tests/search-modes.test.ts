@@ -40,3 +40,26 @@ test('exact page scoring needs no model and finds the phrase across text blocks'
   assert.equal(result.passages.length, 1);
   assert.deepEqual(result.passages[0].marks, ['MIDTERM\n2']);
 });
+
+test('a second read of the same pages works offline from the cache', async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async (input: string | URL) => {
+    calls++;
+    const url = new URL(input);
+    return new Response(JSON.stringify(url.pathname.endsWith('/items')
+      ? [{ id: 1, content_id: 7, title: 'Exam notes', type: 'File' }]
+      : [{ id: 41, name: 'Week 41', items_count: 1 }]));
+  });
+  const other = { origin: 'https://canvas.wisc.edu', courseId: '777' };
+  const otherBase = `${other.origin}/courses/777`;
+  const first = await send({ to: 'offscreen', type: 'dig-read', run: 3, query: 'exam', context: other, url: otherBase, depth: 0, settings: DEFAULT_SETTINGS, visited: [], seed: [] });
+  const module = await send({ to: 'offscreen', type: 'dig-read', run: 3, query: 'exam', context: other, url: first.links[0].url, depth: 1, settings: DEFAULT_SETTINGS, visited: [] });
+  const online = calls;
+  t.mock.method(globalThis, 'fetch', async () => { throw new TypeError('Failed to fetch'); });
+  const again = await send({ to: 'offscreen', type: 'dig-read', run: 4, query: 'exam', context: other, url: otherBase, depth: 0, settings: DEFAULT_SETTINGS, visited: [], seed: [] });
+  const moduleAgain = await send({ to: 'offscreen', type: 'dig-read', run: 4, query: 'exam', context: other, url: first.links[0].url, depth: 1, settings: DEFAULT_SETTINGS, visited: [] });
+  assert.ok(online > 0);
+  assert.equal(again.error, undefined);
+  assert.deepEqual(again.links, first.links);
+  assert.deepEqual(moduleAgain.links, module.links);
+});
