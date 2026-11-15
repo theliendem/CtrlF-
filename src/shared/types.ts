@@ -48,11 +48,15 @@ export interface TreeNode {
   exactQuery?: string;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];
+  /** For hits: 0 = just over the cutoff (red), 1 = as close as it gets (green). */
+  strength?: number;
 }
 
 /** What the content script reads off a page. */
 export interface PageText {
   url: string;
+  /** The page's <link rel="canonical">, if it names one (Wikipedia redirects, ?title= aliases). */
+  canonical?: string;
   title: string;
   blocks: string[];
   links: DigLink[];
@@ -86,6 +90,8 @@ export interface DigReadResult {
   needsTab?: boolean;
   /** Where the fetch landed after same-site redirects. */
   finalUrl?: string;
+  /** Identity of what was read (canonical URL, text fingerprint), so aliases of a read page are dropped. */
+  identity?: string[];
 }
 export interface DigEntry { node: TreeNode; priority: number }
 export interface DigRun { id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
@@ -170,3 +176,13 @@ export const LINK_PEEK = 15;
 export const LINK_DEPTH_PENALTY = 0.02;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
+
+/** Semantic scores at or above this count as full strength (fully green). */
+const SEMANTIC_TOP = 0.65;
+
+/** How far a hit clears the cutoff, 0..1. Exact matches are all-or-nothing, so always 1. */
+export function hitStrength(mode: SearchMode, score: number): number {
+  if (mode === 'exact') return 1;
+  const t = (score - SEMANTIC_RELEVANT) / (SEMANTIC_TOP - SEMANTIC_RELEVANT);
+  return Math.max(0, Math.min(1, t));
+}

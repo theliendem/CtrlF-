@@ -7,6 +7,7 @@ import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
 import { pdfSections } from '../engine/pdf';
 import { fetchSite } from '../engine/site';
+import { pageIdentity, urlKey } from '../engine/identity';
 import { recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
 
 const controllers = new Map<number, Set<AbortController>>();
@@ -36,13 +37,14 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     const visited = new Set(msg.visited);
     const links = canDig ? await pick(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : [];
     signal.throwIfAborted();
-    return { title: page.title, passages, links, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base };
+    return { title: page.title, passages, links, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base, identity: pageIdentity(base, page.canonical, page.blocks) };
   };
 
   /** Read a file section by section; report each better match as it is found. */
   const readFile = async (file: Pick<FileData, 'kind' | 'title'>, sections: AsyncIterable<FileSection>, base: string): Promise<DigReadResult> => {
     clearTimeout(timer);
-    let result: DigReadResult = { title: file.title, kind: file.kind, passages: [], links: [] };
+    const identity = [urlKey(base)].filter((k): k is string => !!k);
+    let result: DigReadResult = { title: file.title, kind: file.kind, passages: [], links: [], identity };
     let hasText = false;
     const fileLinks: DigLink[] = [];
     for await (const section of sections) {
@@ -54,7 +56,7 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
       signal.throwIfAborted();
       const hits = scored.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length);
       if (hits.length && (!result.passages.length || hits[0].score > result.passages[0].score)) {
-        result = { title: file.title, kind: file.kind, passages: hits, links: [], location: section.location, pageNumber: section.pageNumber };
+        result = { title: file.title, kind: file.kind, passages: hits, links: [], location: section.location, pageNumber: section.pageNumber, identity };
         const progress: RuntimeMsg = { to: 'sw', type: 'file-progress', run: msg.run, url: msg.url, result };
         void chrome.runtime.sendMessage(progress).catch(() => {});
       }

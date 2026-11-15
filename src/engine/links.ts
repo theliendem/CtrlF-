@@ -39,6 +39,12 @@ const SITE_BLOCKED = /(?:^|[\W_])(log-?out|sign-?out|log-?in|sign-?in|sign-?up|r
 /** Files and media we can't read. PDFs, .pptx and .docx are files we can. */
 const NOT_A_PAGE = /\.(?:png|jpe?g|gif|webp|svg|ico|bmp|tiff?|mp[34]|m4a|wav|ogg|webm|mov|avi|zip|gz|tgz|rar|7z|tar|dmg|exe|msi|pkg|apk|iso|css|js|mjs|json|xml|ics|csv|xlsx?|xlsm|docm?|pptm?|ppt|rtf|txt|epub|woff2?|ttf|otf)$/i;
 const TRACKING = /^(?:utm_.+|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i;
+/** Wiki revision and diff views: other versions of a page, not new content. */
+const REVISION_PARAM = /^(?:diff|oldid|curid|veaction)$/i;
+/** On MediaWiki's index.php these are history/edit/print views of the same article. */
+const WIKI_VIEW_PARAM = /^(?:action|printable|redirect|direction)$/i;
+/** MediaWiki namespaces that aren't articles (talk pages, special pages, files, templates…). */
+const WIKI_NAMESPACE = /\/(?:Special|Talk|User|User_talk|Wikipedia|Wikipedia_talk|Project|File|File_talk|Image|Template|Template_talk|Help|Help_talk|Category|Category_talk|Portal|Draft|MediaWiki|Module|TimedText):/i;
 
 export function siteFileKind(raw: string): Exclude<NodeKind, 'page'> | null {
   try {
@@ -56,6 +62,9 @@ export function siteLink(raw: string, base: string, context: SiteContext): strin
     if (!/^https?:$/.test(url.protocol) || url.origin !== context.origin || url.username || url.password) return null;
     const path = decodeURIComponent(url.pathname);
     if (SITE_BLOCKED.test(path) || SITE_BLOCKED.test(decodeURIComponent(url.search)) || NOT_A_PAGE.test(path)) return null;
+    if (WIKI_NAMESPACE.test(path) || WIKI_NAMESPACE.test(`/${url.searchParams.get('title') ?? ''}`)) return null;
+    const keys = [...url.searchParams.keys()];
+    if (keys.some((key) => REVISION_PARAM.test(key)) || (/\/index\.php$/i.test(path) && keys.some((key) => WIKI_VIEW_PARAM.test(key)))) return null;
     for (const key of [...url.searchParams.keys()]) if (TRACKING.test(key)) url.searchParams.delete(key);
     url.hash = '';
     // Trailing slashes stay: /notes and /notes/ can be different pages, and relative links depend on it.
