@@ -179,7 +179,21 @@ body {
   text-underline-offset: 3px;
   cursor: pointer;
 }
-.resume:hover { text-decoration-color: var(--ink); }
+.resume:hover, .link:hover { text-decoration-color: var(--ink); }
+/* Inline text button with the same highlighter underline as "Keep searching". */
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: var(--reading-stroke);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .status {
   display: flex;
   align-items: center;
@@ -301,6 +315,11 @@ body {
   transition: background-color 0.12s ease;
 }
 #results li:hover { background: var(--sheet); }
+/* A search that ends with nothing found says so in plain type above the status line; the status
+   underneath keeps the page counts. */
+.no-results { padding: 6px 14px 4px; }
+.no-results-title { margin: 0; color: var(--ink); font-size: var(--fs-query); font-weight: var(--w-title); line-height: 1.3; overflow-wrap: anywhere; }
+.no-results-hint { margin: 2px 0 0; color: var(--ink-soft); font-size: 12px; }
 #results li:focus-visible { outline-offset: -2px; }
 /* --hit is set per result from its score: red just over the cutoff, green at the top. */
 #results .strength { border-radius: 2px; background: var(--hit, var(--found)); }

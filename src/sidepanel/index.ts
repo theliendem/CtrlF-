@@ -17,6 +17,11 @@ const statusEl = $<HTMLParagraphElement>('status');
 const resumeBtn = $<HTMLButtonElement>('resume');
 const resultsEl = $<HTMLUListElement>('results');
 const resultsBox = resultsEl.parentElement!;
+const noResults = $('no-results');
+const noResultsTitle = $('no-results-title');
+$('no-results-settings').addEventListener('click', () => $<HTMLButtonElement>('settings').click());
+/** A dig is running (from the service worker's status messages). */
+let digRunning = false;
 const settingsBtn = $<HTMLButtonElement>('settings');
 const settingsForm = $<HTMLFormElement>('settings-form');
 const pageBudget = $<HTMLInputElement>('page-budget');
@@ -139,6 +144,11 @@ function setStatus(text: string, running: boolean, canResume = false): void {
   resumeBtn.hidden = !canResume;
   statusEl.classList.toggle('running', running);
   stopBtn.hidden = !running;
+  // A search finishing (or starting) decides whether the "no matches" line shows.
+  if (digRunning !== running) {
+    digRunning = running;
+    renderResults();
+  }
 }
 
 // File glyphs: a page outline, with a band in the color people already know for each file type.
@@ -183,7 +193,11 @@ function renderResults(): void {
   // Bridges led to matches but aren't matches themselves, so they stay out of the list.
   const bridge = bridges(nodes.values());
   const hits = [...nodes.values()].filter((n) => n.state === 'hit' && !bridge.has(n.id)).sort((a, b) => b.best - a.best);
+  // The page was read (root exists) and the search is over, but nothing matched: say so instead of staying blank.
+  const nothing = hits.length === 0 && !digRunning && nodes.has('root');
   resultsBox.hidden = hits.length === 0;
+  noResults.hidden = !nothing;
+  if (nothing) noResultsTitle.textContent = `No matches for “${shownQuery}”`;
   resultsEl.replaceChildren(
     ...hits.map((n, i) => {
       const li = el('li', [n.best >= STRONG ? 'strong' : '', i === 0 ? 'top' : ''].join(' ').trim());
