@@ -243,6 +243,7 @@ async function readInTab(url: string, run: DigRun, node: TreeNode): Promise<DigR
 }
 
 async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<DigReadResult> {
+  // LATER: cache tab-rendered pages too, so JavaScript-built pages also work offline.
   if (run.id !== runId) throw new Error('Search stopped');
   const win = await chrome.windows.create({ url, state: 'minimized', focused: false });
   const tabId = win?.tabs?.[0]?.id;
