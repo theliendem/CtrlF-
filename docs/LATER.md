@@ -10,3 +10,8 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Rust/WASM port of scoring and the index
 - Databricks-trained link scorer and analytics dashboard
 - Contradiction finder
+- WebGPU for the model (needs an fp32/fp16 model; q8 runs on WASM for now)
+- Persist the embedding cache to IndexedDB so it survives a browser restart
+- Fuzzy highlight matching when a passage was cut mid-word or the page changed after extraction
+- Smarter boilerplate removal on non-Canvas sites (only nav/header/footer are skipped today)
+- Huge pages: extraction stops at 30,000 words

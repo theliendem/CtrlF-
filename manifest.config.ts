@@ -10,7 +10,10 @@ export default defineManifest({
   background: { service_worker: 'src/background/index.ts', type: 'module' },
   side_panel: { default_path: 'src/sidepanel/index.html' },
   action: { default_title: 'Ctrl+F++' },
-  permissions: ['sidePanel'],
+  permissions: ['sidePanel', 'offscreen', 'scripting', 'tabs', 'storage'],
+  // All sites: the content script reads and highlights any page, and the dig fetches same-site links.
+  host_permissions: ['<all_urls>'],
+  content_scripts: [{ matches: ['http://*/*', 'https://*/*'], js: ['src/content/index.ts'], run_at: 'document_idle' }],
   commands: {
     'open-search': {
       suggested_key: { default: 'Ctrl+Shift+F', mac: 'Command+Shift+F' },
