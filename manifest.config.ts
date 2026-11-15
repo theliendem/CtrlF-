@@ -9,7 +9,8 @@ export default defineManifest({
   minimum_chrome_version: '116',
   background: { service_worker: 'src/background/index.ts', type: 'module' },
   side_panel: { default_path: 'src/sidepanel/index.html' },
-  action: { default_title: 'Ctrl+F++' },
+  icons: { 16: 'icons/icon-16.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' },
+  action: { default_title: 'Ctrl+F++', default_icon: { 16: 'icons/icon-16.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' } },
   // The model runs on WebAssembly, which the extension-page CSP must allow explicitly.
   content_security_policy: { extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';" },
   permissions: ['sidePanel', 'offscreen', 'scripting', 'tabs', 'storage'],
