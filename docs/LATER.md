@@ -15,7 +15,9 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Fuzzy highlight matching when a passage was cut mid-word or the page changed after extraction
 - Smarter boilerplate removal on non-Canvas sites (only nav/header/footer are skipped today)
 - Huge pages: extraction stops at 30,000 words
-- Crawling other sites and direct non-Canvas file URLs (milestone 6)
+- Sites whose login lives on another domain (SSO): the redirect counts as off-site, so those pages show as unreadable
+- `/notes` and `/notes/` are kept as separate links on non-Canvas sites; they aren't merged
+- `<base href>` tags on fetched pages are ignored when resolving relative links
 - Password-protected files, Word headers/footnotes/tracked changes, and embedded objects
 - Documents over 50 MB; stream or cache their bytes instead of keeping the entire file in memory
 - Canvas external-tool launches and discussion module items are excluded; announcements use the read-only announcements API

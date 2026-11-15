@@ -1,4 +1,5 @@
-import type { CanvasContext, DigLink, SearchSettings, SkippedLink } from '../shared/types';
+import type { CanvasContext, DigContext, DigLink, NodeKind, SearchSettings, SiteContext } from '../shared/types';
+import type { SkippedLink } from '../shared/types';
 
 export function canvasContext(raw: string): CanvasContext | null {
   const url = new URL(raw);
@@ -20,10 +21,7 @@ export function safeLink(raw: string, base: string, context: CanvasContext): str
     if (fileId) return `${context.origin}${prefix}/files/${fileId[1]}`;
     if (!(path === prefix || path.startsWith(prefix + '/'))) return null;
     const route = path.slice(prefix.length).replace(/\/$/, '');
-    if (!/^(?:|\/assignments(?:\/\d+|\/syllabus)?|\/pages(?:\/[^/]+)?|\/modules|\/announcements|\/discussion_topics\/\d+)$/.test(route)) {
-      // LATER: direct non-Canvas file URLs and other sites in milestone 6.
-      return null;
-    }
+    if (!/^(?:|\/assignments(?:\/\d+|\/syllabus)?|\/pages(?:\/[^/]+)?|\/modules|\/announcements|\/discussion_topics\/\d+)$/.test(route)) return null;
     const hash = route === '/modules' && /^#context_module_\d+$/.test(url.hash) ? url.hash : '';
     const canonical = `${url.origin}${url.pathname.replace(/\/$/, '')}${hash}`;
     const parent = new URL(base);
@@ -34,17 +32,56 @@ export function safeLink(raw: string, base: string, context: CanvasContext): str
   }
 }
 
-export function filterLinks(links: DigLink[], base: string, context: CanvasContext): DigLink[] {
+export const isCanvas = (context: DigContext): context is CanvasContext => context.courseId !== undefined;
+
+/** Account, auth, state-changing and help routes on any site. */
+const SITE_BLOCKED = /(?:^|[\W_])(log-?out|sign-?out|log-?in|sign-?in|sign-?up|register|auth|oauth|sso|account|accounts|profile|settings|preferences|cart|checkout|basket|delete|remove|unsubscribe|submit|edit|admin|wp-admin|wp-login|help|support|faq|share|print|feed|rss)(?:$|[\W_])/i;
+/** Files and media we can't read. PDFs, .pptx and .docx are files we can. */
+const NOT_A_PAGE = /\.(?:png|jpe?g|gif|webp|svg|ico|bmp|tiff?|mp[34]|m4a|wav|ogg|webm|mov|avi|zip|gz|tgz|rar|7z|tar|dmg|exe|msi|pkg|apk|iso|css|js|mjs|json|xml|ics|csv|xlsx?|xlsm|docm?|pptm?|ppt|rtf|txt|epub|woff2?|ttf|otf)$/i;
+const TRACKING = /^(?:utm_.+|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i;
+
+export function siteFileKind(raw: string): Exclude<NodeKind, 'page'> | null {
+  try {
+    const ext = new URL(raw).pathname.match(/\.(pdf|pptx|docx)$/i)?.[1].toLowerCase();
+    return (ext as Exclude<NodeKind, 'page'> | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same-origin pages and supported files on a non-Canvas site. Query strings stay; anchors and tracking params go. */
+export function siteLink(raw: string, base: string, context: SiteContext): string | null {
+  try {
+    const url = new URL(raw, base);
+    if (!/^https?:$/.test(url.protocol) || url.origin !== context.origin || url.username || url.password) return null;
+    const path = decodeURIComponent(url.pathname);
+    if (SITE_BLOCKED.test(path) || SITE_BLOCKED.test(decodeURIComponent(url.search)) || NOT_A_PAGE.test(path)) return null;
+    for (const key of [...url.searchParams.keys()]) if (TRACKING.test(key)) url.searchParams.delete(key);
+    url.hash = '';
+    // Trailing slashes stay: /notes and /notes/ can be different pages, and relative links depend on it.
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+/** The one free filter, for whichever kind of site the dig started on. */
+export function digLink(raw: string, base: string, context: DigContext): string | null {
+  return isCanvas(context) ? safeLink(raw, base, context) : siteLink(raw, base, context);
+}
+
+export function filterLinks(links: DigLink[], base: string, context: DigContext): DigLink[] {
   const unique = new Map<string, DigLink>();
+  const self = digLink(base, base, context) ?? base;
   for (const link of links) {
-    const url = safeLink(link.url, base, context);
-    if (url && url !== base && !unique.has(url)) unique.set(url, { ...link, url });
+    const url = digLink(link.url, base, context);
+    if (url && url !== base && url !== self && !unique.has(url)) unique.set(url, { ...link, url });
   }
   return [...unique.values()];
 }
 
 /** Display-only stubs. These URLs never enter the fetch queue. */
-export function skippedLinks(links: DigLink[], base: string, context: CanvasContext, settings: SearchSettings): SkippedLink[] {
+export function skippedLinks(links: DigLink[], base: string, context: DigContext, settings: SearchSettings): SkippedLink[] {
   const out = new Map<string, SkippedLink>();
   for (const link of links) {
     try {
@@ -53,7 +90,7 @@ export function skippedLinks(links: DigLink[], base: string, context: CanvasCont
       const offsite = url.origin !== context.origin;
       const extension = url.pathname.match(/\.(pdf|pptx|docx)$/i)?.[1].toLowerCase();
       const file = /\/files\/\d+(?:\/|$)/.test(url.pathname) || !!extension;
-      if ((offsite && settings.showOffsite) || (!offsite && file && !safeLink(link.url, base, context) && settings.showUnreadable)) {
+      if ((offsite && settings.showOffsite) || (!offsite && file && !digLink(link.url, base, context) && settings.showUnreadable)) {
         out.set(url.href, { url: url.href, title: link.title || url.href, state: offsite ? 'not-followed' : 'unreadable', kind: extension as 'pdf' | 'pptx' | 'docx' | undefined ?? 'page' });
       }
     } catch { /* Malformed links do not become stubs. */ }

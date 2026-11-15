@@ -108,14 +108,15 @@ function highlight(passages: HighlightPassage[]): number {
   return found;
 }
 
-function highlightFile(fileId: string, url: string, title: string): number {
+function highlightFile(fileId: string | undefined, url: string, title: string): number {
   clear();
   const target = new URL(url);
   for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
     const href = new URL(link.href);
     if (href.origin !== target.origin) continue;
     const api = link.getAttribute('data-api-endpoint') ?? '';
-    const direct = href.pathname.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId || href.searchParams.get('preview') === fileId || api.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId;
+    const samePath = href.pathname.replace(/\/+$/, '') === target.pathname.replace(/\/+$/, '');
+    const direct = samePath || (!!fileId && (href.pathname.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId || href.searchParams.get('preview') === fileId || api.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId));
     const moduleTitle = /\/modules\/items\/\d+$/.test(href.pathname) && link.textContent?.trim() === title;
     if (!direct && !moduleTitle) continue;
     if (!link.checkVisibility({ visibilityProperty: true })) continue;

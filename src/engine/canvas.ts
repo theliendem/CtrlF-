@@ -53,6 +53,7 @@ export async function canvasList<T>(raw: string, context: CanvasContext, signal:
 /** Read inert HTML into blocks that match the content script's block boundaries. */
 export function parseHtml(html: string, url: string, title: string): PageText {
   const doc = new DOMParser().parseFromString(html, 'text/html');
+  title ||= doc.title?.trim() ?? '';
   doc.querySelectorAll('script,style,noscript,iframe,nav,header,footer,form,[hidden],[aria-hidden="true"],[role="navigation"]').forEach((el) => el.remove());
   const blocks: string[] = title ? [title] : [];
   let current: Element | null = null;

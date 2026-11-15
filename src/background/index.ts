@@ -2,6 +2,7 @@
 import {
   RELEVANT,
   type ContentMsg,
+  type DigContext,
   type DigLink,
   type DigReadResult,
   type DigRun,
@@ -12,11 +13,18 @@ import {
   type ScorePageResult,
   type TreeNode,
 } from '../shared/types';
-import { canvasContext, safeLink } from '../engine/links';
+import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLinks } from '../engine/links';
+import { exactLinks } from '../engine/exact';
+import { wordCount, MIN_WORDS } from '../engine/site';
 import { runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
 
 const MAX_HIGHLIGHTS = 30;
+/** A JavaScript-built page gets this long in a background tab to render. */
+const TAB_TIMEOUT = 12000;
+
+/** File nodes: Canvas files (by id) and same-site PDF/PPTX/DOCX links. */
+const isFile = (node: TreeNode): boolean => !!node.fileId || node.kind !== 'page';
 
 // ---------- Side panel opening ----------
 
@@ -154,23 +162,19 @@ async function search(query: string, windowId: number): Promise<void> {
     hits,
   });
 
-  const shown = hits.length
-    ? await toTab<number>(tab.id, { type: 'highlight-exact', query })
-    : 0;
-  if (hits.length) highlightedTabs.add(tab.id);
-  if (run !== runId) return;
-  const context = canvasContext(page.url);
-  if (!context) {
-    // LATER: non-Canvas crawling is milestone 6.
-    status(`${hits.length} matches on this page (${shown} highlighted). Digging currently supports Canvas courses.`, false);
-    return;
+  if (hits.length) {
+    await toTab<number>(tab.id, { type: 'highlight-exact', query });
+    highlightedTabs.add(tab.id);
   }
-  const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([safeLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0, settings };
-  status('Finding Canvas links…', true);
-  const seed = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: page.url, depth: 0, settings, visited: [...dig.seen], seed: page.links });
+  if (run !== runId) return;
+  const context: DigContext = canvasContext(page.url) ?? { origin: new URL(page.url).origin };
+  const where = isCanvas(context) ? 'Canvas' : new URL(page.url).hostname;
+  const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([digLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0, settings };
+  status(`Finding ${isCanvas(context) ? 'Canvas ' : ''}links…`, true);
+  const seed = await toEngine<DigReadResult>({ to: 'offscreen', type: 'dig-read', run, query, context, url: page.url, depth: 0, settings, visited: [...dig.seen], seed: page.links });
   if (run !== runId) return;
   if (seed.error) {
-    status(`Current page searched. Canvas dig failed: ${seed.error}`, false);
+    status(`Current page searched. Dig failed: ${seed.error}`, false);
     return;
   }
   enqueue(dig, root, seed.links);
@@ -178,20 +182,22 @@ async function search(query: string, windowId: number): Promise<void> {
   await runBranchBatches(dig, async ({ node }) => {
     if (run !== runId) return;
     emit({ ...node, state: 'reading', deferred: false });
-    status(`Digging Canvas: ${dig.started}/${settings.pageBudget} pages started…`, true);
+    status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
     try {
-      const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
+      let result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'dig-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
       if (run !== runId) return;
       if (result.error) throw new Error(result.error);
+      if (result.needsTab) result = await readInTab(result.finalUrl ?? node.url, dig, node);
+      if (run !== runId) return;
       emitResult(node, result);
       enqueue(dig, node, result.links);
       showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
       dig.failed++;
-      console.warn('[ctrlf++] Canvas read failed', node.url, error);
+      console.warn('[ctrlf++] read failed', node.url, error);
       const partial = nodes.get(node.id);
-      if (partial?.state !== 'hit') emit({ ...node, deferred: false, state: 'unreadable', snippet: String(error), hidden: !!node.fileId && !settings.showUnreadable });
+      if (partial?.state !== 'hit') emit({ ...node, deferred: false, state: 'unreadable', snippet: String(error), hidden: isFile(node) && !settings.showUnreadable });
     }
   }, () => run === runId, settings.pageBudget);
   if (run !== runId) return;
@@ -203,12 +209,13 @@ async function search(query: string, windowId: number): Promise<void> {
 function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
   if (parent.depth >= run.settings.maxDepth) return;
   for (const link of links) {
-    const url = safeLink(link.url, parent.url, run.context);
+    const url = digLink(link.url, parent.url, run.context);
     if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < 0.3)) continue;
     run.seen.add(url);
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0 };
-    node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
-    if (node.fileId) { node.parentUrl = parent.url; node.linkTitle = link.title; }
+    if (isCanvas(run.context)) node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
+    else node.kind = siteFileKind(url) ?? 'page';
+    if (isFile(node)) { node.parentUrl = parent.url; node.linkTitle = link.title; }
     node.exactQuery = run.query;
     run.queue.push({ node, priority: 1 });
     emit(node);
@@ -217,8 +224,54 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
 
 function emitResult(node: TreeNode, result: DigReadResult): void {
   const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
-  emit({ ...node, deferred: false, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
+  emit({ ...node, deferred: false, url: isFile(node) ? node.url : result.finalUrl ?? node.url, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
     state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
+}
+
+// ---------- JavaScript-built pages ----------
+
+let tabLock: Promise<unknown> = Promise.resolve();
+
+/**
+ * Read a page whose fetched HTML was nearly empty by loading it in a minimized, unfocused window,
+ * one at a time. It's a plain navigation (GET); nothing on the page is clicked.
+ */
+async function readInTab(url: string, run: DigRun, node: TreeNode): Promise<DigReadResult> {
+  const turn = tabLock.then(() => readInTabNow(url, run, node));
+  tabLock = turn.catch(() => {});
+  return turn;
+}
+
+async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<DigReadResult> {
+  if (run.id !== runId) throw new Error('Search stopped');
+  const win = await chrome.windows.create({ url, state: 'minimized', focused: false });
+  const tabId = win?.tabs?.[0]?.id;
+  try {
+    if (tabId === undefined) throw new Error('Could not open a background tab');
+    const deadline = Date.now() + TAB_TIMEOUT;
+    let page: PageText | null = null;
+    let lastCount = -1;
+    while (Date.now() < deadline && run.id === runId) {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      const tab = await chrome.tabs.get(tabId);
+      if (tab.status !== 'complete') continue;
+      if (tab.url && new URL(tab.url).origin !== run.context.origin) throw new Error('Redirected off-site; not followed');
+      try { page = await toTab<PageText>(tabId, { type: 'extract' }); } catch { continue; }
+      // Done once there's real text, or once rendering has settled on a short page.
+      const count = wordCount(page.blocks);
+      if (count >= MIN_WORDS || count === lastCount) break;
+      lastCount = count;
+    }
+    if (run.id !== runId) throw new Error('Search stopped');
+    if (!page) throw new Error('Page did not load in time');
+    const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: run.settings.mode, query: run.query, url: page.url, blocks: page.blocks });
+    if (res.error) throw new Error(res.error);
+    const canDig = node.depth < run.settings.maxDepth;
+    const links = canDig ? exactLinks(filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url))) : [];
+    return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url };
+  } finally {
+    if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});
+  }
 }
 
 function showSkipped(run: DigRun, parent: TreeNode, skipped: SkippedLink[]): void {
@@ -263,7 +316,8 @@ async function openResult(nodeId: string, openFile = false): Promise<void> {
   const node = nodes.get(nodeId);
   if (!node?.hits?.length) return;
   if (openFile && node.kind === 'pdf' && node.pageNumber) {
-    await chrome.tabs.create({ url: `${node.url}/download?inline=1#page=${node.pageNumber}`, active: true });
+    const url = node.fileId ? `${node.url}/download?inline=1#page=${node.pageNumber}` : `${node.url}#page=${node.pageNumber}`;
+    await chrome.tabs.create({ url, active: true });
     return;
   }
   const run = runId;
@@ -275,7 +329,7 @@ async function openResult(nodeId: string, openFile = false): Promise<void> {
     if (run !== runId) return;
     const current = await chrome.tabs.get(tabId);
     if (current.status === 'complete') {
-      const message: ContentMsg = node.fileId
+      const message: ContentMsg = isFile(node)
         ? { type: 'highlight-file', fileId: node.fileId, url: node.url, title: node.linkTitle ?? node.title }
         : { type: 'highlight-exact', query: node.exactQuery ?? '' };
       const shown = await toTab<number>(tabId, message);
@@ -313,7 +367,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     case 'file-progress': {
       if (msg.run !== runId) break;
       const node = nodes.get(msg.url);
-      if (node?.fileId) emitResult(node, msg.result);
+      if (node && isFile(node)) emitResult(node, msg.result);
       break;
     }
   }

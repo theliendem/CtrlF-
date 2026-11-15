@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import type { CanvasContext, CanvasFile, FileData, FileSection } from '../shared/types';
 import { canvasGet } from './canvas';
 
-const MAX_BYTES = 50 * 1024 * 1024;
+export const MAX_BYTES = 50 * 1024 * 1024;
 
 export function fileKind(filename: string, mime: string): FileData['kind'] | null {
   const extension = filename.split('.').pop()?.toLowerCase();

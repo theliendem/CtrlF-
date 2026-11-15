@@ -64,6 +64,9 @@ export interface ExactMatch { start: number; end: number; text: string }
 export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
 export interface SkippedLink { url: string; title: string; state: 'not-followed' | 'unreadable'; kind: NodeKind }
 export interface CanvasContext { origin: string; courseId: string }
+/** Any other site: same-origin links only. */
+export interface SiteContext { origin: string; courseId?: undefined }
+export type DigContext = CanvasContext | SiteContext;
 export interface CanvasItem {
   id: number; title: string; type: string; page_url?: string; content_id?: number; external_url?: string;
 }
@@ -77,9 +80,15 @@ export interface CanvasCourse { name: string; syllabus_body?: string }
 export interface CanvasFile { id: number; display_name: string; filename: string; url: string; size: number; 'content-type': string; locked_for_user?: boolean; hidden_for_user?: boolean }
 export interface FileSection { blocks: string[]; location?: string; pageNumber?: number; links?: DigLink[] }
 export interface FileData { bytes: Uint8Array; kind: Exclude<NodeKind, 'page'>; title: string }
-export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string; kind?: NodeKind; location?: string; pageNumber?: number }
+export interface DigReadResult {
+  title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string; kind?: NodeKind; location?: string; pageNumber?: number;
+  /** The fetched HTML had almost no text (a JavaScript-built page): read it in a real tab instead. */
+  needsTab?: boolean;
+  /** Where the fetch landed after same-site redirects. */
+  finalUrl?: string;
+}
 export interface DigEntry { node: TreeNode; priority: number }
-export interface DigRun { id: number; query: string; context: CanvasContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
+export interface DigRun { id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
 export interface EngineAck { ok: boolean; error?: string }
 
 export interface HighlightPassage {
@@ -109,7 +118,7 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
 export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[] }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
-export interface CanvasReadMsg { to: 'offscreen'; type: 'canvas-read'; run: number; query: string; context: CanvasContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
+export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
 
 export type RuntimeMsg =
@@ -123,7 +132,7 @@ export type RuntimeMsg =
   | StatusMsg
   | NodeMsg
   | WarmupMsg
-  | CanvasReadMsg
+  | DigReadMsg
   | CancelDigMsg
   | ScorePageMsg;
 
@@ -134,7 +143,7 @@ export interface HighlightMsg { type: 'highlight'; passages: HighlightPassage[] 
 export interface HighlightExactMsg { type: 'highlight-exact'; query: string }
 export interface ClearHighlightsMsg { type: 'clear-highlights' }
 export interface PingMsg { type: 'ping' }
-export interface HighlightFileMsg { type: 'highlight-file'; fileId: string; url: string; title: string }
+export interface HighlightFileMsg { type: 'highlight-file'; fileId?: string; url: string; title: string }
 
 export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg | HighlightExactMsg;
 
