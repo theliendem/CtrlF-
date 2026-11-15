@@ -4,5 +4,10 @@ import manifest from './manifest.config.ts';
 
 export default defineConfig({
   plugins: [crx({ manifest })],
-  build: { outDir: 'dist', emptyOutDir: true },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    // The offscreen document isn't in the manifest, so CRXJS needs it listed here.
+    rollupOptions: { input: { offscreen: 'src/offscreen/index.html' } },
+  },
 });
