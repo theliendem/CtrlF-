@@ -66,9 +66,10 @@ export function isCanvasHub(url: string): boolean {
 /**
  * Score links by meaning against the query, best first: drop weak ones and keep the top LINK_PEEK.
  * Canvas hubs are always kept (at least LINK_MIN) and don't count toward the cap.
+ * keepAll keeps every link the same way: a title like "U2 homework" says nothing about what's inside.
  * depth is the depth the linked page would sit at.
  */
-export async function semanticLinks(query: string, links: DigLink[], depth: number, canvas: boolean, embed: Embed = modelEmbed): Promise<DigLink[]> {
+export async function semanticLinks(query: string, links: DigLink[], depth: number, canvas: boolean, embed: Embed = modelEmbed, keepAll = false): Promise<DigLink[]> {
   if (!links.length) return [];
   const texts = links.map(linkText);
   const [qVec, ...vecs] = await embed([query, ...texts]);
@@ -76,11 +77,11 @@ export async function semanticLinks(query: string, links: DigLink[], depth: numb
   const scored = links.map((link, i) => {
     const { kw, conflict } = keywordScore(q, texts[i]);
     const score = (W_COS * dot(qVec, vecs[i]) + W_KW * kw) * (conflict ? CONFLICT_FACTOR : 1) - LINK_DEPTH_PENALTY * depth;
-    const hub = canvas && isCanvasHub(link.url);
-    return { link: { ...link, score: hub ? Math.max(score, LINK_MIN) : score }, hub };
+    const kept = keepAll || (canvas && isCanvasHub(link.url));
+    return { link: { ...link, score: kept ? Math.max(score, LINK_MIN) : score }, kept };
   });
   const byScore = (a: { link: DigLink }, b: { link: DigLink }): number => b.link.score! - a.link.score!;
-  const hubs = scored.filter((s) => s.hub);
-  const pages = scored.filter((s) => !s.hub && s.link.score! >= LINK_MIN).sort(byScore).slice(0, LINK_PEEK);
-  return [...hubs, ...pages].sort(byScore).map((s) => s.link);
+  const always = scored.filter((s) => s.kept);
+  const pages = scored.filter((s) => !s.kept && s.link.score! >= LINK_MIN).sort(byScore).slice(0, LINK_PEEK);
+  return [...always, ...pages].sort(byScore).map((s) => s.link);
 }

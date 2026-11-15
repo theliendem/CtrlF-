@@ -24,6 +24,7 @@ Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2
    - Every link on the page passes a free filter first (no nav, account or logout links, no help pages, nothing already visited, no same-page anchors, no off-site links).
    - The survivors get a quick peek: title and headings only, capped at the top 15 links per page.
    - Links that score high enough after the peek join the queue.
+   - Exception: every link on the start page, and every item on a Canvas module or list page, joins the queue regardless of score or the cap, because titles like "U2 homework" don't say what's inside. They're still ordered by score.
 6. **Digging.** The queue is best-first: the highest-scoring unvisited link anywhere in the tree goes next. Each opened page is extracted, scored and highlighted in the tree, and its links go through step 5.
 7. **Files.** PDF, PowerPoint (.pptx) and Word (.docx) files found on a page become child nodes. They're read page by page or slide by slide, and the node turns green as soon as any part matches.
 8. **Stopping.** The dig stops when it hits the page budget, when no unvisited link scores high enough, or when the user presses Stop.

@@ -1,7 +1,7 @@
 // Offscreen document: the engine. Scoring, fetching and parsing pages and files.
 import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
-import { loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
+import { isCanvasHub, loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
@@ -26,7 +26,7 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   const canDig = msg.depth < msg.settings.maxDepth;
   const mode = msg.settings.mode;
   /** Exact queues every link; semantic keeps the ones whose words are close to the query. */
-  const pick = (links: DigLink[]): Promise<DigLink[]> => pickLinks(mode, msg.query, links, msg.depth + 1, context);
+  const pick = (links: DigLink[]): Promise<DigLink[]> => pickLinks(mode, msg.query, links, msg.depth + 1, context, msg.url);
 
   /** Score a page and pass its links through the free filter. */
   const finish = async (page: PageText, base: string): Promise<DigReadResult> => {
@@ -116,9 +116,17 @@ async function scorePage(query: string, blocks: string[], mode: SearchMode): Pro
   return { passages, ms: Math.round(performance.now() - t0) };
 }
 
-/** Exact follows every surviving link; semantic scores them by meaning and keeps the close ones. */
-export function pickLinks(mode: SearchMode, query: string, links: DigLink[], depth: number, context: DigContext): Promise<DigLink[]> {
-  return mode === 'semantic' ? semanticLinks(query, links, depth, isCanvas(context)) : Promise.resolve(exactLinks(links));
+/**
+ * Exact follows every surviving link; semantic scores them by meaning and keeps the close ones.
+ * Semantic keeps every link on the start page, and every item on a Canvas module or list page,
+ * because titles like "U2 homework" don't say what's inside. Those are still read best first.
+ * from is the page the links were found on.
+ */
+export function pickLinks(mode: SearchMode, query: string, links: DigLink[], depth: number, context: DigContext, from: string): Promise<DigLink[]> {
+  if (mode !== 'semantic') return Promise.resolve(exactLinks(links));
+  const canvas = isCanvas(context);
+  const keepAll = depth === 1 || (canvas && isCanvasHub(from));
+  return semanticLinks(query, links, depth, canvas, undefined, keepAll);
 }
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) => {
@@ -129,7 +137,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) =>
       loadModel().then(() => sendResponse({ ok: true } satisfies EngineAck), (e: unknown) => sendResponse({ ok: false, error: String(e) } satisfies EngineAck));
       return true;
     case 'score-links':
-      pickLinks(msg.mode, msg.query, msg.links, msg.depth, msg.context).then(sendResponse, (e: unknown) => {
+      pickLinks(msg.mode, msg.query, msg.links, msg.depth, msg.context, msg.from).then(sendResponse, (e: unknown) => {
         console.error('[engine] score-links failed', e);
         sendResponse([]);
       });

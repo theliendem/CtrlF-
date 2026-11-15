@@ -314,7 +314,7 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     if (res.error) throw new Error(res.error);
     const canDig = node.depth < run.settings.maxDepth;
     const candidates = canDig ? filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url)) : [];
-    const links = candidates.length ? await toEngine<DigLink[]>({ to: 'offscreen', type: 'score-links', mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context }) : [];
+    const links = candidates.length ? await toEngine<DigLink[]>({ to: 'offscreen', type: 'score-links', mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context, from: page.url }) : [];
     return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url, identity: pageIdentity(page.url, page.canonical, page.blocks) };
   } finally {
     if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});

@@ -127,8 +127,8 @@ export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: Searc
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
 export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
-/** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth. */
-export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext }
+/** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth; from = the page they're on. */
+export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext; from: string }
 
 export type RuntimeMsg =
   | SearchMsg

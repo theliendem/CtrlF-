@@ -71,6 +71,18 @@ test('Canvas hubs are never dropped or capped, only ordered behind better links'
   assert.ok(isCanvasHub(`${base}/modules#context_module_1`) && isCanvasHub(base) && !isCanvasHub(`${base}/pages/late-work`));
 });
 
+test('keepAll keeps vaguely titled links, uncapped, still best first', async () => {
+  const links = [
+    { url: 'https://site.edu/u2', title: 'U2 homework', heading: '' },
+    { url: 'https://site.edu/late', title: 'Late work policy', heading: '' },
+    ...Array.from({ length: 20 }, (_, i) => ({ url: `https://site.edu/x${i}`, title: `Handout ${i}`, heading: '' })),
+  ];
+  const picked = await semanticLinks('can I hand it in late', links, 1, false, fakeEmbed, true);
+  assert.equal(picked.length, 22);
+  assert.equal(picked[0].title, 'Late work policy');
+  assert.ok(picked.some((l) => l.title === 'U2 homework' && l.score === LINK_MIN));
+});
+
 function entry(id: string, priority: number): DigEntry {
   return { priority, node: { id, parentId: 'root', url: `https://site.edu/${id}`, title: id, kind: 'page', state: 'queued', depth: 1, best: 0 } };
 }

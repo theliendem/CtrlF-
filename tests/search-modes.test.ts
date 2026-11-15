@@ -23,7 +23,7 @@ test('semantic settings no longer stop a read before it starts', async (t) => {
 
 test('exact link picking for tab-read pages queues every link without the model', async () => {
   const links = [{ url: `${base}/pages/a`, title: 'A', heading: '' }, { url: `${base}/pages/b`, title: 'B', heading: '' }];
-  const picked = await send({ to: 'offscreen', type: 'score-links', mode: 'exact', query: 'aardvark', links, depth: 1, context });
+  const picked = await send({ to: 'offscreen', type: 'score-links', mode: 'exact', query: 'aardvark', links, depth: 1, context, from: base });
   assert.deepEqual(picked.map((l: { score: number }) => l.score), [1, 1]);
 });
 
