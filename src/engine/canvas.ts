@@ -104,6 +104,8 @@ export async function discoverCourse(context: CanvasContext, signal: AbortSignal
     { url: `${base}/assignments/syllabus`, title: 'Course syllabus', heading: '' },
     { url: `${base}/assignments`, title: 'Assignments homework deadlines', heading: '' },
     { url: `${base}/announcements`, title: 'Course announcements updates', heading: '' },
+    // Pages that no module links to are only reachable from the course's page list.
+    { url: `${base}/pages`, title: 'Course pages', heading: '' },
   ];
 }
 

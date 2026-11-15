@@ -88,6 +88,7 @@ test('module discovery keeps pages and files while excluding quizzes', async (t)
   assert.equal(links[0].url, `${base}/modules#context_module_7`);
   assert.ok(links[0].heading.includes('Midterm 2 review'));
   assert.ok(!links[0].heading.includes('Secret quiz'));
+  assert.ok(links.some((link) => link.url === `${base}/pages`), 'unlinked pages are reachable from the page list');
   const page = await readCanvas(links[0].url, context, signal);
   assert.equal(filterLinks(page.links, page.url, context).length, 2);
   assert.ok(page.links.some((link) => link.url.endsWith('/files/99')));

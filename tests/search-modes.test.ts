@@ -35,7 +35,7 @@ test('exact engine queues every module and every nested file with unrelated titl
       : Array.from({ length: 22 }, (_, i) => ({ id: i + 1, name: `Week ${i}`, items_count: 23 }))));
   });
   const root = await send({ to: 'offscreen', type: 'dig-read', run: 2, query: 'aardvark', context, url: base, depth: 0, settings: EXACT, visited: [base], seed: [] });
-  assert.equal(root.links.length, 25); // 22 modules plus syllabus, assignments, announcements.
+  assert.equal(root.links.length, 26); // 22 modules plus syllabus, assignments, announcements, pages.
   const nested = await send({ to: 'offscreen', type: 'dig-read', run: 2, query: 'aardvark', context, url: root.links[0].url, depth: 1, settings: EXACT, visited: [base] });
   assert.equal(nested.links.length, 23);
   assert.ok(nested.links.every((link: { url: string }) => link.url.includes('/files/')));
