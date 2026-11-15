@@ -43,6 +43,8 @@ export interface TreeNode {
   fileId?: string;
   linkTitle?: string;
   hidden?: boolean;
+  /** Waiting in the real queue, but not yet revealed in the graph. */
+  deferred?: boolean;
   exactQuery?: string;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];

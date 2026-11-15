@@ -94,3 +94,26 @@ test('late useful children restore collected ancestors', (t) => {
   t.mock.timers.tick(2000);
   assert.deepEqual(new Set(titles()), new Set(['root', 'middle', 'child']));
 });
+
+test('deferred waiting children stay invisible but preserve their gray ancestor', (t) => {
+  const { graph, titles } = setup(t);
+  graph.upsert(node('root', 'ruled-out'));
+  graph.upsert({ ...node('child', 'queued', 'root'), deferred: true });
+  t.mock.timers.tick(2000);
+  assert.deepEqual(titles(), ['root']);
+  graph.upsert({ ...node('child', 'reading', 'root'), deferred: false });
+  assert.deepEqual(titles(), ['root', 'child']);
+  graph.upsert({ ...node('child', 'hit', 'root'), deferred: false });
+  t.mock.timers.tick(2000);
+  assert.deepEqual(titles(), ['root', 'child']);
+});
+
+test('stopping hidden queued children allows dead ancestors to disappear without revealing the queue', (t) => {
+  const { graph, titles } = setup(t);
+  graph.upsert(node('root', 'ruled-out'));
+  graph.upsert({ ...node('child', 'queued', 'root'), deferred: true });
+  graph.upsert({ ...node('child', 'not-followed', 'root'), deferred: true });
+  assert.deepEqual(titles(), ['root']);
+  t.mock.timers.tick(750);
+  assert.deepEqual(titles(), []);
+});

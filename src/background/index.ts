@@ -13,7 +13,7 @@ import {
   type TreeNode,
 } from '../shared/types';
 import { canvasContext, safeLink } from '../engine/links';
-import { runBestFirst } from './queue';
+import { runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
 
 const MAX_HIGHLIGHTS = 30;
@@ -175,9 +175,9 @@ async function search(query: string, windowId: number): Promise<void> {
   }
   enqueue(dig, root, seed.links);
   showSkipped(dig, root, seed.skipped ?? []);
-  await runBestFirst(dig, async ({ node }) => {
+  await runBranchBatches(dig, async ({ node }) => {
     if (run !== runId) return;
-    emit({ ...node, state: 'reading' });
+    emit({ ...node, state: 'reading', deferred: false });
     status(`Digging Canvas: ${dig.started}/${settings.pageBudget} pages started…`, true);
     try {
       const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
@@ -191,7 +191,7 @@ async function search(query: string, windowId: number): Promise<void> {
       dig.failed++;
       console.warn('[ctrlf++] Canvas read failed', node.url, error);
       const partial = nodes.get(node.id);
-      if (partial?.state !== 'hit') emit({ ...node, state: 'unreadable', snippet: String(error), hidden: !!node.fileId && !settings.showUnreadable });
+      if (partial?.state !== 'hit') emit({ ...node, deferred: false, state: 'unreadable', snippet: String(error), hidden: !!node.fileId && !settings.showUnreadable });
     }
   }, () => run === runId, settings.pageBudget);
   if (run !== runId) return;
@@ -206,7 +206,7 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
     const url = safeLink(link.url, parent.url, run.context);
     if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < 0.3)) continue;
     run.seen.add(url);
-    const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', depth: parent.depth + 1, best: 0 };
+    const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0 };
     node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
     if (node.fileId) { node.parentUrl = parent.url; node.linkTitle = link.title; }
     node.exactQuery = run.query;
@@ -217,7 +217,7 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
 
 function emitResult(node: TreeNode, result: DigReadResult): void {
   const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
-  emit({ ...node, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
+  emit({ ...node, deferred: false, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
     state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
 }
 

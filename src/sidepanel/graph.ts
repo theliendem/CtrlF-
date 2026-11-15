@@ -44,6 +44,23 @@ export class Graph {
     // Keep ancestry metadata even when its circle is gone: children may arrive later.
     this.nodes.set(n.id, n);
     const gray = n.state === 'ruled-out' || n.state === 'not-followed' || n.state === 'unreadable';
+    // A late child can make a previously collected branch useful again.
+    if (!gray) {
+      let parentId = n.parentId;
+      while (parentId) {
+        const parent = this.nodes.get(parentId);
+        if (!parent) break;
+        if (this.collected.has(parentId)) {
+          this.collected.delete(parentId);
+          this.upsert(parent);
+        }
+        parentId = parent.parentId;
+      }
+    }
+    if (n.deferred) {
+      this.scheduleCleanup();
+      return;
+    }
     if (n.hidden && !this.protectedAncestors().has(n.id)) {
       this.collect(n.id, true);
       return;
@@ -77,19 +94,6 @@ export class Graph {
     (el.g.querySelector('text') as SVGTextElement).textContent = n.state === 'hit' ? n.title : '';
     (el.g.querySelector('title') as unknown as SVGTitleElement).textContent = `${n.title}\n${n.url}\n${n.state}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
     (el.g.querySelector('circle') as SVGCircleElement).setAttribute('r', n.state === 'queued' ? '4' : '6');
-    // A late child can make a previously collected branch useful again.
-    if (!gray) {
-      let parentId = n.parentId;
-      while (parentId) {
-        const parent = this.nodes.get(parentId);
-        if (!parent) break;
-        if (this.collected.has(parentId)) {
-          this.collected.delete(parentId);
-          this.upsert(parent);
-        }
-        parentId = parent.parentId;
-      }
-    }
     this.scheduleCleanup();
     this.layout();
   }

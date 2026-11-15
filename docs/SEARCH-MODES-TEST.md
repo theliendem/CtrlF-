@@ -14,3 +14,7 @@ This change applies to the existing Canvas crawler and supported PDF/PPTX/DOCX f
 ## Graph cleanup
 
 After reloading the extension, run a search with matching and nonmatching branches. Dead gray nodes should fade and disappear after a random 0.5–1 second delay. Gray parents must stay while any descendant is green, yellow or waiting. When the last potentially useful descendant is ruled out, that branch can disappear too. Search counters and result cards must remain unchanged by this visual cleanup. Start a second search while nodes are fading and confirm old timers do not remove its new nodes.
+
+## Branch rotation and gradual reveal
+
+Search from Modules with several modules available. The graph should not display a wall of waiting nodes. Nodes appear when their actual reads start. The queue chooses 1–3 random siblings, then switches to another parent when one is available, with up to four reads in flight. A gray parent with hidden waiting children must stay visible. Stop should keep found results, cancel remaining reads, and never reveal the hidden backlog. Exact search still queues all eligible links; the same page/depth limits apply.
