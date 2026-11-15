@@ -30,7 +30,8 @@ function extract(): PageText {
     if (words > MAX_WORDS) break;
   }
   if (cur.trim()) blocks.push(cur.trim());
-  return { url: location.href, title: document.title, blocks: blocks.map((b) => b.replace(/\s+/g, ' ')), links: extractLinks() };
+  const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href || undefined;
+  return { url: location.href, canonical, title: document.title, blocks: blocks.map((b) => b.replace(/\s+/g, ' ')), links: extractLinks() };
 }
 
 function extractLinks(): DigLink[] {

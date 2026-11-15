@@ -103,5 +103,6 @@ body {
 #results .icon { flex: none; }
 #results .body { min-width: 0; }
 #results .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#results li.strong .title { color: var(--green); }
+/* --hit is set per result from its score (red just over the cutoff, green at the top). */
+#results li .title { color: var(--hit, var(--green)); }
 #results .snippet { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

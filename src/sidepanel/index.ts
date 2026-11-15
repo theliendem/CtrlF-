@@ -1,6 +1,6 @@
 // Side panel: search box, live graph, results list, settings.
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
-import { Graph } from './graph';
+import { Graph, strengthColor } from './graph';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -104,6 +104,7 @@ const ICON: Record<TreeNode['kind'], string> = { page: '📄', pdf: '📕', pptx
 function renderCounters(): void {
   let searched = 0, ruled = 0, found = 0;
   for (const n of nodes.values()) {
+    if (n.hidden) continue; // duplicates and hidden stubs aren't counted
     if (n.state === 'hit' || n.state === 'trail' || n.state === 'ruled-out') searched++;
     if (n.state === 'ruled-out') ruled++;
     if (n.state === 'hit') found++;
@@ -119,6 +120,7 @@ function renderResults(): void {
     ...hits.map((n) => {
       const li = document.createElement('li');
       li.className = n.best >= STRONG ? 'strong' : '';
+      li.style.setProperty('--hit', strengthColor(n.strength));
       li.title = n.url;
       const icon = document.createElement('span');
       icon.className = 'icon';

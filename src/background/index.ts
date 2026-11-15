@@ -1,6 +1,7 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
   LINK_MIN,
+  hitStrength,
   relevantScore,
   type HighlightPassage,
   type Passage,
@@ -19,6 +20,7 @@ import {
 } from '../shared/types';
 import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLinks } from '../engine/links';
 import { wordCount, MIN_WORDS } from '../engine/site';
+import { pageIdentity } from '../engine/identity';
 import { runBestFirst, runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
 
@@ -90,6 +92,20 @@ const nodes = new Map<string, TreeNode>();
 const highlightedTabs = new Set<number>();
 /** Mode of the current search (file progress arrives later and is scored the same way). */
 let mode: SearchMode = 'exact';
+/** Identity keys (final URL, canonical URL, text fingerprint) of every page read in this search. */
+let readPages = new Set<string>();
+
+/**
+ * True if this read is a page we already have under another URL (a redirect alias, a ?title= or
+ * canonical variant, or the same text). The first read wins; later ones are dropped, and their
+ * links aren't followed, which also stops cycles back to pages already in the tree.
+ */
+function isDuplicate(identity: string[] | undefined): boolean {
+  if (!identity?.length) return false;
+  if (identity.some((key) => readPages.has(key))) return true;
+  for (const key of identity) readPages.add(key);
+  return false;
+}
 
 /** Semantic hits are highlighted by their marked sentences, best first. */
 function passageHighlights(passages: Passage[]): HighlightPassage[] {
@@ -127,6 +143,7 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return;
 
   mode = settings.mode;
+  readPages = new Set();
   const exact = mode === 'exact';
 
   status('Reading this page…', true);
@@ -152,6 +169,7 @@ async function search(query: string, windowId: number): Promise<void> {
     depth: 0,
     best: 0,
   };
+  isDuplicate(pageIdentity(page.url, page.canonical, page.blocks));
   emit(root);
   status(exact ? 'Scoring this page…' : 'Scoring this page by meaning…', true);
 
@@ -167,6 +185,7 @@ async function search(query: string, windowId: number): Promise<void> {
     best: res.passages[0]?.score ?? 0,
     snippet: hits[0]?.marks.join(' '),
     hits,
+    strength: hits.length ? hitStrength(mode, hits[0].score) : undefined,
   });
 
   if (hits.length) {
@@ -197,6 +216,11 @@ async function search(query: string, windowId: number): Promise<void> {
       if (result.error) throw new Error(result.error);
       if (result.needsTab) result = await readInTab(result.finalUrl ?? node.url, dig, node);
       if (run !== runId) return;
+      if (isDuplicate(result.identity)) {
+        // Same page under another URL: drop it from the tree, the counters and the results.
+        emit({ ...node, deferred: false, state: 'ruled-out', hidden: true });
+        return;
+      }
       emitResult(node, result);
       enqueue(dig, node, result.links);
       showSkipped(dig, node, result.skipped ?? []);
@@ -233,7 +257,8 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
 function emitResult(node: TreeNode, result: DigReadResult): void {
   const matches = result.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
   emit({ ...node, deferred: false, url: isFile(node) ? node.url : result.finalUrl ?? node.url, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
-    state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
+    state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' '),
+    strength: matches.length ? hitStrength(mode, matches[0].score) : undefined });
 }
 
 // ---------- JavaScript-built pages ----------
@@ -278,7 +303,7 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     const canDig = node.depth < run.settings.maxDepth;
     const candidates = canDig ? filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url)) : [];
     const links = candidates.length ? await toEngine<DigLink[]>({ to: 'offscreen', type: 'score-links', mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context }) : [];
-    return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url };
+    return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url, identity: pageIdentity(page.url, page.canonical, page.blocks) };
   } finally {
     if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});
   }

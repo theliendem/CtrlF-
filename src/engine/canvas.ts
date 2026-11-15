@@ -54,6 +54,7 @@ export async function canvasList<T>(raw: string, context: CanvasContext, signal:
 export function parseHtml(html: string, url: string, title: string): PageText {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   title ||= doc.title?.trim() ?? '';
+  const canonical = doc.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ?? undefined;
   doc.querySelectorAll('script,style,noscript,iframe,nav,header,footer,form,[hidden],[aria-hidden="true"],[role="navigation"]').forEach((el) => el.remove());
   const blocks: string[] = title ? [title] : [];
   let current: Element | null = null;
@@ -76,7 +77,7 @@ export function parseHtml(html: string, url: string, title: string): PageText {
     if (el.tagName !== 'A') heading = el.textContent?.trim() || title;
     else links.push({ url: el.getAttribute('href')!, title: el.textContent?.trim() || '', heading });
   }
-  return { url, title, blocks, links };
+  return { url, canonical, title, blocks, links };
 }
 
 function itemLinks(items: CanvasItem[], context: CanvasContext, heading: string): DigLink[] {

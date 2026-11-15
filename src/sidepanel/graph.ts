@@ -14,6 +14,11 @@ const MANUAL_MS = 5000;
 const LABEL_MAX = 30;
 const GRAY = new Set(['ruled-out', 'not-followed', 'unreadable']);
 
+/** Results-list color by strength: red just over the cutoff, green for the closest matches. Graph nodes stay plain green. */
+export function strengthColor(strength = 1): string {
+  return `hsl(${Math.round(120 * Math.max(0, Math.min(1, strength)))} 72% 48%)`;
+}
+
 interface El {
   g: SVGGElement;
   label: SVGTextElement;
@@ -108,7 +113,7 @@ export class Graph {
       this.els.set(n.id, el);
     }
     el.label.textContent = n.state === 'hit' ? short(n.title) : '';
-    el.tip.textContent = `${n.title}\n${n.url}\n${n.state}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
+    el.tip.textContent = `${n.title}\n${n.url}\n${n.state}${n.state === 'hit' ? ` · score ${n.best.toFixed(2)}` : ''}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
     this.scheduleCleanup();
     this.layout();
   }
