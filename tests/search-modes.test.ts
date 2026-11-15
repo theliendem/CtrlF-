@@ -10,13 +10,19 @@ const send = (message: RuntimeMsg): Promise<any> => new Promise((resolve) => lis
 const context = { origin: 'https://canvas.wisc.edu', courseId: '123' };
 const base = `${context.origin}/courses/123`;
 
-test('semantic mode returns unavailable without fetching a page or running scoring', async (t) => {
-  const fetch = t.mock.method(globalThis, 'fetch', async () => { throw new Error('Must not fetch'); });
-  const result = await send({ to: 'offscreen', type: 'dig-read', run: 1, query: 'exam', context, url: base, depth: 0, settings: { ...DEFAULT_SETTINGS, mode: 'semantic' }, visited: [] });
-  assert.match(result.error, /Semantic search is not available/);
-  const scored = await send({ to: 'offscreen', type: 'score-page', mode: 'semantic', query: 'exam', url: base, blocks: ['exam'] });
-  assert.match(scored.error, /not available/);
-  assert.equal(fetch.mock.callCount(), 0);
+test('semantic settings no longer stop a read before it starts', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => new Response('[]'));
+  // A depth-limited seed read with no links needs no model and must not be refused.
+  const own = { origin: context.origin, courseId: '999' }; // own course: the read cache is shared across tests
+  const result = await send({ to: 'offscreen', type: 'dig-read', run: 1, query: 'exam', context: own, url: `${own.origin}/courses/999`, depth: 5, settings: { ...DEFAULT_SETTINGS, mode: 'semantic' }, visited: [], seed: [] });
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.links, []);
+});
+
+test('exact link picking for tab-read pages queues every link without the model', async () => {
+  const links = [{ url: `${base}/pages/a`, title: 'A', heading: '' }, { url: `${base}/pages/b`, title: 'B', heading: '' }];
+  const picked = await send({ to: 'offscreen', type: 'score-links', mode: 'exact', query: 'aardvark', links, depth: 1, context });
+  assert.deepEqual(picked.map((l: { score: number }) => l.score), [1, 1]);
 });
 
 test('exact engine queues every module and every nested file with unrelated titles', async (t) => {
