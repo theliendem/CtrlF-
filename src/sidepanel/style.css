@@ -29,6 +29,7 @@
 .settings-actions { display: flex; gap: 8px; }
 .settings-actions .btn { padding: 6px 10px; }
 .file-page { margin-top: 6px; padding: 4px 8px; }
+.settings select { padding: 5px; color: var(--fg); background: var(--field); border: 1px solid var(--line); border-radius: 5px; }
 html, body { height: 100%; margin: 0; }
 body {
   display: flex;

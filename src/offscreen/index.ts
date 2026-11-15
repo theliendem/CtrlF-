@@ -1,8 +1,6 @@
 // Offscreen document: the engine. Model, scoring, and (later) fetching and parsing.
-import { RELEVANT, type CanvasReadMsg, type DigReadResult, type EngineAck, type RuntimeMsg, type ScorePageResult } from '../shared/types';
-import { chunk } from '../engine/chunk';
-import { embed, loadModel } from '../engine/embed';
-import { highlightPieces, scorePassages } from '../engine/score';
+import { RELEVANT, type CanvasReadMsg, type DigLink, type DigReadResult, type EngineAck, type RuntimeMsg, type ScorePageResult } from '../shared/types';
+import { exactPassages, exactLinks } from '../engine/exact';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { filterLinks, safeLink, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
@@ -12,6 +10,7 @@ const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
 
 async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
+  if (msg.settings.mode !== 'exact') throw new Error('Semantic search is not available yet. Choose Exact in settings.');
   if (msg.run <= cancelledThrough) throw new Error('Search stopped');
   const controller = new AbortController();
   const active = controllers.get(msg.run) ?? new Set<AbortController>();
@@ -26,8 +25,10 @@ async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
       const sections = file.kind === 'pdf' ? pdfSections(file.bytes, controller.signal) : officeSections(file.bytes, file.kind, controller.signal);
       let result: DigReadResult = { title: file.title, kind: file.kind, passages: [], links: [] };
       let hasText = false;
+      const fileLinks: DigLink[] = [];
       for await (const section of sections) {
         controller.signal.throwIfAborted();
+        fileLinks.push(...section.links ?? []);
         if (!section.blocks.length) continue;
         hasText = true;
         const scored = await scorePage(msg.query, section.blocks);
@@ -41,6 +42,10 @@ async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
       }
       // LATER: OCR for image-only pages/slides and scanned PDFs.
       if (!hasText) throw new Error('No readable text (scanned or image-only file)');
+      if (msg.depth < msg.settings.maxDepth) {
+        result.links = exactLinks(filterLinks(fileLinks, msg.url, msg.context).filter((link) => !msg.visited.includes(link.url)));
+        result.skipped = skippedLinks(fileLinks, msg.url, msg.context, msg.settings);
+      }
       return result;
     }
     const page = msg.seed
@@ -52,12 +57,7 @@ async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
     controller.signal.throwIfAborted();
     const visited = new Set(msg.visited);
     const candidates = msg.depth < msg.settings.maxDepth ? filterLinks(page.links, msg.url, msg.context).filter((link) => !visited.has(link.url)) : [];
-    const texts = candidates.map((link) => `${link.title} ${decodeURIComponent(new URL(link.url).pathname).replace(/[\/_-]/g, ' ')} ${link.heading}`);
-    const [qVec, ...vecs] = texts.length ? await embed([msg.query, ...texts]) : [];
-    controller.signal.throwIfAborted();
-    const scores = texts.length ? scorePassages(msg.query, qVec, texts.map((text) => ({ text, parts: [text] })), vecs) : [];
-    const links = candidates.map((link, i) => ({ ...link, score: scores[i].score - 0.02 * (msg.depth + 1) }))
-      .filter((link) => link.score >= 0.3).sort((a, b) => b.score - a.score).slice(0, 15);
+    const links = exactLinks(candidates);
     return { title: page.title, passages, links, skipped: msg.depth < msg.settings.maxDepth ? skippedLinks(page.links, msg.url, msg.context, msg.settings) : [] };
   } finally {
     clearTimeout(timer);
@@ -68,21 +68,7 @@ async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
 
 async function scorePage(query: string, blocks: string[]): Promise<ScorePageResult> {
   const t0 = performance.now();
-  const chunks = chunk(blocks);
-  const [qVec, ...vecs] = await embed([query, ...chunks.map((c) => c.text)]);
-  const passages = scorePassages(query, qVec, chunks, vecs).sort((a, b) => b.score - a.score);
-  // Semantic-only matches need their own sentence score, not a blanket paragraph highlight.
-  const semantic = passages.filter((passage) => passage.score >= RELEVANT && !passage.marks.length);
-  const pieces = [...new Set(semantic.flatMap((passage) => highlightPieces([passage.text])))];
-  if (pieces.length) {
-    const vectors = await embed(pieces);
-    const scored = scorePassages(query, qVec, pieces.map((text) => ({ text, parts: [text] })), vectors);
-    for (const passage of semantic) {
-      const best = scored.filter((piece) => passage.text.includes(piece.text) && piece.score >= RELEVANT)
-        .sort((a, b) => b.score - a.score)[0];
-      passage.marks = best ? [best.text] : [];
-    }
-  }
+  const passages = exactPassages(query, blocks);
   return { passages, ms: Math.round(performance.now() - t0) };
 }
 
@@ -90,11 +76,14 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) =>
   if (msg.to !== 'offscreen') return false;
   switch (msg.type) {
     case 'warmup':
-      loadModel()
-        .then(() => embed(['warmup']))
-        .then(() => sendResponse({ ok: true } satisfies EngineAck), (e: unknown) => sendResponse({ ok: false, error: String(e) } satisfies EngineAck));
+      // LATER: warm up the model when semantic mode is implemented.
+      sendResponse({ ok: true } satisfies EngineAck);
       return true;
     case 'score-page':
+      if (msg.mode !== 'exact') {
+        sendResponse({ passages: [], ms: 0, error: 'Semantic search is not available yet.' } satisfies ScorePageResult);
+        return false;
+      }
       scorePage(msg.query, msg.blocks).then(sendResponse, (e: unknown) => {
         console.error('[engine] score-page failed', e);
         sendResponse({ passages: [], ms: 0, error: String(e) } satisfies ScorePageResult);

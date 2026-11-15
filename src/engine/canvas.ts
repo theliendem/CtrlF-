@@ -16,7 +16,7 @@ export function allowedApi(url: URL, context: CanvasContext): boolean {
   if (!path.startsWith(root)) return false;
   const route = path.slice(root.length);
   if (/(?:^|[\W_])(logout|delete|submit|submissions?|quizzes?|grades?|inbox|people|users|accounts?|help)(?:$|[\W_])/i.test(route)) return false;
-  return /^(?:|\/modules(?:\/\d+\/items)?|\/pages\/[^/]+|\/assignments(?:\/\d+)?|\/files\/\d+)$/.test(route);
+  return /^(?:|\/modules(?:\/\d+\/items)?|\/pages(?:\/[^/]+)?|\/assignments(?:\/\d+)?|\/files\/\d+)$/.test(route);
 }
 
 export async function canvasGet<T>(raw: string, context: CanvasContext, signal: AbortSignal): Promise<T> {
@@ -86,7 +86,7 @@ function itemLinks(items: CanvasItem[], context: CanvasContext, heading: string)
     if (item.type === 'Assignment' && item.content_id) url = `${base}/assignments/${item.content_id}`;
     if (item.type === 'File' && item.content_id) url = `${base}/files/${item.content_id}`;
     if (item.type === 'ExternalUrl') url = item.external_url;
-    // LATER: files in milestone 4; quiz, tool-launch and discussion module items stay excluded.
+    // LATER: tool-launch and discussion module items stay excluded; quizzes are always blocked.
     return url ? [{ url, title: item.title, heading }] : [];
   });
 }
@@ -118,6 +118,9 @@ export async function readCanvas(url: string, context: CanvasContext, signal: Ab
     page = { url, title: '', blocks: [], links: itemLinks(items, context, '') };
   } else if (route === '/modules') {
     page = { url, title: 'Modules', blocks: [], links: await discoverCourse(context, signal) };
+  } else if (route === '/pages') {
+    const pages = await canvasList<CanvasPage>(`${api}/pages?per_page=100`, context, signal);
+    page = { url, title: 'Pages', blocks: [], links: pages.filter((p) => p.url && !p.locked_for_user).map((p) => ({ url: `${base}/pages/${encodeURIComponent(p.url!)}`, title: p.title, heading: '' })) };
   } else if (route.startsWith('/pages/')) {
     const data = await canvasGet<CanvasPage>(`${api}${route}`, context, signal);
     if (data.locked_for_user) throw new Error('Page locked');

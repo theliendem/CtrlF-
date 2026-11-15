@@ -5,6 +5,7 @@ import { DOMParser } from '@xmldom/xmldom';
 import { downloadCanvasFile, fileKind, officeSections, xmlParagraphs } from '../src/engine/files.ts';
 import { pdfSections } from '../src/engine/pdf.ts';
 import { safeLink } from '../src/engine/links.ts';
+import { exactPassages } from '../src/engine/exact';
 
 Object.assign(globalThis, { DOMParser });
 const signal = new AbortController().signal;
@@ -112,6 +113,8 @@ test('PDF extraction preserves page numbers and finds text on the second page', 
   assert.equal(sections[1].pageNumber, 2);
   assert.equal(sections[1].location, 'Page 2');
   assert.match(sections[1].blocks.join(' '), /Midterm 2 is Friday/);
+  assert.equal(exactPassages('midterm 2', sections[0].blocks).length, 0);
+  assert.deepEqual(exactPassages('midterm 2', sections[1].blocks)[0].marks, ['Midterm 2']);
 });
 
 test('cancelled file parsing yields no sections', async () => {

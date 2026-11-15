@@ -108,6 +108,12 @@ async function search(query: string, windowId: number): Promise<void> {
   const settings = normalizeSettings(stored.searchSettings);
   if (run !== runId) return;
 
+  if (settings.mode === 'semantic') {
+    // LATER: semantic mode will rank links and passages; currently it performs no search.
+    status('Semantic search is not available yet. Choose Exact in settings.', false);
+    return;
+  }
+
   status('Reading this page…', true);
   let page: PageText;
   try {
@@ -122,6 +128,7 @@ async function search(query: string, windowId: number): Promise<void> {
 
   const root: TreeNode = {
     id: 'root',
+    exactQuery: query,
     parentId: null,
     url: page.url,
     title: page.title || page.url,
@@ -133,7 +140,7 @@ async function search(query: string, windowId: number): Promise<void> {
   emit(root);
   status('Scoring this page…', true);
 
-  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', query, url: page.url, blocks: page.blocks });
+  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: settings.mode, query, url: page.url, blocks: page.blocks });
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
@@ -148,7 +155,7 @@ async function search(query: string, windowId: number): Promise<void> {
   });
 
   const shown = hits.length
-    ? await toTab<number>(tab.id, { type: 'highlight', passages: hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) })
+    ? await toTab<number>(tab.id, { type: 'highlight-exact', query })
     : 0;
   if (hits.length) highlightedTabs.add(tab.id);
   if (run !== runId) return;
@@ -197,12 +204,13 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
   if (parent.depth >= run.settings.maxDepth) return;
   for (const link of links) {
     const url = safeLink(link.url, parent.url, run.context);
-    if (!url || run.seen.has(url) || (link.score ?? 0) < 0.3) continue;
+    if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < 0.3)) continue;
     run.seen.add(url);
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', depth: parent.depth + 1, best: 0 };
     node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
     if (node.fileId) { node.parentUrl = parent.url; node.linkTitle = link.title; }
-    run.queue.push({ node, priority: link.score! });
+    node.exactQuery = run.query;
+    run.queue.push({ node, priority: 1 });
     emit(node);
   }
 }
@@ -269,7 +277,7 @@ async function openResult(nodeId: string, openFile = false): Promise<void> {
     if (current.status === 'complete') {
       const message: ContentMsg = node.fileId
         ? { type: 'highlight-file', fileId: node.fileId, url: node.url, title: node.linkTitle ?? node.title }
-        : { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) };
+        : { type: 'highlight-exact', query: node.exactQuery ?? '' };
       const shown = await toTab<number>(tabId, message);
       highlightedTabs.add(tabId);
       if (shown > 0) return;

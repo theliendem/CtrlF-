@@ -2,6 +2,7 @@
 // It never edits the page's HTML.
 import type { ContentMsg, DigLink, HighlightPassage, PageText } from '../shared/types';
 import { visibleTextNodes } from './dom';
+import { exactMatches } from '../engine/exact';
 
 declare global {
   interface Window { __ctrlfpp?: boolean }
@@ -127,6 +128,35 @@ function highlightFile(fileId: string, url: string, title: string): number {
   return 0;
 }
 
+function highlightExact(query: string): number {
+  clear();
+  let text = '';
+  const nodes: Text[] = [];
+  const offsets: number[] = [];
+  let previous: Element | null = null;
+  for (const { node, block } of visibleTextNodes()) {
+    if (previous && previous !== block) {
+      text += '\n'; nodes.push(node); offsets.push(0);
+    }
+    previous = block;
+    text += node.data;
+    for (let i = 0; i < node.length; i++) { nodes.push(node); offsets.push(i); }
+  }
+  const matches = exactMatches(query, text);
+  const best = new Highlight();
+  const hits = new Highlight();
+  matches.forEach((match, i) => {
+    const range = new Range();
+    range.setStart(nodes[match.start], offsets[match.start]);
+    range.setEnd(nodes[match.end - 1], offsets[match.end - 1] + 1);
+    (i === 0 ? best : hits).add(range);
+    if (i === 0) range.startContainer.parentElement?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+  CSS.highlights.set('ctrlfpp-best', best);
+  CSS.highlights.set('ctrlfpp-hit', hits);
+  return matches.length;
+}
+
 function init(): void {
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(`
@@ -148,6 +178,9 @@ function init(): void {
         break;
       case 'highlight-file':
         sendResponse(highlightFile(msg.fileId, msg.url, msg.title));
+        break;
+      case 'highlight-exact':
+        sendResponse(highlightExact(msg.query));
         break;
       case 'clear-highlights':
         clear();

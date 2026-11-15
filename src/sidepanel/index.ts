@@ -15,6 +15,7 @@ const cFound = $('c-found');
 const settingsBtn = $<HTMLButtonElement>('settings');
 const settingsForm = $<HTMLFormElement>('settings-form');
 const pageBudget = $<HTMLInputElement>('page-budget');
+const searchMode = $<HTMLSelectElement>('search-mode');
 const maxDepth = $<HTMLInputElement>('max-depth');
 const showOffsite = $<HTMLInputElement>('show-offsite');
 const showUnreadable = $<HTMLInputElement>('show-unreadable');
@@ -22,6 +23,7 @@ const settingsStatus = $('settings-status');
 let settings = { ...DEFAULT_SETTINGS };
 
 function fillSettings(): void {
+  searchMode.value = settings.mode;
   pageBudget.value = String(settings.pageBudget);
   maxDepth.value = String(settings.maxDepth);
   showOffsite.checked = settings.showOffsite;
@@ -50,7 +52,7 @@ $('settings-close').addEventListener('click', closeSettings);
 settingsForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!settingsForm.reportValidity()) return;
-  const next = normalizeSettings({ pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked });
+  const next = normalizeSettings({ mode: searchMode.value, pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked });
   try {
     await chrome.storage.local.set({ searchSettings: next });
     settings = next;

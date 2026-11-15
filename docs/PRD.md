@@ -2,6 +2,8 @@
 
 Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase PRD
 
+**Search mode update (Neil's request):** Exact is now the default. It searches literal phrases (case-insensitive, whitespace-tolerant) and recursively follows every safe supported content link, including files, without relevance filtering or the 15-link cap. Page/depth limits, same-site restrictions and blocked routes still apply. Semantic is a saved settings option but currently runs no search. The semantic scoring and link-peek descriptions below describe the planned Semantic mode, not current Exact behavior.
+
 ## What it is
 
 Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2"), and it searches the page you're on, then digs recursively through the relevant links, files and subpages behind it. The whole dig plays out live as a tree in Chrome's side panel. Everything runs on your laptop with a lightweight ML model, so there's no LLM and no page text sent to a server.

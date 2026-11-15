@@ -43,6 +43,7 @@ export interface TreeNode {
   fileId?: string;
   linkTitle?: string;
   hidden?: boolean;
+  exactQuery?: string;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];
 }
@@ -56,21 +57,23 @@ export interface PageText {
 }
 
 export interface DigLink { url: string; title: string; heading: string; score?: number }
-export interface SearchSettings { pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
+export type SearchMode = 'exact' | 'semantic';
+export interface ExactMatch { start: number; end: number; text: string }
+export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
 export interface SkippedLink { url: string; title: string; state: 'not-followed' | 'unreadable'; kind: NodeKind }
 export interface CanvasContext { origin: string; courseId: string }
 export interface CanvasItem {
   id: number; title: string; type: string; page_url?: string; content_id?: number; external_url?: string;
 }
 export interface CanvasModule { id: number; name: string; items?: CanvasItem[]; items_count: number; state?: string }
-export interface CanvasPage { title: string; body?: string; locked_for_user?: boolean }
+export interface CanvasPage { title: string; url?: string; body?: string; locked_for_user?: boolean }
 export interface CanvasAssignment {
   id: number; name: string; description?: string; locked_for_user?: boolean; is_quiz_assignment?: boolean; quiz_id?: number;
 }
 export interface CanvasAnnouncement { id: number; title: string; message?: string }
 export interface CanvasCourse { name: string; syllabus_body?: string }
 export interface CanvasFile { id: number; display_name: string; filename: string; url: string; size: number; 'content-type': string; locked_for_user?: boolean; hidden_for_user?: boolean }
-export interface FileSection { blocks: string[]; location?: string; pageNumber?: number }
+export interface FileSection { blocks: string[]; location?: string; pageNumber?: number; links?: DigLink[] }
 export interface FileData { bytes: Uint8Array; kind: Exclude<NodeKind, 'page'>; title: string }
 export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string; kind?: NodeKind; location?: string; pageNumber?: number }
 export interface DigEntry { node: TreeNode; priority: number }
@@ -102,7 +105,7 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 // ---------- Service worker -> offscreen engine ----------
 
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
-export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; query: string; url: string; blocks: string[] }
+export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[] }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
 export interface CanvasReadMsg { to: 'offscreen'; type: 'canvas-read'; run: number; query: string; context: CanvasContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
@@ -126,11 +129,12 @@ export type RuntimeMsg =
 
 export interface ExtractMsg { type: 'extract' }
 export interface HighlightMsg { type: 'highlight'; passages: HighlightPassage[] }
+export interface HighlightExactMsg { type: 'highlight-exact'; query: string }
 export interface ClearHighlightsMsg { type: 'clear-highlights' }
 export interface PingMsg { type: 'ping' }
 export interface HighlightFileMsg { type: 'highlight-file'; fileId: string; url: string; title: string }
 
-export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg;
+export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg | HighlightExactMsg;
 
 // ---------- Tuning (PRD starting values) ----------
 

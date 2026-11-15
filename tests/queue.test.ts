@@ -7,7 +7,7 @@ function entry(id: string, priority: number): DigEntry {
   return { priority, node: { id, parentId: 'root', url: `https://canvas.wisc.edu/courses/123/pages/${id}`, title: id, kind: 'page', state: 'queued', depth: 1, best: 0 } };
 }
 function run(queue: DigEntry[]): DigRun {
-  return { id: 1, query: 'midterm 2', context: { origin: 'https://canvas.wisc.edu', courseId: '123' }, queue, seen: new Set(), started: 1, failed: 0, settings: { pageBudget: 60, maxDepth: 5, showOffsite: false, showUnreadable: false } };
+  return { id: 1, query: 'midterm 2', context: { origin: 'https://canvas.wisc.edu', courseId: '123' }, queue, seen: new Set(), started: 1, failed: 0, settings: { mode: 'exact', pageBudget: 60, maxDepth: 5, showOffsite: false, showUnreadable: false } };
 }
 
 test('best-first queue prioritizes newly found children over older low-scoring links', async () => {

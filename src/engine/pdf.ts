@@ -1,6 +1,6 @@
 import { getDocument, GlobalWorkerOptions, PDFWorker } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import type { FileSection } from '../shared/types';
+import type { DigLink, FileSection } from '../shared/types';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 
@@ -29,7 +29,10 @@ export async function* pdfSections(bytes: Uint8Array, signal: AbortSignal): Asyn
         else if (!line.endsWith(' ')) line += ' ';
       }
       if (line.trim()) lines.push(line.trim());
-      yield { blocks: lines.filter(Boolean), location: `Page ${pageNumber}`, pageNumber };
+      const links: DigLink[] = (await page.getAnnotations()).flatMap((annotation) =>
+        annotation.subtype === 'Link' && typeof annotation.url === 'string'
+          ? [{ url: annotation.url, title: annotation.url, heading: '' }] : []);
+      yield { blocks: lines.filter(Boolean), location: `Page ${pageNumber}`, pageNumber, links };
       page.cleanup();
     }
   } finally {
