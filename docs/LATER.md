@@ -24,5 +24,3 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Password-protected files, Word headers/footnotes/tracked changes, and embedded objects
 - Documents over 50 MB; stream or cache their bytes instead of keeping the entire file in memory
 - Canvas external-tool launches and discussion module items are excluded; announcements use the read-only announcements API
-- Semantic: the starting tab keeps its highlights when the starting page later stops counting as a match
-- Semantic: JavaScript-built pages (tab fallback) don't offer index-page fallbacks
