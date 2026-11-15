@@ -10,6 +10,8 @@ export default defineManifest({
   background: { service_worker: 'src/background/index.ts', type: 'module' },
   side_panel: { default_path: 'src/sidepanel/index.html' },
   action: { default_title: 'Ctrl+F++' },
+  // The model runs on WebAssembly, which the extension-page CSP must allow explicitly.
+  content_security_policy: { extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';" },
   permissions: ['sidePanel', 'offscreen', 'scripting', 'tabs', 'storage'],
   // All sites: the content script reads and highlights any page, and the dig fetches same-site links.
   host_permissions: ['<all_urls>'],
