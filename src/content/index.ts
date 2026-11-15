@@ -2,6 +2,7 @@
 // It never edits the page's HTML.
 import type { ContentMsg, DigLink, HighlightPassage, PageText } from '../shared/types';
 import { visibleTextNodes } from './dom';
+import { pageLinks } from '../shared/page-links';
 import { exactMatches } from '../engine/exact';
 
 declare global {
@@ -35,14 +36,7 @@ function extract(): PageText {
 }
 
 function extractLinks(): DigLink[] {
-  const links: DigLink[] = [];
-  let heading = document.title;
-  for (const el of document.querySelectorAll('h1,h2,h3,h4,h5,h6,a[href]')) {
-    if (el.closest('nav,header,footer,[role="navigation"],[hidden],[aria-hidden="true"]') || !el.checkVisibility({ visibilityProperty: true })) continue;
-    if (el.tagName !== 'A') heading = el.textContent?.trim() || document.title;
-    else links.push({ url: (el as HTMLAnchorElement).href, title: el.textContent?.trim() || '', heading });
-  }
-  return links;
+  return pageLinks(document, document.title, (a) => (a as HTMLAnchorElement).href, (el) => el.checkVisibility({ visibilityProperty: true }));
 }
 
 // ---- Highlighting ----

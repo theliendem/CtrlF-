@@ -21,7 +21,7 @@ Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2
 3. **Current page first.** The page's text is extracted, split into passages and scored. Relevant passages are highlighted on the page right away, and the page appears as the root node of the tree.
 4. **Always dig.** Even if the current page has matches, the dig continues. (LATER: a settings toggle for "stop if the current page has a strong match.")
 5. **Choosing links.**
-   - Every link on the page passes a free filter first (no nav, account or logout links, no help pages, nothing already visited, no same-page anchors, no off-site links).
+   - Every link on the page passes a free filter first (no account or logout links, no help pages, no footer links, nothing already visited, no same-page anchors, no off-site links). Menu links count, including collapsed ones: a textbook's table of contents is how you reach its sections. Menu text is still not page content.
    - The survivors get a quick peek: title and headings only, capped at the top 15 links per page.
    - Links that score high enough after the peek join the queue.
    - Exception: every link on the start page, and every item on a Canvas module or list page, joins the queue regardless of score or the cap, because titles like "U2 homework" don't say what's inside. They're still ordered by score.

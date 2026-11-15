@@ -1,4 +1,5 @@
 import type { CanvasAnnouncement, CanvasAssignment, CanvasContext, CanvasCourse, CanvasItem, CanvasModule, CanvasPage, DigLink, PageText } from '../shared/types';
+import { pageLinks } from '../shared/page-links';
 
 /** Validate every request, including pagination. Never follow HTTP redirects to an unchecked URL. */
 export function allowedApi(url: URL, context: CanvasContext): boolean {
@@ -55,7 +56,10 @@ export function parseHtml(html: string, url: string, title: string): PageText {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   title ||= doc.title?.trim() ?? '';
   const canonical = doc.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ?? undefined;
-  doc.querySelectorAll('script,style,noscript,iframe,nav,header,footer,form,[hidden],[aria-hidden="true"],[role="navigation"]').forEach((el) => el.remove());
+  doc.querySelectorAll('script,style,noscript,iframe,form').forEach((el) => el.remove());
+  // Menu links are dig candidates; menu text is not page content.
+  const links = pageLinks(doc, title, (a) => a.getAttribute('href')!);
+  doc.querySelectorAll('nav,header,footer,[hidden],[aria-hidden="true"],[role="navigation"],[role="banner"],[role="contentinfo"]').forEach((el) => el.remove());
   const blocks: string[] = title ? [title] : [];
   let current: Element | null = null;
   let text = '';
@@ -71,12 +75,6 @@ export function parseHtml(html: string, url: string, title: string): PageText {
     text += node.textContent.replace(/\s+/g, ' ');
   }
   if (text.trim()) blocks.push(text.trim());
-  let heading = title;
-  const links: DigLink[] = [];
-  for (const el of doc.querySelectorAll('h1,h2,h3,h4,h5,h6,a[href]')) {
-    if (el.tagName !== 'A') heading = el.textContent?.trim() || title;
-    else links.push({ url: el.getAttribute('href')!, title: el.textContent?.trim() || '', heading });
-  }
   return { url, canonical, title, blocks, links };
 }
 
