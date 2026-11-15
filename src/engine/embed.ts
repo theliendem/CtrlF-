@@ -1,4 +1,4 @@
-// On-device sentence embeddings: all-MiniLM-L6-v2 (q8) via transformers.js, bundled in the extension.
+// On-device sentence embeddings: bundled fp16 on WebGPU, with a WASM q8 fallback.
 import { env, pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers';
 // Vite emits this file into the extension; the JS loader for it is already inside the ORT bundle.
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
@@ -18,13 +18,33 @@ if (ort.wasm) {
 
 const MODEL = 'all-MiniLM-L6-v2';
 const DIM = 384;
-const BATCH = 32;
+const BATCH = 16;
+const MAX_TOKENS = 128;
 
 let extractor: Promise<FeatureExtractionPipeline> | null = null;
+let backend = 'wasm/q8';
+
+async function createExtractor(): Promise<FeatureExtractionPipeline> {
+  let model: FeatureExtractionPipeline | undefined;
+  if ('gpu' in navigator) {
+    try {
+      model = await pipeline('feature-extraction', MODEL, { dtype: 'fp16', device: 'webgpu' });
+      backend = 'webgpu/fp16';
+    } catch (error) {
+      console.warn('[ctrlf++] WebGPU load failed; falling back to WASM q8', error);
+    }
+  }
+  model ??= await pipeline('feature-extraction', MODEL, { dtype: 'q8', device: 'wasm' });
+  model.tokenizer._tokenizerConfig.model_max_length = MAX_TOKENS;
+  console.log(`[ctrlf++] loaded ${backend}, max ${MAX_TOKENS} tokens, batch ${BATCH}`);
+  return model;
+}
 
 export function loadModel(): Promise<FeatureExtractionPipeline> {
-  // LATER: try WebGPU first (needs an fp32/fp16 model; q8 ops are mostly CPU-only on WebGPU).
-  extractor ??= pipeline('feature-extraction', MODEL, { dtype: 'q8', device: 'wasm' }) as Promise<FeatureExtractionPipeline>;
+  extractor ??= createExtractor().catch((error: unknown) => {
+    extractor = null;
+    throw error;
+  });
   return extractor;
 }
 
@@ -33,15 +53,19 @@ export function loadModel(): Promise<FeatureExtractionPipeline> {
 const cache = new Map<string, Float32Array>();
 
 export async function embed(texts: string[]): Promise<Float32Array[]> {
-  const todo = [...new Set(texts.filter((t) => !cache.has(t)))];
+  // Similar lengths reduce padding; the text-keyed cache preserves the caller's order.
+  const todo = [...new Set(texts.filter((t) => !cache.has(t)))].sort((a, b) => a.length - b.length);
   if (todo.length) {
     const model = await loadModel();
+    const start = performance.now();
     for (let i = 0; i < todo.length; i += BATCH) {
       const batch = todo.slice(i, i + BATCH);
       const out = await model(batch, { pooling: 'mean', normalize: true });
       const data = out.data as Float32Array;
       batch.forEach((t, j) => cache.set(t, data.slice(j * DIM, (j + 1) * DIM)));
     }
+    const ms = performance.now() - start;
+    console.log(`[ctrlf++] ${backend}: embedded ${todo.length} passages in ${Math.round(ms)} ms (${(ms / todo.length).toFixed(1)} ms/passage)`);
   }
   return texts.map((t) => cache.get(t)!);
 }
