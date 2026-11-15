@@ -34,7 +34,7 @@ function setup(t: TestContext) {
   Object.assign(globalThis, { document: { createElementNS: (_ns: string, tag: string) => new Element(tag) } });
   const host = new Element('host');
   const graph = new Graph(host as unknown as HTMLElement, () => {});
-  const titles = () => host.children[0].children[1].children.map((el) => el.querySelector('title')?.textContent.split('\n')[0]);
+  const titles = () => host.children[0].children[0].children[1].children.map((el) => el.querySelector('title')?.textContent.split('\n')[0]);
   return { graph, titles };
 }
 
@@ -116,4 +116,16 @@ test('stopping hidden queued children allows dead ancestors to disappear without
   assert.deepEqual(titles(), ['root']);
   t.mock.timers.tick(750);
   assert.deepEqual(titles(), []);
+});
+
+test('ancestors of a hit show as a trail, even when their own read was ruled out', (t) => {
+  const { graph } = setup(t);
+  const host = (graph as unknown as { dots: Element }).dots;
+  graph.upsert(node('root', 'ruled-out'));
+  graph.upsert(node('middle', 'ruled-out', 'root'));
+  graph.upsert(node('leaf', 'hit', 'middle'));
+  const cls = (id: string) => host.children.find((el) => el.querySelector('title')?.textContent.startsWith(id))?.attrs.get('class');
+  assert.equal(cls('root'), 'node trail');
+  assert.equal(cls('middle'), 'node trail');
+  assert.equal(cls('leaf'), 'node hit');
 });
