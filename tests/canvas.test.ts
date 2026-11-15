@@ -89,7 +89,8 @@ test('module discovery keeps safe item titles and reads paginated items, excludi
   assert.ok(links[0].heading.includes('Midterm 2 review'));
   assert.ok(!links[0].heading.includes('Secret quiz'));
   const page = await readCanvas(links[0].url, context, signal);
-  assert.equal(page.links.length, 1);
+  assert.equal(filterLinks(page.links, page.url, context).length, 1);
+  assert.ok(page.links.some((link) => link.url.endsWith('/files/99')));
   assert.equal(page.links[0].url, `${base}/pages/midterm-2`);
 });
 

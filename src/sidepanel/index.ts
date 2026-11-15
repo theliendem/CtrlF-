@@ -1,6 +1,7 @@
 // Side panel: search box, live graph, results list, settings.
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
 import { Graph } from './graph';
+import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const q = $<HTMLInputElement>('q');
@@ -11,6 +12,54 @@ const resultsEl = $<HTMLUListElement>('results');
 const cSearched = $('c-searched');
 const cRuled = $('c-ruled');
 const cFound = $('c-found');
+const settingsBtn = $<HTMLButtonElement>('settings');
+const settingsForm = $<HTMLFormElement>('settings-form');
+const pageBudget = $<HTMLInputElement>('page-budget');
+const maxDepth = $<HTMLInputElement>('max-depth');
+const showOffsite = $<HTMLInputElement>('show-offsite');
+const showUnreadable = $<HTMLInputElement>('show-unreadable');
+const settingsStatus = $('settings-status');
+let settings = { ...DEFAULT_SETTINGS };
+
+function fillSettings(): void {
+  pageBudget.value = String(settings.pageBudget);
+  maxDepth.value = String(settings.maxDepth);
+  showOffsite.checked = settings.showOffsite;
+  showUnreadable.checked = settings.showUnreadable;
+}
+fillSettings();
+const settingsReady = chrome.storage.local.get('searchSettings').then((stored) => {
+  settings = normalizeSettings(stored.searchSettings);
+  fillSettings();
+}).catch(() => { settingsStatus.textContent = 'Could not load saved settings. Defaults shown.'; });
+
+function closeSettings(): void {
+  settingsForm.hidden = true;
+  settingsBtn.setAttribute('aria-expanded', 'false');
+  settingsBtn.focus();
+}
+settingsBtn.addEventListener('click', async () => {
+  await settingsReady;
+  if (!settingsForm.hidden) { closeSettings(); return; }
+  fillSettings();
+  settingsForm.hidden = false;
+  settingsBtn.setAttribute('aria-expanded', 'true');
+  pageBudget.focus();
+});
+$('settings-close').addEventListener('click', closeSettings);
+settingsForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!settingsForm.reportValidity()) return;
+  const next = normalizeSettings({ pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked });
+  try {
+    await chrome.storage.local.set({ searchSettings: next });
+    settings = next;
+    fillSettings();
+    settingsStatus.textContent = 'Saved. Applies to your next search.';
+  } catch {
+    settingsStatus.textContent = 'Could not save settings. Try again.';
+  }
+});
 
 const nodes = new Map<string, TreeNode>();
 const graph = new Graph($('graph'), (id) => openResult(id));
@@ -30,6 +79,7 @@ stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'stop' }));
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
+  if (!settingsForm.hidden) { closeSettings(); return; }
   send({ to: 'sw', type: 'clear' });
   setStatus('Highlights cleared.', false);
 });

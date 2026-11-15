@@ -12,8 +12,18 @@
         <input id="q" type="search" placeholder="What are you looking for?" autofocus spellcheck="false" />
         <button id="stop" type="button" class="btn stop" hidden>Stop</button>
       </form>
-      <button id="settings" type="button" class="btn icon" title="Settings" aria-label="Settings">⚙</button>
+      <button id="settings" type="button" class="btn icon" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="settings-form">⚙</button>
     </header>
+    <form id="settings-form" class="settings" hidden>
+      <strong>Search settings</strong>
+      <label>Page limit <input id="page-budget" type="number" min="1" max="1000" step="1" required /></label>
+      <label>Maximum depth <input id="max-depth" type="number" min="1" max="10" step="1" required /></label>
+      <label class="check"><input id="show-offsite" type="checkbox" /> Show skipped external links</label>
+      <label class="check"><input id="show-unreadable" type="checkbox" /> Show unreadable files</label>
+      <p>Gray nodes are shown only, never fetched. File reading is not available yet.</p>
+      <div class="settings-actions"><button class="btn" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
+      <p id="settings-status" role="status">Changes apply to your next search.</p>
+    </form>
     <div id="counter" class="counter">
       <span><b id="c-searched">0</b> searched</span>
       <span><b id="c-ruled">0</b> ruled out</span>

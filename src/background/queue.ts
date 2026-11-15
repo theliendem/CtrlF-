@@ -5,7 +5,7 @@ export async function runBestFirst(
   run: DigRun,
   visit: (entry: DigEntry) => Promise<void>,
   isCurrent: () => boolean,
-  budget = 60,
+  budget = run.settings.pageBudget,
   concurrency = 4,
 ): Promise<void> {
   const active = new Set<Promise<void>>();

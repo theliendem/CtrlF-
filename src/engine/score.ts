@@ -23,14 +23,19 @@ export function scorePassages(query: string, qVec: Float32Array, chunks: Chunk[]
   });
 }
 
-/** In a merged passage, highlight only the pieces that mention the query; otherwise the whole thing. */
+const sentences = new Intl.Segmenter('en', { granularity: 'sentence' });
+
+/** Preserve exact substrings for DOM matching, splitting even a single large paragraph. */
+export function highlightPieces(parts: string[]): string[] {
+  return parts.flatMap((part) => [...sentences.segment(part)].flatMap(({ segment }) =>
+    segment.split(/[;\n]+/).map((text) => text.trim()).filter(Boolean)));
+}
+
+/** Keep only the strongest keyword-bearing sentences. Never fall back to the whole passage. */
 function marksFor(q: QueryTerms, c: Chunk): string[] {
-  if (c.parts.length < 2) return c.parts;
-  const hit = c.parts.filter((p) => {
-    const r = keywordScore(q, p);
-    return r.kw > 0 && !r.conflict;
-  });
-  return hit.length ? hit : c.parts;
+  const pieces = highlightPieces(c.parts).map((text) => ({ text, ...keywordScore(q, text) }));
+  const best = Math.max(0, ...pieces.filter((piece) => !piece.conflict).map((piece) => piece.kw));
+  return pieces.filter((piece) => !piece.conflict && best > 0 && piece.kw === best).map((piece) => piece.text);
 }
 
 export const isRelevant = (p: Passage): boolean => p.score >= RELEVANT;

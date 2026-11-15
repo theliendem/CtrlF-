@@ -17,7 +17,7 @@ export type NodeState =
 /** One scored passage. */
 export interface Passage {
   text: string;
-  /** The exact pieces to highlight on the page (just the matching blocks of a merged passage). */
+  /** Exact relevant sentences or clauses to highlight, without surrounding passage text. */
   marks: string[];
   score: number; // hybrid: 0.7 * cos + 0.3 * kw (after number penalty)
   cos: number;
@@ -51,6 +51,8 @@ export interface PageText {
 }
 
 export interface DigLink { url: string; title: string; heading: string; score?: number }
+export interface SearchSettings { pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
+export interface SkippedLink { url: string; title: string; state: 'not-followed' | 'unreadable'; kind: NodeKind }
 export interface CanvasContext { origin: string; courseId: string }
 export interface CanvasItem {
   id: number; title: string; type: string; page_url?: string; content_id?: number; external_url?: string;
@@ -62,9 +64,9 @@ export interface CanvasAssignment {
 }
 export interface CanvasAnnouncement { id: number; title: string; message?: string }
 export interface CanvasCourse { name: string; syllabus_body?: string }
-export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; error?: string }
+export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string }
 export interface DigEntry { node: TreeNode; priority: number }
-export interface DigRun { id: number; query: string; context: CanvasContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number }
+export interface DigRun { id: number; query: string; context: CanvasContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
 export interface EngineAck { ok: boolean; error?: string }
 
 export interface HighlightPassage {
@@ -93,7 +95,7 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
 export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; query: string; url: string; blocks: string[] }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
-export interface CanvasReadMsg { to: 'offscreen'; type: 'canvas-read'; run: number; query: string; context: CanvasContext; url: string; depth: number; visited: string[]; seed?: DigLink[] }
+export interface CanvasReadMsg { to: 'offscreen'; type: 'canvas-read'; run: number; query: string; context: CanvasContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
 
 export type RuntimeMsg =

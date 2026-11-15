@@ -5,6 +5,7 @@ import {
   type DigLink,
   type DigReadResult,
   type DigRun,
+  type SkippedLink,
   type EngineAck,
   type PageText,
   type RuntimeMsg,
@@ -13,6 +14,7 @@ import {
 } from '../shared/types';
 import { canvasContext, safeLink } from '../engine/links';
 import { runBestFirst } from './queue';
+import { normalizeSettings } from '../shared/settings';
 
 const MAX_HIGHLIGHTS = 30;
 
@@ -102,6 +104,10 @@ async function search(query: string, windowId: number): Promise<void> {
   highlightedTabs.clear();
   if (run !== runId) return;
 
+  const stored = await chrome.storage.local.get('searchSettings');
+  const settings = normalizeSettings(stored.searchSettings);
+  if (run !== runId) return;
+
   status('Reading this page…', true);
   let page: PageText;
   try {
@@ -131,13 +137,13 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
-  const hits = res.passages.filter((p) => p.score >= RELEVANT).slice(0, MAX_HIGHLIGHTS);
+  const hits = res.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
   console.log(`[ctrlf++] scored ${res.passages.length} passages in ${res.ms} ms`, res.passages.slice(0, 10));
   emit({
     ...root,
     state: hits.length ? 'hit' : 'ruled-out',
     best: res.passages[0]?.score ?? 0,
-    snippet: hits[0]?.text,
+    snippet: hits[0]?.marks.join(' '),
     hits,
   });
 
@@ -152,41 +158,43 @@ async function search(query: string, windowId: number): Promise<void> {
     status(`${hits.length} matches on this page (${shown} highlighted). Digging currently supports Canvas courses.`, false);
     return;
   }
-  const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([safeLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0 };
+  const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([safeLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0, settings };
   status('Finding Canvas links…', true);
-  const seed = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: page.url, depth: 0, visited: [...dig.seen], seed: page.links });
+  const seed = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: page.url, depth: 0, settings, visited: [...dig.seen], seed: page.links });
   if (run !== runId) return;
   if (seed.error) {
     status(`Current page searched. Canvas dig failed: ${seed.error}`, false);
     return;
   }
   enqueue(dig, root, seed.links);
+  showSkipped(dig, root, seed.skipped ?? []);
   await runBestFirst(dig, async ({ node }) => {
     if (run !== runId) return;
     emit({ ...node, state: 'reading' });
-    status(`Digging Canvas: ${dig.started}/60 pages started…`, true);
+    status(`Digging Canvas: ${dig.started}/${settings.pageBudget} pages started…`, true);
     try {
-      const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, visited: [...dig.seen] });
+      const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
       if (run !== runId) return;
       if (result.error) throw new Error(result.error);
-      const matches = result.passages.filter((p) => p.score >= RELEVANT).slice(0, MAX_HIGHLIGHTS);
-      emit({ ...node, title: result.title || node.title, state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.text });
+      const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+      emit({ ...node, title: result.title || node.title, state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
       enqueue(dig, node, result.links);
+      showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
       dig.failed++;
       console.warn('[ctrlf++] Canvas read failed', node.url, error);
       emit({ ...node, state: 'unreadable', snippet: String(error) });
     }
-  }, () => run === runId);
+  }, () => run === runId, settings.pageBudget);
   if (run !== runId) return;
   settlePending();
   const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
-  status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ' · 60-page limit reached' : ' · Dig complete'}`, false);
+  status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ` · ${settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
 }
 
 function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
-  if (parent.depth >= 5) return;
+  if (parent.depth >= run.settings.maxDepth) return;
   for (const link of links) {
     const url = safeLink(link.url, parent.url, run.context);
     if (!url || run.seen.has(url) || (link.score ?? 0) < 0.3) continue;
@@ -194,6 +202,14 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', depth: parent.depth + 1, best: 0 };
     run.queue.push({ node, priority: link.score! });
     emit(node);
+  }
+}
+
+function showSkipped(run: DigRun, parent: TreeNode, skipped: SkippedLink[]): void {
+  for (const link of skipped) {
+    if (run.seen.has(link.url)) continue;
+    run.seen.add(link.url);
+    emit({ id: link.url, parentId: parent.id, url: link.url, title: link.title, kind: link.kind, state: link.state, depth: parent.depth + 1, best: 0 });
   }
 }
 

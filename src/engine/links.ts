@@ -1,4 +1,4 @@
-import type { CanvasContext, DigLink } from '../shared/types';
+import type { CanvasContext, DigLink, SearchSettings, SkippedLink } from '../shared/types';
 
 export function canvasContext(raw: string): CanvasContext | null {
   const url = new URL(raw);
@@ -38,4 +38,22 @@ export function filterLinks(links: DigLink[], base: string, context: CanvasConte
     if (url && url !== base && !unique.has(url)) unique.set(url, { ...link, url });
   }
   return [...unique.values()];
+}
+
+/** Display-only stubs. These URLs never enter the fetch queue. */
+export function skippedLinks(links: DigLink[], base: string, context: CanvasContext, settings: SearchSettings): SkippedLink[] {
+  const out = new Map<string, SkippedLink>();
+  for (const link of links) {
+    try {
+      const url = new URL(link.url, base);
+      if (!/^https?:$/.test(url.protocol) || url.username || url.password) continue;
+      const offsite = url.origin !== context.origin;
+      const extension = url.pathname.match(/\.(pdf|pptx|docx)$/i)?.[1].toLowerCase();
+      const file = /\/files\/\d+(?:\/|$)/.test(url.pathname) || !!extension;
+      if ((offsite && settings.showOffsite) || (!offsite && file && settings.showUnreadable)) {
+        out.set(url.href, { url: url.href, title: link.title || url.href, state: offsite ? 'not-followed' : 'unreadable', kind: extension as 'pdf' | 'pptx' | 'docx' | undefined ?? 'page' });
+      }
+    } catch { /* Malformed links do not become stubs. */ }
+  }
+  return [...out.values()];
 }

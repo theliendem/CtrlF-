@@ -1,5 +1,4 @@
 import type { CanvasAnnouncement, CanvasAssignment, CanvasContext, CanvasCourse, CanvasItem, CanvasModule, CanvasPage, DigLink, PageText } from '../shared/types';
-import { filterLinks } from './links';
 
 /** Validate every request, including pagination. Never follow HTTP redirects to an unchecked URL. */
 export function allowedApi(url: URL, context: CanvasContext): boolean {
@@ -85,6 +84,7 @@ function itemLinks(items: CanvasItem[], context: CanvasContext, heading: string)
     let url: string | undefined;
     if (item.type === 'Page' && item.page_url) url = `${base}/pages/${encodeURIComponent(item.page_url)}`;
     if (item.type === 'Assignment' && item.content_id) url = `${base}/assignments/${item.content_id}`;
+    if (item.type === 'File' && item.content_id) url = `${base}/files/${item.content_id}`;
     if (item.type === 'ExternalUrl') url = item.external_url;
     // LATER: files in milestone 4; quiz, tool-launch and discussion module items stay excluded.
     return url ? [{ url, title: item.title, heading }] : [];
@@ -145,6 +145,6 @@ export async function readCanvas(url: string, context: CanvasContext, signal: Ab
   } else {
     throw new Error('Unsupported Canvas page');
   }
-  page.links = filterLinks(page.links, url, context);
+  // Filtering happens in the engine so settings can expose skipped URLs as display-only stubs.
   return page;
 }
