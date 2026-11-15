@@ -113,7 +113,8 @@ export interface HighlightPassage {
 export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface StopMsg { to: 'sw'; type: 'stop' }
-export interface OpenResultMsg { to: 'sw'; type: 'open-result'; nodeId: string; openFile?: boolean }
+/** Carries the whole node: the service worker may have been restarted and lost its tree since the dig. */
+export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode; openFile?: boolean }
 export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number; url: string; result: DigReadResult }
 
 // ---------- Service worker -> side panel ----------
@@ -166,6 +167,8 @@ export const RELEVANT = 0.45;
 export const STRONG = 0.6;
 export const W_COS = 0.7;
 export const W_KW = 0.3;
+/** Penalty when a passage or link names the same thing with a different number. Pushes it under the cutoff. */
+export const CONFLICT_FACTOR = 0.4;
 
 // Semantic mode. MiniLM ranks well but scores paraphrases low: a no-shared-words match
 // ("is working with friends allowed" -> the collaboration policy) scored 0.26 hybrid; unrelated

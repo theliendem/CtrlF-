@@ -2,7 +2,7 @@
 // Paragraphs stay whole. Short blocks (headings, list items, table cells) are merged
 // forward, so a heading travels with the paragraph under it.
 
-const MIN_WORDS = 25;
+const MIN_CHUNK_WORDS = 25;
 const MAX_WORDS = 80;
 const SHORT = 15; // blocks under this many words are "short" and get merged
 const HEADING = 8; // a short run this small is a heading and travels with the next paragraph
@@ -31,7 +31,7 @@ function splitLong(block: string): string[] {
       for (let i = 0; i < ws.length; i += 60) out.push(ws.slice(i, i + MAX_WORDS).join(' '));
       continue;
     }
-    if (n + w > MAX_WORDS || (cur.length >= MAX_SENTENCES && n >= MIN_WORDS)) flush();
+    if (n + w > MAX_WORDS || (cur.length >= MAX_SENTENCES && n >= MIN_CHUNK_WORDS)) flush();
     cur.push(s);
     n += w;
   }
@@ -63,7 +63,7 @@ export function chunk(blocks: string[]): Chunk[] {
       if (pendingWords + w > MAX_WORDS) flushPending();
       pending.push(block);
       pendingWords += w;
-      if (pendingWords >= MIN_WORDS) flushPending();
+      if (pendingWords >= MIN_CHUNK_WORDS) flushPending();
     } else if (w <= MAX_WORDS) {
       if (pendingWords <= HEADING && pendingWords + w <= MAX_WORDS) {
         out.push(mk([...pending, block]));

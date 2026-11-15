@@ -21,7 +21,7 @@ import {
   type TreeNode,
 } from '../shared/types';
 import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLinks } from '../engine/links';
-import { wordCount, MIN_WORDS } from '../engine/site';
+import { wordCount, MIN_PAGE_WORDS } from '../engine/site';
 import { pageIdentity } from '../engine/identity';
 import { runBestFirst, runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
@@ -305,7 +305,7 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
       try { page = await toTab<PageText>(tabId, { type: 'extract' }); } catch { continue; }
       // Done once there's real text, or once rendering has settled on a short page.
       const count = wordCount(page.blocks);
-      if (count >= MIN_WORDS || count === lastCount) break;
+      if (count >= MIN_PAGE_WORDS || count === lastCount) break;
       lastCount = count;
     }
     if (run.id !== runId) throw new Error('Search stopped');
@@ -370,9 +370,8 @@ async function clearTab(tabId: number): Promise<void> {
   }
 }
 
-async function openResult(nodeId: string, openFile = false): Promise<void> {
-  const node = nodes.get(nodeId);
-  if (!node?.hits?.length) return;
+async function openResult(node: TreeNode, openFile = false): Promise<void> {
+  if (!node.hits?.length) return;
   if (openFile && node.kind === 'pdf' && node.pageNumber) {
     const url = node.fileId ? `${node.url}/download?inline=1#page=${node.pageNumber}` : `${node.url}#page=${node.pageNumber}`;
     await chrome.tabs.create({ url, active: true });
@@ -420,7 +419,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       stop(false);
       break;
     case 'open-result':
-      void openResult(msg.nodeId, msg.openFile).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
+      void openResult(msg.node, msg.openFile).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
     case 'file-progress': {
       if (msg.run !== runId) break;

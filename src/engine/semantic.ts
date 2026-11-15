@@ -1,6 +1,6 @@
 // Semantic mode: rank passages and links by meaning (MiniLM) plus exact query words.
 // The embedder is a parameter so tests can run without the model.
-import { LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SHOW_REJECTED, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
+import { CONFLICT_FACTOR, LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SHOW_REJECTED, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
 import { chunk } from './chunk';
 import { keywordScore, parseQuery } from './keywords';
 import { dot, highlightPieces, scorePassages } from './score';
@@ -13,7 +13,6 @@ const modelEmbed: Embed = async (texts) => (await import('./embed')).embed(texts
 
 /** Hits sent to the page for highlighting; only these get sentence-level marks. */
 const MAX_MARKED = 30;
-const CONFLICT_FACTOR = 0.4;
 
 /** Scored passages, best first. Relevant ones always carry marks, even with no shared words. */
 export async function semanticPassages(query: string, blocks: string[], embed: Embed = modelEmbed): Promise<Passage[]> {

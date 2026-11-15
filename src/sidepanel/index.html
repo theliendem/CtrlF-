@@ -16,7 +16,7 @@
     </header>
     <form id="settings-form" class="settings" hidden>
       <strong>Search settings</strong>
-      <label>Search mode <select id="search-mode"><option value="exact">Exact</option><option value="semantic">Semantic</option></select></label>
+      <label>Search mode <select id="search-mode"><option value="semantic">Semantic</option><option value="exact">Exact</option></select></label>
       <p>Exact matches your phrase and checks every safe content link, within your page and depth limits. Semantic finds passages that mean the same thing, even with different words, and follows the links closest to your question first. It runs an on-device model.</p>
       <label>Page limit <input id="page-budget" type="number" min="1" max="1000" step="1" required /></label>
       <label>Maximum depth <input id="max-depth" type="number" min="1" max="10" step="1" required /></label>
@@ -26,11 +26,6 @@
       <div class="settings-actions"><button class="btn" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
       <p id="settings-status" role="status">Changes apply to your next search.</p>
     </form>
-    <div id="counter" class="counter">
-      <span><b id="c-searched">0</b> searched</span>
-      <span><b id="c-ruled">0</b> ruled out</span>
-      <span class="green"><b id="c-found">0</b> found</span>
-    </div>
     <p id="status" class="status">Type a phrase and press Enter.</p>
     <main id="graph" class="graph"></main>
     <section class="results">

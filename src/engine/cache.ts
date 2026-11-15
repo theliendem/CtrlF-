@@ -25,10 +25,6 @@ export function remember<T>(key: string, value: T): T {
   return value;
 }
 
-export function clearCache(): void {
-  store.clear();
-}
-
 /** Pass sections through, and remember them only if the whole file was read. */
 export async function* recordSections(key: string, file: Pick<FileData, 'kind' | 'title'>, finalUrl: string, source: AsyncIterable<FileSection>): AsyncGenerator<FileSection> {
   const sections: FileSection[] = [];
