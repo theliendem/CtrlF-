@@ -69,15 +69,27 @@ async function toEngine<T>(msg: RuntimeMsg): Promise<T> {
 }
 
 /** Makes sure our content script is in the tab (tabs opened before install don't have it). */
-async function ensureContent(tabId: number): Promise<void> {
+async function pingContent(tabId: number): Promise<boolean> {
   const ping: ContentMsg = { type: 'ping' };
   try {
-    if (await chrome.tabs.sendMessage(tabId, ping)) return;
+    return Boolean(await chrome.tabs.sendMessage(tabId, ping));
   } catch {
-    /* not injected yet */
+    return false; // not injected yet, or still loading
   }
+}
+
+async function ensureContent(tabId: number): Promise<void> {
+  if (await pingContent(tabId)) return;
   const files = chrome.runtime.getManifest().content_scripts?.[0]?.js ?? [];
   await chrome.scripting.executeScript({ target: { tabId }, files });
+  // The built content script is a loader that import()s the real module, so executeScript resolves
+  // before the message listener exists. Wait for it to answer before sending the real message.
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    if (await pingContent(tabId)) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('The page did not respond. Reload it and try again.');
 }
 
 async function toTab<T>(tabId: number, msg: ContentMsg): Promise<T> {
