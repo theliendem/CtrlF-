@@ -14,6 +14,7 @@ const q = $<HTMLInputElement>('q');
 const form = $<HTMLFormElement>('search-form');
 const stopBtn = $<HTMLButtonElement>('stop');
 const statusEl = $<HTMLParagraphElement>('status');
+const resumeBtn = $<HTMLButtonElement>('resume');
 const resultsEl = $<HTMLUListElement>('results');
 const resultsBox = resultsEl.parentElement!;
 const settingsBtn = $<HTMLButtonElement>('settings');
@@ -99,12 +100,20 @@ const openResult = (nodeId: string): void => {
   if (node) send({ to: 'sw', type: 'open-result', node });
 };
 
+/** The query of the search on screen, for "Keep searching". */
+let shownQuery = '';
+
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   const query = q.value.trim();
   if (!query) return;
   // The panel's own window, not "last focused" (that can be a DevTools window).
   chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'search', query, windowId: w.id! }));
+});
+
+resumeBtn.addEventListener('click', () => {
+  resumeBtn.hidden = true;
+  chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'resume', query: shownQuery, windowId: w.id! }));
 });
 
 stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'stop' }));
@@ -124,8 +133,9 @@ function focusSearch(): void {
 focusSearch();
 window.addEventListener('focus', () => q.focus(), { once: true });
 
-function setStatus(text: string, running: boolean): void {
+function setStatus(text: string, running: boolean, canResume = false): void {
   statusEl.textContent = text;
+  resumeBtn.hidden = !canResume;
   statusEl.classList.toggle('running', running);
   stopBtn.hidden = !running;
 }
@@ -204,12 +214,13 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       focusSearch();
       break;
     case 'reset':
+      shownQuery = msg.query;
       nodes.clear();
       graph.reset();
       renderResults();
       break;
     case 'status':
-      setStatus(msg.text, msg.running);
+      setStatus(msg.text, msg.running, msg.canResume);
       break;
     case 'node':
       nodes.set(msg.node.id, msg.node);

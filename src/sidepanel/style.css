@@ -165,6 +165,23 @@ body {
 .icon-btn:hover, .icon-btn[aria-expanded="true"] { background: var(--sheet); color: var(--ink); }
 
 /* ---------- Status ---------- */
+.status-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.status-row .status { flex: 1; min-width: 0; }
+.resume {
+  flex: none;
+  margin: 4px 14px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 650 12px/1.4 var(--font-ui);
+  text-decoration: underline;
+  text-decoration-color: var(--reading-stroke);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.resume:hover { text-decoration-color: var(--ink); }
 .status {
   display: flex;
   align-items: center;

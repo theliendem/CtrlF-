@@ -1,6 +1,8 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
+  ENOUGH_STRONG,
   LINK_MIN,
+  SEMANTIC_STRONG,
   hitStrength,
   relevantScore,
   type HighlightPassage,
@@ -8,6 +10,7 @@ import {
   type SearchMode,
   type ContentMsg,
   type DigContext,
+  type DigEntry,
   type DigLink,
   type DigReadResult,
   type DigRun,
@@ -124,8 +127,20 @@ function passageHighlights(passages: Passage[]): HighlightPassage[] {
   return passages.map((p, i) => ({ texts: p.marks, best: i === 0 }));
 }
 
-function status(text: string, running: boolean): void {
-  toPanel({ to: 'panel', type: 'status', text, running });
+function status(text: string, running: boolean, canResume = false): void {
+  toPanel({ to: 'panel', type: 'status', text, running, canResume });
+}
+
+/** A semantic dig that paused itself after enough strong hits, kept so "Keep searching" can resume it. */
+let paused: { run: number; dig: DigRun; visit: (entry: DigEntry) => Promise<void> } | undefined;
+
+/** Pages below the start page whose best hit is really relevant. */
+function strongHits(): number {
+  let count = 0;
+  for (const node of nodes.values()) {
+    if (node.id !== 'root' && !node.hidden && node.state === 'hit' && (node.hits?.[0]?.score ?? 0) >= SEMANTIC_STRONG) count++;
+  }
+  return count;
 }
 
 function emit(node: TreeNode): void {
@@ -133,9 +148,10 @@ function emit(node: TreeNode): void {
   toPanel({ to: 'panel', type: 'node', node });
 }
 
-async function search(query: string, windowId: number): Promise<void> {
+async function search(query: string, windowId: number, autoStop = true): Promise<void> {
   cancelDig();
   const run = ++runId;
+  paused = undefined;
   nodes.clear();
   toPanel({ to: 'panel', type: 'reset', query });
 
@@ -217,8 +233,7 @@ async function search(query: string, windowId: number): Promise<void> {
   }
   enqueue(dig, root, seed.links);
   showSkipped(dig, root, seed.skipped ?? []);
-  const runQueue = exact ? runBranchBatches : runBestFirst;
-  await runQueue(dig, async ({ node }) => {
+  const visit = async ({ node }: DigEntry): Promise<void> => {
     if (run !== runId) return;
     emit({ ...node, state: 'reading', deferred: false });
     status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
@@ -243,11 +258,40 @@ async function search(query: string, windowId: number): Promise<void> {
       const partial = nodes.get(node.id);
       if (partial?.state !== 'hit') emit({ ...node, deferred: false, state: 'unreadable', snippet: String(error), hidden: isFile(node) && !settings.showUnreadable });
     }
-  }, () => run === runId, settings.pageBudget);
+  };
+  const current = (): boolean => run === runId;
+  if (exact) await runBranchBatches(dig, visit, current, settings.pageBudget);
+  // Semantic stops early once it has a good list; "Keep searching" picks up the same queue.
+  else await runBestFirst(dig, visit, current, settings.pageBudget, 4, () => autoStop && strongHits() >= ENOUGH_STRONG);
+  finishDig(run, dig, visit, !exact && autoStop);
+}
+
+function finishDig(run: number, dig: DigRun, visit: (entry: DigEntry) => Promise<void>, mayPause: boolean): void {
   if (run !== runId) return;
   settlePending();
   const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
-  status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ` · ${settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
+  const searched = `${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}`;
+  if (mayPause && dig.queue.length && dig.started < dig.settings.pageBudget && strongHits() >= ENOUGH_STRONG) {
+    paused = { run, dig, visit };
+    status(`${searched} · Stopped early with ${strongHits()} strong matches`, false, true);
+    return;
+  }
+  status(`${searched}${dig.queue.length ? ` · ${dig.settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
+}
+
+/** Continue a paused dig to the end, with no more early stops. If the worker lost it, search again without stopping early. */
+async function resume(query: string, windowId: number): Promise<void> {
+  const state = paused;
+  paused = undefined;
+  if (!state || state.run !== runId || state.dig.query !== query) {
+    await search(query, windowId, false);
+    return;
+  }
+  const { run, dig, visit } = state;
+  for (const { node } of dig.queue) emit({ ...node, state: 'queued' });
+  status('Searching further…', true);
+  await runBestFirst(dig, visit, () => run === runId, dig.settings.pageBudget);
+  finishDig(run, dig, visit, false);
 }
 
 function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
@@ -343,6 +387,7 @@ function settlePending(): void {
 function stop(clear: boolean): void {
   cancelDig();
   runId++;
+  paused = undefined;
   settlePending();
   if (clear) {
     for (const id of highlightedTabs) void clearTab(id);
@@ -399,6 +444,16 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       pending.catch((e: unknown) => {
         if (run !== runId) return;
         console.error('[ctrlf++] search failed', e);
+        settlePending();
+        status('Something went wrong. See the service worker console.', false);
+      });
+      break;
+    }
+    case 'resume': {
+      const run = runId;
+      resume(msg.query, msg.windowId).catch((e: unknown) => {
+        if (run !== runId) return;
+        console.error('[ctrlf++] resume failed', e);
         settlePending();
         status('Something went wrong. See the service worker console.', false);
       });

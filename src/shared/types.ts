@@ -109,6 +109,8 @@ export interface HighlightPassage {
 export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface StopMsg { to: 'sw'; type: 'stop' }
+/** Continue a dig that paused itself; query and windowId rerun the search if the worker lost it. */
+export interface ResumeMsg { to: 'sw'; type: 'resume'; query: string; windowId: number }
 /** Carries the whole node: the service worker may have been restarted and lost its tree since the dig. */
 export interface OpenResultMsg { to: 'sw'; type: 'open-result'; node: TreeNode }
 export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number; url: string; result: DigReadResult }
@@ -117,7 +119,8 @@ export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number;
 
 export interface FocusSearchMsg { to: 'panel'; type: 'focus-search' }
 export interface ResetMsg { to: 'panel'; type: 'reset'; query: string }
-export interface StatusMsg { to: 'panel'; type: 'status'; text: string; running: boolean }
+/** canResume: the dig paused itself after enough strong hits and can keep going. */
+export interface StatusMsg { to: 'panel'; type: 'status'; text: string; running: boolean; canResume?: boolean }
 export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 
 // ---------- Service worker -> offscreen engine ----------
@@ -134,6 +137,7 @@ export type RuntimeMsg =
   | SearchMsg
   | ClearMsg
   | StopMsg
+  | ResumeMsg
   | OpenResultMsg
   | FileProgressMsg
   | FocusSearchMsg
@@ -177,6 +181,10 @@ export const LINK_MIN = 0.25;
 export const LINK_PEEK = 15;
 /** Subtracted from a link's score per level of depth. */
 export const LINK_DEPTH_PENALTY = 0.02;
+/** A semantic hit this strong counts as really relevant (halfway up the red-to-green scale). Tune on the demo course. */
+export const SEMANTIC_STRONG = 0.45;
+/** Semantic digs pause once this many pages (not the start page) have a really relevant hit. */
+export const ENOUGH_STRONG = 3;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
 

@@ -108,3 +108,15 @@ test('best-first respects the page budget and stop', async () => {
   await runBestFirst(stopped, async () => { current = false; }, () => current, 60, 1);
   assert.equal(stopped.queue.length, 1);
 });
+
+test('best-first pauses with the rest still queued, and a second run resumes it', async () => {
+  const dig = run(Array.from({ length: 6 }, (_, i) => entry(String(i), i / 10)));
+  const order: string[] = [];
+  const visit = async ({ node }: DigEntry): Promise<void> => { order.push(node.id); };
+  await runBestFirst(dig, visit, () => true, 60, 2, () => order.length >= 3);
+  assert.deepEqual(order, ['5', '4', '3']); // no new reads start once pause() is true
+  assert.equal(dig.queue.length, 3);
+  await runBestFirst(dig, visit, () => true, 60, 2);
+  assert.deepEqual(order, ['5', '4', '3', '2', '1', '0']);
+  assert.equal(dig.queue.length, 0);
+});

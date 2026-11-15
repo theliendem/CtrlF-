@@ -3,6 +3,8 @@ import type { DigEntry, DigRun } from '../shared/types';
 /**
  * Semantic mode: always read the highest-priority unvisited link anywhere in the tree next
  * (ties: the one queued first). The dig ends when the queue empties or the budget runs out.
+ * Once pause() is true, no new reads start; reads in flight finish and the rest stay queued,
+ * so calling this again resumes the dig.
  */
 export async function runBestFirst(
   run: DigRun,
@@ -10,10 +12,11 @@ export async function runBestFirst(
   isCurrent: () => boolean,
   budget = run.settings.pageBudget,
   concurrency = 4,
+  pause: () => boolean = () => false,
 ): Promise<void> {
   const active = new Set<Promise<void>>();
   while (isCurrent() && (run.queue.length || active.size)) {
-    while (isCurrent() && active.size < concurrency && run.queue.length && run.started < budget) {
+    while (isCurrent() && !pause() && active.size < concurrency && run.queue.length && run.started < budget) {
       let best = 0;
       for (let i = 1; i < run.queue.length; i++) if (run.queue[i].priority > run.queue[best].priority) best = i;
       const [entry] = run.queue.splice(best, 1);

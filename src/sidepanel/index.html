@@ -38,7 +38,10 @@
       <div class="settings-actions"><button class="btn primary" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
       <p id="settings-status" role="status">Changes apply to your next search.</p>
     </form>
-    <p id="status" class="status" role="status">Type a phrase and press Enter.</p>
+    <div class="status-row">
+      <p id="status" class="status" role="status">Type a phrase and press Enter.</p>
+      <button id="resume" type="button" class="resume" hidden>Keep searching</button>
+    </div>
     <main id="graph" class="graph"></main>
     <section class="results" hidden>
       <ul id="results"></ul>
