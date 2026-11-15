@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { digLink, filterLinks, siteFileKind, siteLink, skippedLinks } from '../src/engine/links.ts';
-import { fetchSite, MIN_WORDS } from '../src/engine/site.ts';
+import { fetchSite, MIN_PAGE_WORDS } from '../src/engine/site.ts';
 import { DEFAULT_SETTINGS } from '../src/shared/settings.ts';
 import type { PageText } from '../src/shared/types.ts';
 
@@ -66,7 +66,7 @@ test('a nearly empty page with scripts asks for a real tab; a short static page 
   t.mock.method(globalThis, 'fetch', async () => respond(`<div id="app"></div><script src="app.js"></script>`, 'text/html', 'https://cs.wisc.edu/app'));
   const app = await fetchSite('https://cs.wisc.edu/app', site, signal, fakeParse);
   assert.ok('page' in app && app.needsTab);
-  t.mock.method(globalThis, 'fetch', async () => respond(`<p>${words(MIN_WORDS - 10)}</p>`, 'text/html', 'https://cs.wisc.edu/short'));
+  t.mock.method(globalThis, 'fetch', async () => respond(`<p>${words(MIN_PAGE_WORDS - 10)}</p>`, 'text/html', 'https://cs.wisc.edu/short'));
   const short = await fetchSite('https://cs.wisc.edu/short', site, signal, fakeParse);
   assert.ok('page' in short && !short.needsTab);
 });

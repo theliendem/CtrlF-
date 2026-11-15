@@ -1,9 +1,6 @@
-import { RELEVANT, W_COS, W_KW, type Passage } from '../shared/types';
+import { CONFLICT_FACTOR, W_COS, W_KW, type Passage } from '../shared/types';
 import type { Chunk } from './chunk';
 import { keywordScore, parseQuery, type QueryTerms } from './keywords';
-
-/** Penalty when a passage names the same thing with a different number. Pushes it under RELEVANT. */
-const CONFLICT_FACTOR = 0.4;
 
 export function dot(a: Float32Array, b: Float32Array): number {
   let s = 0;
@@ -38,4 +35,3 @@ function marksFor(q: QueryTerms, c: Chunk): string[] {
   return pieces.filter((piece) => !piece.conflict && best > 0 && piece.kw === best).map((piece) => piece.text);
 }
 
-export const isRelevant = (p: Passage): boolean => p.score >= RELEVANT;

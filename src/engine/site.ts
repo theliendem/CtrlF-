@@ -5,7 +5,7 @@ import { fileKind, MAX_BYTES } from './files';
 import { siteLink } from './links';
 
 /** Fewer words than this, on a page that ships scripts, means JavaScript builds the content. */
-export const MIN_WORDS = 15;
+export const MIN_PAGE_WORDS = 15;
 
 export type SiteFetch = { page: PageText; needsTab: boolean; finalUrl: string } | { file: FileData; finalUrl: string };
 
@@ -36,5 +36,5 @@ export async function fetchSite(url: string, context: SiteContext, signal: Abort
   page.links = page.links.flatMap((link) => {
     try { return [{ ...link, url: new URL(link.url, finalUrl).href }]; } catch { return []; }
   });
-  return { page, finalUrl, needsTab: wordCount(page.blocks) < MIN_WORDS && /<script\b/i.test(html) };
+  return { page, finalUrl, needsTab: wordCount(page.blocks) < MIN_PAGE_WORDS && /<script\b/i.test(html) };
 }

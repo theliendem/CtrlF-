@@ -9,9 +9,6 @@ const form = $<HTMLFormElement>('search-form');
 const stopBtn = $<HTMLButtonElement>('stop');
 const statusEl = $<HTMLParagraphElement>('status');
 const resultsEl = $<HTMLUListElement>('results');
-const cSearched = $('c-searched');
-const cRuled = $('c-ruled');
-const cFound = $('c-found');
 const settingsBtn = $<HTMLButtonElement>('settings');
 const settingsForm = $<HTMLFormElement>('settings-form');
 const pageBudget = $<HTMLInputElement>('page-budget');
@@ -67,7 +64,10 @@ const nodes = new Map<string, TreeNode>();
 const graph = new Graph($('graph'), (id) => openResult(id));
 
 const send = (msg: RuntimeMsg): void => void chrome.runtime.sendMessage(msg).catch(() => {});
-const openResult = (nodeId: string): void => send({ to: 'sw', type: 'open-result', nodeId });
+const openResult = (nodeId: string, openFile = false): void => {
+  const node = nodes.get(nodeId);
+  if (node) send({ to: 'sw', type: 'open-result', node, openFile });
+};
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -101,19 +101,6 @@ function setStatus(text: string, running: boolean): void {
 
 const ICON: Record<TreeNode['kind'], string> = { page: '📄', pdf: '📕', pptx: '📊', docx: '📝' };
 
-function renderCounters(): void {
-  let searched = 0, ruled = 0, found = 0;
-  for (const n of nodes.values()) {
-    if (n.hidden) continue; // duplicates and hidden stubs aren't counted
-    if (n.state === 'hit' || n.state === 'trail' || n.state === 'ruled-out') searched++;
-    if (n.state === 'ruled-out') ruled++;
-    if (n.state === 'hit') found++;
-  }
-  cSearched.textContent = String(searched);
-  cRuled.textContent = String(ruled);
-  cFound.textContent = String(found);
-}
-
 function renderResults(): void {
   const hits = [...nodes.values()].filter((n) => n.state === 'hit').sort((a, b) => b.best - a.best);
   resultsEl.replaceChildren(
@@ -141,7 +128,7 @@ function renderResults(): void {
         openPage.textContent = `Open at page ${n.pageNumber}`;
         openPage.addEventListener('click', (event) => {
           event.stopPropagation();
-          send({ to: 'sw', type: 'open-result', nodeId: n.id, openFile: true });
+          openResult(n.id, true);
         });
         body.append(openPage);
       }
@@ -161,7 +148,6 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     case 'reset':
       nodes.clear();
       graph.reset();
-      renderCounters();
       renderResults();
       break;
     case 'status':
@@ -170,7 +156,6 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     case 'node':
       nodes.set(msg.node.id, msg.node);
       graph.upsert(msg.node);
-      renderCounters();
       renderResults();
       if (msg.node.hits?.length) console.log('[ctrlf++]', msg.node.title, msg.node.hits);
       break;

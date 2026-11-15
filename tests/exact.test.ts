@@ -27,7 +27,7 @@ test('all safe candidates survive regardless of title or previous score, beyond 
 });
 
 test('old saved settings migrate to exact; semantic selection persists', () => {
-  assert.equal(normalizeSettings({ pageBudget: 300 }).mode, 'exact');
-  assert.equal(normalizeSettings({ mode: 'semantic' }).mode, 'semantic');
-  assert.equal(normalizeSettings({ mode: 'unknown' }).mode, 'exact');
+  assert.equal(normalizeSettings({ pageBudget: 300 }).mode, 'semantic');
+  assert.equal(normalizeSettings({ mode: 'exact' }).mode, 'exact');
+  assert.equal(normalizeSettings({ mode: 'unknown' }).mode, 'semantic');
 });

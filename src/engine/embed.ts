@@ -50,6 +50,8 @@ export function loadModel(): Promise<FeatureExtractionPipeline> {
 
 // Embedding cache keyed by text. Same passage on a second search costs nothing.
 // LATER: persist to IndexedDB so the cache survives a browser restart.
+/** ~1.5 KB per vector, so this caps the cache near 30 MB. Oldest entries go first. */
+const MAX_CACHED = 20000;
 const cache = new Map<string, Float32Array>();
 
 let pending: Promise<unknown> = Promise.resolve();
@@ -64,6 +66,7 @@ export function embed(texts: string[]): Promise<Float32Array[]> {
 async function embedBatch(texts: string[]): Promise<Float32Array[]> {
   // Similar lengths reduce padding; the text-keyed cache preserves the caller's order.
   const todo = [...new Set(texts.filter((t) => !cache.has(t)))].sort((a, b) => a.length - b.length);
+  const fresh = new Map<string, Float32Array>();
   if (todo.length) {
     const model = await loadModel();
     const start = performance.now();
@@ -71,10 +74,16 @@ async function embedBatch(texts: string[]): Promise<Float32Array[]> {
       const batch = todo.slice(i, i + BATCH);
       const out = await model(batch, { pooling: 'mean', normalize: true });
       const data = out.data as Float32Array;
-      batch.forEach((t, j) => cache.set(t, data.slice(j * DIM, (j + 1) * DIM)));
+      batch.forEach((t, j) => fresh.set(t, data.slice(j * DIM, (j + 1) * DIM)));
     }
     const ms = performance.now() - start;
     console.log(`[ctrlf++] ${backend}: embedded ${todo.length} passages in ${Math.round(ms)} ms (${(ms / todo.length).toFixed(1)} ms/passage)`);
   }
-  return texts.map((t) => cache.get(t)!);
+  const result = texts.map((t) => fresh.get(t) ?? cache.get(t)!);
+  for (const [t, v] of fresh) cache.set(t, v);
+  for (const t of cache.keys()) {
+    if (cache.size <= MAX_CACHED) break;
+    cache.delete(t);
+  }
+  return result;
 }
