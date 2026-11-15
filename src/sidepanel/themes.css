@@ -1,0 +1,323 @@
+/* Alternative looks for comparison. Each is a token set plus a few structural overrides, scoped to
+   :root[data-theme=...]. The default (Notebook) lives in style.css. */
+
+/* ======================================================================
+   Blueprint: the dig maps a site's structure, so draw it as a cyanotype.
+   Drafting grid that moves with the tree; unexplored links are dashed like
+   hidden lines, found paths are inked solid in white; amber marks reading.
+   ====================================================================== */
+:root[data-theme="blueprint"] {
+  color-scheme: dark;
+  --paper: #173f6a;
+  --sheet: #1f4c7d;
+  --ink: #eef5ff;
+  --ink-soft: #b3cbe6;
+  --rule: rgb(238 245 255 / 0.13);
+  --edge: #7fa3cc;
+  --marker: #ffc94d;
+  --marker-deep: #ffc94d;
+  --marker-soft: rgb(255 201 77 / 0.2);
+  --found: #ffffff;
+  --stop: #ffb4a8;
+  --font-ui: 'IBM Plex Sans Condensed', system-ui, sans-serif;
+  --fs-ui: 13.5px;
+  --fs-title: 14px;
+  --w-title: 600;
+  --w-label: 600;
+  --r-field: 2px;
+  --r-btn: 2px;
+  --r-item: 2px;
+  --r-sheet: 2px;
+  --field-bg: transparent;
+  --field-border: var(--ink-soft);
+  --field-focus-bg: rgb(255 255 255 / 0.04);
+  --field-focus-border: var(--ink);
+  --field-ring: 0 0 0 3px rgb(255 255 255 / 0.12);
+  --node-fill: var(--paper);
+  --node-stroke: var(--ink-soft);
+  --hit-stroke: #ffffff;
+  --trail-fill: var(--paper);
+  --trail-stroke: rgb(255 255 255 / 0.85);
+  --ruled-fill: #4f77a5;
+  --edge-found: rgb(255 255 255 / 0.85);
+  --edge-reading: var(--marker);
+  --mark-bg: rgb(255 255 255 / 0.1);
+  --mark-top-bg: var(--marker);
+  --mark-top-fg: #173f6a;
+  --divider: var(--ink-soft);
+}
+:root[data-theme="blueprint"] .graph {
+  background-image:
+    linear-gradient(to bottom, color-mix(in srgb, var(--rule) calc(var(--rule-alpha) * 100%), transparent) 1px, transparent 1px),
+    linear-gradient(to right, color-mix(in srgb, var(--rule) calc(var(--rule-alpha) * 100%), transparent) 1px, transparent 1px);
+  background-size: var(--rule-gap) var(--rule-gap);
+  background-position: var(--grid-x) var(--rule-y);
+}
+:root[data-theme="blueprint"] .edge { stroke-dasharray: 4 3; }
+:root[data-theme="blueprint"] .edge.trail, :root[data-theme="blueprint"] .edge.hit { stroke-dasharray: none; stroke-width: 1.75; }
+:root[data-theme="blueprint"] .settings { background: transparent; border: 1px solid var(--ink-soft); }
+:root[data-theme="blueprint"] .settings select, :root[data-theme="blueprint"] .settings input[type="number"] { background: var(--paper); border-color: var(--ink-soft); }
+:root[data-theme="blueprint"] .btn.primary { background: var(--ink); color: var(--paper); }
+:root[data-theme="blueprint"] #results li:hover { background: rgb(255 255 255 / 0.07); }
+
+/* ======================================================================
+   Dig site: "dig" taken literally. Soil strata behind the tree, one layer per
+   link depth, darker topsoil to redder subsoil; hits are gold, the page being
+   read is lamplight, edges are roots.
+   ====================================================================== */
+:root[data-theme="dig"] {
+  color-scheme: dark;
+  --paper: #241b15;
+  --sheet: #31261e;
+  --ink: #f2e8da;
+  --ink-soft: #c7b49e;
+  --edge: #6e5541;
+  --marker: #f2c14e;
+  --marker-deep: #f2c14e;
+  --marker-soft: rgb(242 193 78 / 0.22);
+  --found: #f2c14e;
+  --stop: #ff8a70;
+  --s0: #241b15;
+  --s1: #2a1f18;
+  --s2: #31241b;
+  --s3: #3a2a1f;
+  --s4: #433022;
+  --s5: #4b3425;
+  --font-ui: 'Archivo Variable', system-ui, sans-serif;
+  --w-title: 720;
+  --w-label: 700;
+  --w-query: 550;
+  --r-field: 6px;
+  --r-btn: 5px;
+  --r-item: 6px;
+  --r-sheet: 8px;
+  --field-border: #4a3a2d;
+  --field-focus-bg: var(--sheet);
+  --field-focus-border: var(--marker);
+  --node-fill: #2a1f18;
+  --node-stroke: #a58c74;
+  --reading-fill: #fff1d0;
+  --reading-stroke: #fff1d0;
+  --trail-fill: rgb(242 193 78 / 0.3);
+  --trail-stroke: rgb(242 193 78 / 0.7);
+  --ruled-fill: #5a4535;
+  --edge-w: 2;
+  --edge-found: rgb(242 193 78 / 0.75);
+  --edge-reading: rgb(255 241 208 / 0.6);
+  --label-halo: #1d1611;
+  --mark-top-fg: #241b15;
+  --divider: #4a3a2d;
+}
+:root[data-theme="dig"] .graph {
+  --b: var(--col-gap);
+  background-image: linear-gradient(to right,
+    var(--s0) calc(var(--cam-x) + var(--b) * 0.5), var(--s1) calc(var(--cam-x) + var(--b) * 0.5),
+    var(--s1) calc(var(--cam-x) + var(--b) * 1.5), var(--s2) calc(var(--cam-x) + var(--b) * 1.5),
+    var(--s2) calc(var(--cam-x) + var(--b) * 2.5), var(--s3) calc(var(--cam-x) + var(--b) * 2.5),
+    var(--s3) calc(var(--cam-x) + var(--b) * 3.5), var(--s4) calc(var(--cam-x) + var(--b) * 3.5),
+    var(--s4) calc(var(--cam-x) + var(--b) * 4.5), var(--s5) calc(var(--cam-x) + var(--b) * 4.5));
+}
+:root[data-theme="dig"] .btn.primary { background: var(--marker); border-color: var(--marker); color: #241b15; }
+
+/* ======================================================================
+   grep: Ctrl+F's command-line cousin. Monospace, a $ prompt, a block cursor
+   while digging, and grep --color's own palette: matches red, file names
+   magenta, line numbers green, separators cyan.
+   ====================================================================== */
+:root[data-theme="grep"] {
+  --paper: #ffffff;
+  --sheet: #f2f2f2;
+  --ink: #1a1a1a;
+  --ink-soft: #595959;
+  --edge: #bdbdbd;
+  --g-red: #c4161c;
+  --g-magenta: #a2129c;
+  --g-green: #1a7f37;
+  --g-cyan: #0e7c86;
+  --marker-soft: rgb(196 22 28 / 0.12);
+  --found: var(--g-red);
+  --stop: var(--g-red);
+  --font-ui: 'Source Code Pro Variable', ui-monospace, monospace;
+  --fs-ui: 12.5px;
+  --fs-query: 14px;
+  --fs-title: 12.5px;
+  --fs-snippet: 12px;
+  --w-title: 600;
+  --w-label: 600;
+  --w-query: 500;
+  --r-field: 0;
+  --r-btn: 0;
+  --r-item: 0;
+  --r-sheet: 0;
+  --field-bg: var(--paper);
+  --field-border: var(--edge);
+  --field-focus-border: var(--ink);
+  --field-ring: none;
+  --reading-fill: var(--g-cyan);
+  --reading-stroke: var(--g-cyan);
+  --trail-fill: color-mix(in srgb, var(--g-red) 20%, var(--paper));
+  --trail-stroke: color-mix(in srgb, var(--g-red) 55%, var(--paper));
+  --edge-w: 1;
+  --edge-found: color-mix(in srgb, var(--g-red) 60%, var(--edge));
+  --edge-reading: var(--g-cyan);
+  --title-fg: var(--g-magenta);
+  --where-fg: var(--g-green);
+  --mark-bg: transparent;
+  --mark-top-bg: transparent;
+  --mark-top-fg: var(--g-red);
+  --mark-top-w: 700;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="grep"] {
+    --paper: #1c1c1c;
+    --sheet: #262626;
+    --ink: #e6e6e6;
+    --ink-soft: #a6a6a6;
+    --edge: #4a4a4a;
+    --g-red: #ff5c57;
+    --g-magenta: #e27ee0;
+    --g-green: #5fcf7a;
+    --g-cyan: #4fc9d3;
+  }
+}
+:root[data-theme="grep"] .search-glyph { display: none; }
+:root[data-theme="grep"] .search::before { content: '$'; color: var(--g-green); font-weight: 700; }
+:root[data-theme="grep"] .search:focus-within::before { color: var(--ink); }
+:root[data-theme="grep"] .status.running::before {
+  width: 7px; height: 14px; border-radius: 0; box-shadow: none; background: var(--ink);
+  animation: cursor-blink 1s steps(1) infinite;
+}
+@keyframes cursor-blink { 50% { opacity: 0; } }
+:root[data-theme="grep"] .stop-square { border-radius: 0; }
+:root[data-theme="grep"] #results li { grid-template-columns: minmax(0, 1fr); padding: 7px 10px; }
+:root[data-theme="grep"] #results .strength, :root[data-theme="grep"] #results .file { display: none; }
+:root[data-theme="grep"] #results .head { gap: 0; }
+:root[data-theme="grep"] #results .title::after, :root[data-theme="grep"] #results .where::after { content: ':'; color: var(--g-cyan); }
+:root[data-theme="grep"] #results .where { font-size: inherit; }
+:root[data-theme="grep"] #results .snippet mark { padding: 0; }
+:root[data-theme="grep"] .node text { stroke-width: 3px; }
+
+/* ======================================================================
+   Chrome find bar: native to the host. Chrome's own side-panel surfaces and
+   pill fields, Google blue for focus and the page being read, and Chrome's
+   find-in-page colors: every match yellow, the active match orange.
+   ====================================================================== */
+:root[data-theme="findbar"] {
+  --paper: #ffffff;
+  --sheet: #f0f4f9;
+  --ink: #1f1f1f;
+  --ink-soft: #444746;
+  --edge: #c4c7c5;
+  --blue: #0b57d0;
+  --match: #fff36b;
+  --active: #ff9632;
+  --marker-soft: rgb(11 87 208 / 0.18);
+  --found: #e8710a;
+  --stop: #b3261e;
+  /* avoid-ai-design-ignore: T1 (this look mirrors Chrome's own UI, which uses the system face) */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --w-title: 600;
+  --w-label: 600;
+  --w-query: 400;
+  --r-field: 999px;
+  --r-btn: 999px;
+  --r-item: 12px;
+  --r-sheet: 16px;
+  --field-focus-bg: var(--paper);
+  --field-focus-border: var(--blue);
+  --field-ring: inset 0 0 0 1px var(--blue);
+  --reading-fill: var(--blue);
+  --reading-stroke: var(--blue);
+  --trail-fill: #ffe0c2;
+  --trail-stroke: #f5a35c;
+  --ruled-fill: var(--edge);
+  --edge-found: #f5a35c;
+  --edge-reading: color-mix(in srgb, var(--blue) 60%, var(--edge));
+  --mark-bg: var(--match);
+  --mark-fg: #1f1f1f;
+  --mark-top-bg: var(--active);
+  --mark-top-fg: #1f1f1f;
+  --divider: transparent;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="findbar"] {
+    --paper: #1f1f1f;
+    --sheet: #282a2c;
+    --ink: #e3e3e3;
+    --ink-soft: #c4c7c5;
+    --edge: #444746;
+    --blue: #a8c7fa;
+    --found: #ff9f43;
+    --stop: #f2b8b5;
+    --trail-fill: #5a3a1c;
+    --trail-stroke: #c27a35;
+    --edge-found: #c27a35;
+  }
+}
+:root[data-theme="findbar"] .results { background: var(--sheet); margin: 0 8px 8px; border-radius: 16px; }
+:root[data-theme="findbar"] #results li:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+:root[data-theme="findbar"] .btn.primary { background: var(--blue); border-color: var(--blue); color: var(--paper); }
+:root[data-theme="findbar"] .stop { padding: 0 12px; }
+
+/* ======================================================================
+   Highlighters: a student's color-coded notes. Every result gets its own
+   highlighter, nodes are inked with a fineliner, the search box is outlined
+   in pen and lights up yellow when you write in it.
+   ====================================================================== */
+:root[data-theme="highlighters"] {
+  color-scheme: light;
+  --paper: #ffffff;
+  --sheet: #f5f5f2;
+  --ink: #161616;
+  --ink-soft: #545454;
+  --edge: #cfcfcf;
+  --hl-yellow: #fff35c;
+  --hl-green: #8ef0a8;
+  --hl-pink: #ff9fd0;
+  --hl-orange: #ffbd6b;
+  --hl-blue: #8fd8ff;
+  --marker-soft: var(--hl-yellow);
+  --found: #2fc46a;
+  --stop: #d6204e;
+  --font-ui: 'Rubik Variable', system-ui, sans-serif;
+  --fs-title: 14px;
+  --w-title: 650;
+  --w-label: 600;
+  --w-query: 500;
+  --r-field: 14px;
+  --r-btn: 10px;
+  --r-item: 12px;
+  --r-sheet: 14px;
+  --field-bg: var(--paper);
+  --field-border: var(--ink);
+  --field-focus-bg: var(--paper);
+  --field-focus-border: var(--ink);
+  --field-ring: 0 0 0 4px var(--hl-yellow);
+  --node-fill: var(--paper);
+  --node-stroke: var(--ink);
+  --hit-fill: var(--hl-green);
+  --hit-stroke: var(--ink);
+  --reading-fill: var(--hl-yellow);
+  --reading-stroke: var(--ink);
+  --trail-fill: #d9fbe3;
+  --trail-stroke: var(--ink);
+  --ruled-fill: #e2e2e2;
+  --edge: #c9c9c9;
+  --edge-found: var(--ink);
+  --edge-reading: var(--ink-soft);
+  --mark-fg: var(--ink);
+  --mark-top-fg: var(--ink);
+  --divider: var(--ink);
+}
+:root[data-theme="highlighters"] .search { border-width: 2px; }
+:root[data-theme="highlighters"] .node.ruled-out .dot { stroke: #bdbdbd; }
+:root[data-theme="highlighters"] .node.hit .halo { stroke: var(--found); }
+:root[data-theme="highlighters"] #results .snippet mark { padding: 1px 3px; border-radius: 3px 7px 4px 6px; }
+:root[data-theme="highlighters"] #results li:nth-child(5n + 1) { --mark-bg: var(--hl-yellow); --mark-top-bg: var(--hl-yellow); }
+:root[data-theme="highlighters"] #results li:nth-child(5n + 2) { --mark-bg: var(--hl-green); }
+:root[data-theme="highlighters"] #results li:nth-child(5n + 3) { --mark-bg: var(--hl-pink); }
+:root[data-theme="highlighters"] #results li:nth-child(5n + 4) { --mark-bg: var(--hl-orange); }
+:root[data-theme="highlighters"] #results li:nth-child(5n + 5) { --mark-bg: var(--hl-blue); }
+:root[data-theme="highlighters"] .btn { border-width: 2px; border-color: var(--ink); }
+:root[data-theme="highlighters"] .btn.primary { background: var(--hl-yellow); color: var(--ink); }
+:root[data-theme="highlighters"] .settings { border: 2px solid var(--ink); background: var(--paper); }

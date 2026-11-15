@@ -1,7 +1,10 @@
-/* Ctrl+F++ panel: a ruled notebook page with a highlighter.
-   Paper and pen ink for the chrome, the page highlighter (#ffcf33, same as src/content) for what was found,
-   the icon's green for hits. The tree's rows sit on the notebook rules (graph.ts moves them with the camera). */
+/* Ctrl+F++ panel. Layout lives here; every look is a set of tokens on :root[data-theme].
+   The default look (Notebook) is defined here; the others live in themes.css.
+   graph.ts sets camera variables on .graph every frame (--rule-gap, --rule-y, --grid-x, --cam-x, --col-gap,
+   --rule-alpha) so a theme's background can move with the tree. */
 :root {
+  /* Notebook: a ruled page with a highlighter. Paper and pen ink for the chrome, the page highlighter
+     (#ffcf33, same as src/content) for what was found, the icon's green for hits. */
   --paper: #fbfcfe;
   --sheet: #f0f3f8;
   --ink: #1b2436;
@@ -13,14 +16,62 @@
   --marker-soft: rgb(255 207 51 / 0.42);
   --found: #1f9d55;
   --stop: #c8333a;
+
   --font-ui: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --font-label: var(--font-ui);
+  --fs-ui: 13px;
+  --fs-query: 15px;
+  --fs-title: 13.5px;
+  --fs-snippet: 12.5px;
+  --w-query: 500;
+  --w-title: 680;
+  --w-label: 650;
+
+  --r-field: 11px;
+  --r-btn: 8px;
+  --r-item: 9px;
+  --r-sheet: 12px;
+
+  --field-bg: var(--sheet);
+  --field-border: transparent;
+  --field-focus-bg: var(--paper);
+  --field-focus-border: var(--ink-soft);
+  --field-ring: 0 0 0 3px var(--marker-soft);
+
+  --node-fill: var(--paper);
+  --node-stroke: var(--ink-soft);
+  --hit-fill: var(--found);
+  --hit-stroke: var(--found);
+  --reading-fill: var(--marker);
+  --reading-stroke: var(--marker-deep);
+  --trail-fill: color-mix(in srgb, var(--found) 30%, var(--paper));
+  --trail-stroke: color-mix(in srgb, var(--found) 60%, var(--paper));
+  --ruled-fill: var(--edge);
+  --edge-w: 1.5;
+  --edge-found: color-mix(in srgb, var(--found) 50%, var(--edge));
+  --edge-reading: color-mix(in srgb, var(--marker-deep) 55%, var(--edge));
+  --label-fg: var(--ink);
+  --label-halo: var(--paper);
+
+  --title-fg: var(--ink);
+  --where-fg: var(--ink-soft);
+  --mark-bg: var(--marker-soft);
+  --mark-fg: inherit;
+  --mark-top-bg: var(--marker);
+  --mark-top-fg: #1b2436;
+  --mark-top-w: inherit;
+  --divider: var(--edge);
+
   --rule-gap: 24px;
   --rule-y: 0px;
+  --grid-x: 0px;
+  --cam-x: 40px;
+  --col-gap: 96px;
   --rule-alpha: 1;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root[data-theme="notebook"] {
     --paper: #151a23;
     --sheet: #1f2632;
     --ink: #e9edf4;
@@ -42,7 +93,7 @@ body {
   flex-direction: column;
   background: var(--paper);
   color: var(--ink);
-  font: 13px/1.4 var(--font-ui);
+  font: var(--fs-ui)/1.4 var(--font-ui);
   -webkit-font-smoothing: antialiased;
 }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -59,13 +110,13 @@ body {
   height: 42px;
   padding: 0 5px 0 12px;
   gap: 8px;
-  background: var(--sheet);
-  border: 1px solid transparent;
-  border-radius: 11px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-field);
   transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.search:hover { border-color: var(--rule); }
-.search:focus-within { background: var(--paper); border-color: var(--ink-soft); box-shadow: 0 0 0 3px var(--marker-soft); }
+.search:hover { border-color: var(--edge); }
+.search:focus-within { background: var(--field-focus-bg); border-color: var(--field-focus-border); box-shadow: var(--field-ring); }
 .search-glyph { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--ink-soft); stroke-width: 1.6; stroke-linecap: round; }
 .search:focus-within .search-glyph { stroke: var(--ink); }
 #q {
@@ -76,7 +127,7 @@ body {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font: 500 15px/1 var(--font-ui);
+  font: var(--w-query) var(--fs-query)/1 var(--font-ui);
   outline: none;
 }
 #q::placeholder { color: var(--ink-soft); opacity: 0.85; }
@@ -89,13 +140,13 @@ body {
   height: 30px;
   padding: 0 10px;
   border: 0;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--stop) 11%, transparent);
+  border-radius: var(--r-btn);
+  background: color-mix(in srgb, var(--stop) 13%, transparent);
   color: var(--stop);
   font: 650 12.5px/1 var(--font-ui);
   cursor: pointer;
 }
-.stop:hover { background: color-mix(in srgb, var(--stop) 18%, transparent); }
+.stop:hover { background: color-mix(in srgb, var(--stop) 20%, transparent); }
 .stop-square { width: 8px; height: 8px; border-radius: 2px; background: currentColor; }
 .icon-btn {
   flex: none;
@@ -104,7 +155,7 @@ body {
   width: 42px;
   height: 42px;
   border: 0;
-  border-radius: 11px;
+  border-radius: var(--r-field);
   background: transparent;
   color: var(--ink-soft);
   cursor: pointer;
@@ -130,8 +181,8 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--marker);
-  box-shadow: 0 0 0 1px var(--marker-deep);
+  background: var(--reading-fill);
+  box-shadow: 0 0 0 1px var(--reading-stroke);
   animation: status-pulse 1.1s ease-in-out infinite;
 }
 @keyframes status-pulse { 50% { transform: scale(1.35); } }
@@ -146,7 +197,7 @@ body {
   overflow: auto;
   flex-shrink: 0;
   background: var(--sheet);
-  border-radius: 12px;
+  border-radius: var(--r-sheet);
 }
 .settings h2 { margin: 0 0 2px; font-size: 14px; font-weight: 700; }
 .settings label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 550; }
@@ -158,17 +209,18 @@ body {
   color: var(--ink);
   background: var(--paper);
   border: 1px solid var(--edge);
-  border-radius: 7px;
+  border-radius: calc(var(--r-btn) - 1px);
   font: inherit;
 }
 .settings input[type="number"] { width: 84px; }
 .settings p { margin: 0; color: var(--ink-soft); font-size: 12px; line-height: 1.45; }
+.settings .look { padding-bottom: 10px; border-bottom: 1px solid var(--edge); }
 .settings-actions { display: flex; gap: 8px; margin-top: 2px; }
 .btn {
   height: 30px;
   padding: 0 12px;
   border: 1px solid var(--edge);
-  border-radius: 8px;
+  border-radius: var(--r-btn);
   background: transparent;
   color: var(--ink);
   font: 600 12.5px/1 var(--font-ui);
@@ -178,21 +230,19 @@ body {
 .btn.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .btn.primary:hover { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); }
 
-/* ---------- Graph on ruled paper ---------- */
-.graph {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  overflow: hidden;
+/* ---------- Graph ---------- */
+.graph { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+/* Notebook rules, one per tree row; they fade out when zoomed too far to read. */
+:root[data-theme="notebook"] .graph {
   background-image: linear-gradient(to bottom, color-mix(in srgb, var(--rule) calc(var(--rule-alpha) * 100%), transparent) 1px, transparent 1px);
   background-size: 100% var(--rule-gap);
   background-position: 0 var(--rule-y);
 }
 .graph-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; user-select: none; }
 .graph-svg.panning { cursor: grabbing; }
-.edge { fill: none; stroke: var(--edge); stroke-width: 1.5; transition: stroke 0.4s ease; }
-.edge.trail, .edge.hit { stroke: color-mix(in srgb, var(--found) 50%, var(--edge)); }
-.edge.reading { stroke: color-mix(in srgb, var(--marker-deep) 55%, var(--edge)); }
+.edge { fill: none; stroke: var(--edge); stroke-width: var(--edge-w); transition: stroke 0.4s ease; }
+.edge.trail, .edge.hit { stroke: var(--edge-found); }
+.edge.reading { stroke: var(--edge-reading); }
 .edge.collecting { animation: collect-edge var(--cleanup-delay) ease-in forwards; }
 .node { cursor: pointer; animation: appear 0.35s ease-out; }
 .node.collecting { pointer-events: none; animation: collect-node var(--cleanup-delay) ease-in forwards; }
@@ -203,24 +253,24 @@ body {
 @keyframes shrink { 0%, 30% { r: 5px; } 100% { r: 0px; } }
 @keyframes pulse { 0%, 100% { r: 6px; } 50% { r: 7.5px; } }
 @keyframes ripple { from { r: 6px; opacity: 0.6; } to { r: 15px; opacity: 0; } }
-.node .dot { r: 6px; fill: var(--paper); stroke: var(--ink-soft); stroke-width: 1.5; transition: r 0.35s ease, fill 0.4s ease, stroke 0.4s ease, opacity 0.4s ease; }
+.node .dot { r: 6px; fill: var(--node-fill); stroke: var(--node-stroke); stroke-width: 1.5; transition: r 0.35s ease, fill 0.4s ease, stroke 0.4s ease, opacity 0.4s ease; }
 .node .halo { r: 6px; fill: none; stroke: none; opacity: 0; pointer-events: none; }
 .node.queued .dot { r: 4px; }
-.node.reading .dot { fill: var(--marker); stroke: var(--marker-deep); animation: pulse 1.1s ease-in-out infinite; }
-.node.reading .halo { stroke: var(--marker-deep); stroke-width: 2; animation: ripple 1.1s ease-out infinite; }
-.node.hit .dot { r: 7px; fill: var(--found); stroke: var(--found); }
-.node.hit .halo { stroke: var(--found); stroke-width: 2; animation: ripple 0.9s ease-out 2; }
-.node.trail .dot { fill: color-mix(in srgb, var(--found) 30%, var(--paper)); stroke: color-mix(in srgb, var(--found) 60%, var(--paper)); }
-.node.ruled-out .dot { r: 5px; fill: var(--edge); stroke: var(--edge); }
+.node.reading .dot { fill: var(--reading-fill); stroke: var(--reading-stroke); animation: pulse 1.1s ease-in-out infinite; }
+.node.reading .halo { stroke: var(--reading-stroke); stroke-width: 2; animation: ripple 1.1s ease-out infinite; }
+.node.hit .dot { r: 7px; fill: var(--hit-fill); stroke: var(--hit-stroke); }
+.node.hit .halo { stroke: var(--hit-fill); stroke-width: 2; animation: ripple 0.9s ease-out 2; }
+.node.trail .dot { fill: var(--trail-fill); stroke: var(--trail-stroke); }
+.node.ruled-out .dot { r: 5px; fill: var(--ruled-fill); stroke: var(--ruled-fill); }
 .node.not-followed .dot, .node.unreadable .dot { r: 4px; stroke: var(--ink-soft); stroke-dasharray: 2 2; opacity: 0.6; }
-.node text { fill: var(--ink); font: 650 11.5px var(--font-ui); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+.node text { fill: var(--label-fg); font: var(--w-label) 11.5px var(--font-label); paint-order: stroke; stroke: var(--label-halo); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
 .node:hover .dot { stroke-width: 2.5; }
 
 /* ---------- Results ---------- */
 .results {
   max-height: 36%;
   overflow-y: auto;
-  border-top: 1px solid var(--edge);
+  border-top: 1px solid var(--divider);
   background: var(--paper);
   padding: 6px 6px 8px;
 }
@@ -230,7 +280,7 @@ body {
   grid-template-columns: 3px 18px minmax(0, 1fr);
   gap: 10px;
   padding: 9px 10px 10px 8px;
-  border-radius: 9px;
+  border-radius: var(--r-item);
   cursor: pointer;
   transition: background-color 0.12s ease;
 }
@@ -241,12 +291,12 @@ body {
 #results .file { width: 18px; height: 22px; margin-top: 1px; }
 #results .body { min-width: 0; }
 #results .head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
-#results .title { flex: 0 1 auto; min-width: 0; font-weight: 680; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#results .where { flex: none; color: var(--ink-soft); font-size: 12px; }
+#results .title { flex: 0 1 auto; min-width: 0; color: var(--title-fg); font-weight: var(--w-title); font-size: var(--fs-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#results .where { flex: none; color: var(--where-fg); font-size: 12px; }
 #results .snippet {
   margin-top: 4px;
   color: var(--ink);
-  font-size: 12.5px;
+  font-size: var(--fs-snippet);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -255,14 +305,14 @@ body {
 }
 /* The snippet wears the same highlighter the passage gets on the page: solid for the best match, faint for the rest. */
 #results .snippet mark {
-  color: inherit;
-  background: var(--marker-soft);
+  color: var(--mark-fg);
+  background: var(--mark-bg);
   padding: 1px 2px;
   border-radius: 2px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
-#results li.top .snippet mark { background: var(--marker); color: #1b2436; }
+#results li.top .snippet mark { background: var(--mark-top-bg); color: var(--mark-top-fg); font-weight: var(--mark-top-w); }
 .file-page {
   margin-top: 6px;
   padding: 0;
@@ -271,7 +321,7 @@ body {
   color: var(--ink);
   font: 650 12px/1.4 var(--font-ui);
   text-decoration: underline;
-  text-decoration-color: var(--marker-deep);
+  text-decoration-color: var(--reading-stroke);
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   cursor: pointer;

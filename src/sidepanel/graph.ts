@@ -370,10 +370,15 @@ export class Graph {
     const { w, h } = this.size();
     const oy = h / 2 - c.y * c.s;
     this.view.setAttribute('transform', `translate(${(w / 2 - c.x * c.s).toFixed(1)},${oy.toFixed(1)}) scale(${c.s.toFixed(3)})`);
-    // Notebook rules: one per tree row, moving with the camera; they fade out when zoomed too far to read.
+    // Camera variables for theme backgrounds (rules, grids, strata) that move with the tree.
+    const ox = w / 2 - c.x * c.s;
     const gap = DY * c.s;
+    const mod = (v: number): string => `${(((v % gap) + gap) % gap).toFixed(1)}px`;
     this.host.style.setProperty('--rule-gap', `${gap.toFixed(2)}px`);
-    this.host.style.setProperty('--rule-y', `${(((oy % gap) + gap) % gap).toFixed(1)}px`);
+    this.host.style.setProperty('--rule-y', mod(oy));
+    this.host.style.setProperty('--grid-x', mod(ox));
+    this.host.style.setProperty('--cam-x', `${ox.toFixed(1)}px`);
+    this.host.style.setProperty('--col-gap', `${(DX * c.s).toFixed(2)}px`);
     this.host.style.setProperty('--rule-alpha', clamp((gap - 9) / 9, 0, 1).toFixed(2));
     return moving;
   }

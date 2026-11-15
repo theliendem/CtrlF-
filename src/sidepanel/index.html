@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="notebook">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ctrl+F++</title>
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./themes.css" />
   </head>
   <body>
     <header class="bar">
@@ -26,6 +27,7 @@
     </header>
     <form id="settings-form" class="settings" hidden>
       <h2>Search settings</h2>
+      <label class="look">Look <select id="theme"></select></label>
       <label>Search mode <select id="search-mode"><option value="semantic">Semantic</option><option value="exact">Exact</option></select></label>
       <p>Exact matches your phrase and checks every safe content link, within your page and depth limits. Semantic finds passages that mean the same thing, even with different words, and follows the links closest to your question first. It runs an on-device model.</p>
       <label>Page limit <input id="page-budget" type="number" min="1" max="1000" step="1" required /></label>

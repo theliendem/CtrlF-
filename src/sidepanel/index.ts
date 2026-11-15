@@ -3,6 +3,11 @@ import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
 import { Graph, strengthColor } from './graph';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+import '@fontsource/ibm-plex-sans-condensed/400.css';
+import '@fontsource/ibm-plex-sans-condensed/600.css';
+import '@fontsource-variable/source-code-pro/wght.css';
+import '@fontsource-variable/archivo/wght.css';
+import '@fontsource-variable/rubik/wght.css';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const q = $<HTMLInputElement>('q');
@@ -20,6 +25,29 @@ const showOffsite = $<HTMLInputElement>('show-offsite');
 const showUnreadable = $<HTMLInputElement>('show-unreadable');
 const settingsStatus = $('settings-status');
 let settings = { ...DEFAULT_SETTINGS };
+
+// Panel looks, for comparing styles. Applied live; remembered per browser (a panel preference, not a search setting).
+const THEMES = [
+  ['notebook', 'Notebook'],
+  ['blueprint', 'Blueprint'],
+  ['dig', 'Dig site'],
+  ['grep', 'grep'],
+  ['findbar', 'Chrome find bar'],
+  ['highlighters', 'Highlighters'],
+] as const;
+const THEME_KEY = 'ctrlfpp-theme';
+const themeSelect = $<HTMLSelectElement>('theme');
+themeSelect.append(...THEMES.map(([id, name]) => new Option(name, id)));
+function applyTheme(id: string | null): void {
+  const theme = THEMES.find(([t]) => t === id)?.[0] ?? 'notebook';
+  document.documentElement.dataset.theme = theme;
+  themeSelect.value = theme;
+}
+try { applyTheme(localStorage.getItem(THEME_KEY)); } catch { applyTheme(null); }
+themeSelect.addEventListener('change', () => {
+  applyTheme(themeSelect.value);
+  try { localStorage.setItem(THEME_KEY, themeSelect.value); } catch { /* preview only lasts this session */ }
+});
 
 function fillSettings(): void {
   searchMode.value = settings.mode;
@@ -45,7 +73,7 @@ settingsBtn.addEventListener('click', async () => {
   fillSettings();
   settingsForm.hidden = false;
   settingsBtn.setAttribute('aria-expanded', 'true');
-  pageBudget.focus();
+  themeSelect.focus();
 });
 $('settings-close').addEventListener('click', closeSettings);
 settingsForm.addEventListener('submit', async (event) => {
