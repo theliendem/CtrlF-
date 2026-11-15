@@ -10,3 +10,7 @@ Reload Ctrl+F++ at `chrome://extensions`, refresh Canvas, and open the side pane
 6. Close and reopen the panel. Confirm Semantic remains selected, then switch back to Exact and save. Searching should work again.
 
 This change applies to the existing Canvas crawler and supported PDF/PPTX/DOCX files. General website crawling is still milestone 6. PDF hyperlinks pointing back to supported same-course Canvas pages/files are also eligible for the queue.
+
+## Graph cleanup
+
+After reloading the extension, run a search with matching and nonmatching branches. Dead gray nodes should fade and disappear after a random 0.5–1 second delay. Gray parents must stay while any descendant is green, yellow or waiting. When the last potentially useful descendant is ruled out, that branch can disappear too. Search counters and result cards must remain unchanged by this visual cleanup. Start a second search while nodes are fading and confirm old timers do not remove its new nodes.

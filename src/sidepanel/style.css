@@ -72,6 +72,11 @@ body {
 .graph-svg { width: 100%; height: 100%; display: block; }
 .graph-svg line { stroke: var(--line); stroke-width: 1.5; }
 .node { cursor: pointer; }
+.node.collecting { animation: collect-node var(--cleanup-delay) linear forwards; pointer-events: none; }
+@keyframes collect-node {
+  0%, 60% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .node circle { fill: none; stroke: var(--muted); stroke-width: 1.5; }
 .node.reading circle { fill: #f5c518; stroke: #f5c518; }
 .node.hit circle { fill: var(--green); stroke: var(--green); }
