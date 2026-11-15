@@ -130,7 +130,7 @@ async function search(query: string, windowId: number): Promise<void> {
   });
 
   const shown = hits.length
-    ? await toTab<number>(tab.id, { type: 'highlight', passages: hits.map((p, i) => ({ text: p.text, best: i === 0 })) })
+    ? await toTab<number>(tab.id, { type: 'highlight', passages: hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) })
     : 0;
   // LATER (milestone 3): keep digging from here instead of stopping.
   status(hits.length ? `${hits.length} matches on this page (${shown} highlighted)` : 'No match on this page.', false);
@@ -151,7 +151,7 @@ async function openResult(nodeId: string): Promise<void> {
   // LATER (milestone 3): other nodes open in a new tab and highlight there.
   if (node.id === 'root' && searchedTabId !== null) {
     await chrome.tabs.update(searchedTabId, { active: true });
-    await toTab(searchedTabId, { type: 'highlight', passages: node.hits.map((p, i) => ({ text: p.text, best: i === 0 })) });
+    await toTab(searchedTabId, { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) });
   }
 }
 

@@ -17,6 +17,8 @@ export type NodeState =
 /** One scored passage. */
 export interface Passage {
   text: string;
+  /** The exact pieces to highlight on the page (just the matching blocks of a merged passage). */
+  marks: string[];
   score: number; // hybrid: 0.7 * cos + 0.3 * kw (after number penalty)
   cos: number;
   kw: number;
@@ -48,7 +50,8 @@ export interface PageText {
 }
 
 export interface HighlightPassage {
-  text: string;
+  /** Pieces of page text to highlight; together they make one passage. */
+  texts: string[];
   best: boolean;
 }
 

@@ -39,12 +39,20 @@ function splitLong(block: string): string[] {
   return out;
 }
 
-export function chunk(blocks: string[]): string[] {
-  const out: string[] = [];
+/** A passage plus the blocks it was built from, so highlights can target just the matching pieces. */
+export interface Chunk {
+  text: string;
+  parts: string[];
+}
+
+const mk = (parts: string[]): Chunk => ({ text: parts.join(' '), parts });
+
+export function chunk(blocks: string[]): Chunk[] {
+  const out: Chunk[] = [];
   let pending: string[] = []; // short blocks waiting for context
   let pendingWords = 0;
   const flushPending = (): void => {
-    if (pending.length) out.push(pending.join(' '));
+    if (pending.length) out.push(mk(pending));
     pending = [];
     pendingWords = 0;
   };
@@ -58,21 +66,21 @@ export function chunk(blocks: string[]): string[] {
       if (pendingWords >= MIN_WORDS) flushPending();
     } else if (w <= MAX_WORDS) {
       if (pendingWords <= HEADING && pendingWords + w <= MAX_WORDS) {
-        out.push([...pending, block].join(' '));
+        out.push(mk([...pending, block]));
         pending = [];
         pendingWords = 0;
       } else {
         flushPending();
-        out.push(block);
+        out.push(mk([block]));
       }
     } else {
-      const parts = splitLong(block);
-      if (pending.length && parts.length && pendingWords <= HEADING && pendingWords + words(parts[0]) <= MAX_WORDS) {
-        parts[0] = [...pending, parts[0]].join(' ');
+      const pieces = splitLong(block).map((p) => mk([p]));
+      if (pending.length && pieces.length && pendingWords <= HEADING && pendingWords + words(pieces[0].text) <= MAX_WORDS) {
+        pieces[0] = mk([...pending, pieces[0].text]);
         pending = [];
         pendingWords = 0;
       } else flushPending();
-      out.push(...parts);
+      out.push(...pieces);
     }
   }
   flushPending();

@@ -6,9 +6,9 @@ import { scorePassages } from '../engine/score';
 
 async function scorePage(query: string, blocks: string[]): Promise<ScorePageResult> {
   const t0 = performance.now();
-  const texts = chunk(blocks);
-  const [qVec, ...vecs] = await embed([query, ...texts]);
-  const passages = scorePassages(query, qVec, texts, vecs).sort((a, b) => b.score - a.score);
+  const chunks = chunk(blocks);
+  const [qVec, ...vecs] = await embed([query, ...chunks.map((c) => c.text)]);
+  const passages = scorePassages(query, qVec, chunks, vecs).sort((a, b) => b.score - a.score);
   return { passages, ms: Math.round(performance.now() - t0) };
 }
 

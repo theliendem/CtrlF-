@@ -42,7 +42,7 @@ function clear(): void {
 }
 
 /** Whitespace-free index of the visible text, so passage text matches across nodes and blocks. */
-function buildIndex(): { text: string; node: Text[]; off: number[] } {
+function buildIndex(): Index {
   const nodes = visibleTextNodes().map((v) => v.node);
   let text = '';
   const node: Text[] = [];
@@ -60,6 +60,20 @@ function buildIndex(): { text: string; node: Text[]; off: number[] } {
   return { text, node, off };
 }
 
+type Index = { text: string; node: Text[]; off: number[] };
+
+function findRange(idx: Index, text: string): Range | null {
+  const key = text.replace(/\s+/g, '');
+  const at = key ? idx.text.indexOf(key) : -1;
+  // LATER: fuzzy match when a passage was windowed mid-word or the page changed since extraction.
+  if (at < 0) return null;
+  const end = at + key.length - 1;
+  const r = new Range();
+  r.setStart(idx.node[at], idx.off[at]);
+  r.setEnd(idx.node[end], idx.off[end] + 1);
+  return r;
+}
+
 function highlight(passages: HighlightPassage[]): number {
   clear();
   if (!passages.length) return 0;
@@ -69,24 +83,16 @@ function highlight(passages: HighlightPassage[]): number {
   let bestRange: Range | null = null;
   let found = 0;
   for (const p of passages) {
-    const key = p.text.replace(/\s+/g, '');
-    const at = key ? idx.text.indexOf(key) : -1;
-    // LATER: fuzzy match when a passage was windowed mid-word or the page changed since extraction.
-    if (at < 0) continue;
-    const end = at + key.length - 1;
-    const r = new Range();
-    r.setStart(idx.node[at], idx.off[at]);
-    r.setEnd(idx.node[end], idx.off[end] + 1);
+    const ranges = p.texts.map((t) => findRange(idx, t)).filter((r): r is Range => !!r);
+    if (!ranges.length) continue;
     found++;
-    if (!bestRange) { // passages arrive best first; the first one found is the bright one
-      best.add(r);
-      bestRange = r;
-    } else hits.add(r);
+    const isBest = !bestRange; // passages arrive best first; the first one found is the bright one
+    if (isBest) bestRange = ranges[0];
+    for (const r of ranges) (isBest ? best : hits).add(r);
   }
   CSS.highlights.set('ctrlfpp-hit', hits);
   CSS.highlights.set('ctrlfpp-best', best);
-  const target = bestRange?.startContainer.parentElement;
-  target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  bestRange?.startContainer.parentElement?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   return found;
 }
 
