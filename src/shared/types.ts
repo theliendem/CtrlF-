@@ -183,8 +183,10 @@ export const LINK_PEEK = 15;
 export const LINK_DEPTH_PENALTY = 0.02;
 /** A semantic hit this strong counts as really relevant (halfway up the red-to-green scale). Tune on the demo course. */
 export const SEMANTIC_STRONG = 0.45;
-/** Semantic digs pause once this many pages (not the start page) have a really relevant hit. */
-export const ENOUGH_STRONG = 3;
+/** Semantic digs pause once this many pages (not the start page) have a really relevant hit... */
+export const ENOUGH_STRONG = 10;
+/** ...or once this many pages have any hit at all. */
+export const ENOUGH_HITS = 20;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
 

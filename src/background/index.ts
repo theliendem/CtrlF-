@@ -1,5 +1,6 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
+  ENOUGH_HITS,
   ENOUGH_STRONG,
   LINK_MIN,
   SEMANTIC_STRONG,
@@ -134,13 +135,21 @@ function status(text: string, running: boolean, canResume = false): void {
 /** A semantic dig that paused itself after enough strong hits, kept so "Keep searching" can resume it. */
 let paused: { run: number; dig: DigRun; visit: (entry: DigEntry) => Promise<void> } | undefined;
 
-/** Pages below the start page whose best hit is really relevant. */
-function strongHits(): number {
-  let count = 0;
+/** Pages below the start page with a hit, and how many of those are really relevant. */
+function hitCounts(): { hits: number; strong: number } {
+  let hits = 0, strong = 0;
   for (const node of nodes.values()) {
-    if (node.id !== 'root' && !node.hidden && node.state === 'hit' && (node.hits?.[0]?.score ?? 0) >= SEMANTIC_STRONG) count++;
+    if (node.id === 'root' || node.hidden || node.state !== 'hit') continue;
+    hits++;
+    if ((node.hits?.[0]?.score ?? 0) >= SEMANTIC_STRONG) strong++;
   }
-  return count;
+  return { hits, strong };
+}
+
+/** A semantic dig has a good list: enough really relevant pages, or enough pages with any hit. */
+function haveEnough(): boolean {
+  const { hits, strong } = hitCounts();
+  return strong >= ENOUGH_STRONG || hits >= ENOUGH_HITS;
 }
 
 function emit(node: TreeNode): void {
@@ -262,7 +271,7 @@ async function search(query: string, windowId: number, autoStop = true): Promise
   const current = (): boolean => run === runId;
   if (exact) await runBranchBatches(dig, visit, current, settings.pageBudget);
   // Semantic stops early once it has a good list; "Keep searching" picks up the same queue.
-  else await runBestFirst(dig, visit, current, settings.pageBudget, 4, () => autoStop && strongHits() >= ENOUGH_STRONG);
+  else await runBestFirst(dig, visit, current, settings.pageBudget, 4, () => autoStop && haveEnough());
   finishDig(run, dig, visit, !exact && autoStop);
 }
 
@@ -271,9 +280,9 @@ function finishDig(run: number, dig: DigRun, visit: (entry: DigEntry) => Promise
   settlePending();
   const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
   const searched = `${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}`;
-  if (mayPause && dig.queue.length && dig.started < dig.settings.pageBudget && strongHits() >= ENOUGH_STRONG) {
+  if (mayPause && dig.queue.length && dig.started < dig.settings.pageBudget && haveEnough()) {
     paused = { run, dig, visit };
-    status(`${searched} · Stopped early with ${strongHits()} strong matches`, false, true);
+    status(`${searched} · Stopped early with ${hitCounts().strong} strong matches`, false, true);
     return;
   }
   status(`${searched}${dig.queue.length ? ` · ${dig.settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
