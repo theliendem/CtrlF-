@@ -2,7 +2,7 @@
 
 Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase PRD
 
-**Search mode update (Neil's request):** Exact is now the default. It searches literal phrases (case-insensitive, whitespace-tolerant) and recursively follows every safe supported content link, including files, without relevance filtering or the 15-link cap. Page/depth limits, same-site restrictions and blocked routes still apply. Semantic is a saved settings option but currently runs no search. The semantic scoring and link-peek descriptions below describe the planned Semantic mode, not current Exact behavior.
+**Search modes:** Semantic is the default. It scores passages by meaning (on-device MiniLM) plus the query's exact words, and digs best-first through the links closest to the question, as described below. Exact is a settings option: it searches literal phrases (case-insensitive, whitespace-tolerant) and recursively follows every safe supported content link, including files, without relevance filtering or the 15-link cap. Both modes keep the page/depth limits, same-site restrictions and blocked routes.
 
 **Traversal/display update (Neil's request):** Read random groups of 1–3 sibling links, switching parents between groups when another branch is available. Keep up to four reads in flight. Reveal nodes as their reads begin, not when all links are queued; invisible waiting children still protect their ancestors from graph cleanup.
 

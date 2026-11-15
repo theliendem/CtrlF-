@@ -24,3 +24,4 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Password-protected files, Word headers/footnotes/tracked changes, and embedded objects
 - Documents over 50 MB; stream or cache their bytes instead of keeping the entire file in memory
 - Canvas external-tool launches and discussion module items are excluded; announcements use the read-only announcements API
+- Side panel rebuilds the whole results list and rescans the graph on every node message (O(n) each). Fine for Semantic on Canvas; Exact on a link-heavy site may stutter. Batch updates per animation frame.
