@@ -1,6 +1,8 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
   LINK_MIN,
+  MAX_WAITING_SHOWN,
+  SHOW_WAITING,
   hitStrength,
   relevantScore,
   type HighlightPassage,
@@ -94,6 +96,8 @@ const highlightedTabs = new Set<number>();
 let mode: SearchMode = 'exact';
 /** Identity keys (final URL, canonical URL, text fingerprint) of every page read in this search. */
 let readPages = new Set<string>();
+/** Semantic: queued nodes currently shown as waiting dots (capped at MAX_WAITING_SHOWN). */
+const waitingShown = new Set<string>();
 
 /**
  * True if this read is a page we already have under another URL (a redirect alias, a ?title= or
@@ -144,6 +148,7 @@ async function search(query: string, windowId: number): Promise<void> {
 
   mode = settings.mode;
   readPages = new Set();
+  waitingShown.clear();
   const exact = mode === 'exact';
 
   status('Reading this page…', true);
@@ -204,10 +209,12 @@ async function search(query: string, windowId: number): Promise<void> {
     return;
   }
   enqueue(dig, root, seed.links);
+  showRejected(root, seed.rejected ?? []);
   showSkipped(dig, root, seed.skipped ?? []);
   const runQueue = exact ? runBranchBatches : runBestFirst;
   await runQueue(dig, async ({ node }) => {
     if (run !== runId) return;
+    waitingShown.delete(node.id);
     emit({ ...node, state: 'reading', deferred: false });
     status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
     try {
@@ -223,6 +230,7 @@ async function search(query: string, windowId: number): Promise<void> {
       }
       emitResult(node, result);
       enqueue(dig, node, result.links);
+      showRejected(node, result.rejected ?? []);
       showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
@@ -240,11 +248,15 @@ async function search(query: string, windowId: number): Promise<void> {
 
 function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
   if (parent.depth >= run.settings.maxDepth) return;
+  let shown = 0;
   for (const link of links) {
     const url = digLink(link.url, parent.url, run.context);
     if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < LINK_MIN)) continue;
     run.seen.add(url);
-    const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0 };
+    // Semantic: the page's best few links pop out as waiting dots right away; the rest appear when read.
+    const deferred = run.settings.mode === 'exact' || shown >= SHOW_WAITING || waitingShown.size >= MAX_WAITING_SHOWN;
+    if (!deferred) { shown++; waitingShown.add(url); }
+    const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred, depth: parent.depth + 1, best: 0 };
     if (isCanvas(run.context)) node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
     else node.kind = siteFileKind(url) ?? 'page';
     if (isFile(node)) { node.parentUrl = parent.url; node.linkTitle = link.title; }
@@ -306,6 +318,17 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url, identity: pageIdentity(page.url, page.canonical, page.blocks) };
   } finally {
     if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});
+  }
+}
+
+/**
+ * Semantic: flash the best links the model judged and turned down, as gray nodes that fade out.
+ * Display only: never read, counted, listed or remembered.
+ */
+function showRejected(parent: TreeNode, links: DigLink[]): void {
+  for (const link of links) {
+    const node: TreeNode = { id: `glimpse:${parent.id}:${link.url}`, parentId: parent.id, url: link.url, title: link.title || link.url, kind: 'page', state: 'ruled-out', depth: parent.depth + 1, best: link.score ?? 0, glimpse: true };
+    toPanel({ to: 'panel', type: 'node', node });
   }
 }
 

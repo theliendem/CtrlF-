@@ -6,6 +6,8 @@ Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase P
 
 **Traversal/display update (Neil's request):** Read random groups of 1–3 sibling links, switching parents between groups when another branch is available. Keep up to four reads in flight. Reveal nodes as their reads begin, not when all links are queued; invisible waiting children still protect their ancestors from graph cleanup.
 
+**Semantic display update (Neil's request):** In Semantic mode, each read page's best 5 kept links appear right away as hollow waiting dots (at most 24 on screen at once; the rest appear when read), and up to 10 of the best links the model turned down flash in gray and fade out. Turned-down links are display only: never read, counted or listed. No extra panel elements: the panel stays search bar, tree and ranked list.
+
 ## What it is
 
 Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2"), and it searches the page you're on, then digs recursively through the relevant links, files and subpages behind it. The whole dig plays out live as a tree in Chrome's side panel. Everything runs on your laptop with a lightweight ML model, so there's no LLM and no page text sent to a server.

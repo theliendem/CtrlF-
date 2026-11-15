@@ -1,6 +1,6 @@
 // Semantic mode: rank passages and links by meaning (MiniLM) plus exact query words.
 // The embedder is a parameter so tests can run without the model.
-import { LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
+import { LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SHOW_REJECTED, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
 import { chunk } from './chunk';
 import { keywordScore, parseQuery } from './keywords';
 import { dot, highlightPieces, scorePassages } from './score';
@@ -70,7 +70,15 @@ export function isCanvasHub(url: string): boolean {
  * depth is the depth the linked page would sit at.
  */
 export async function semanticLinks(query: string, links: DigLink[], depth: number, canvas: boolean, embed: Embed = modelEmbed): Promise<DigLink[]> {
-  if (!links.length) return [];
+  return (await splitLinks(query, links, depth, canvas, embed)).kept;
+}
+
+/**
+ * The same scoring, also returning the best SHOW_REJECTED links that weren't kept (too weak, or past
+ * the cap), best first, so the tree can show what the model judged and turned down.
+ */
+export async function splitLinks(query: string, links: DigLink[], depth: number, canvas: boolean, embed: Embed = modelEmbed): Promise<{ kept: DigLink[]; rejected: DigLink[] }> {
+  if (!links.length) return { kept: [], rejected: [] };
   const texts = links.map(linkText);
   const [qVec, ...vecs] = await embed([query, ...texts]);
   const q = parseQuery(query);
@@ -82,6 +90,9 @@ export async function semanticLinks(query: string, links: DigLink[], depth: numb
   });
   const byScore = (a: { link: DigLink }, b: { link: DigLink }): number => b.link.score! - a.link.score!;
   const hubs = scored.filter((s) => s.hub);
-  const pages = scored.filter((s) => !s.hub && s.link.score! >= LINK_MIN).sort(byScore).slice(0, LINK_PEEK);
-  return [...hubs, ...pages].sort(byScore).map((s) => s.link);
+  const candidates = scored.filter((s) => !s.hub).sort(byScore);
+  const pages = candidates.filter((s) => s.link.score! >= LINK_MIN).slice(0, LINK_PEEK);
+  const keptSet = new Set(pages);
+  const rejected = candidates.filter((s) => !keptSet.has(s)).slice(0, SHOW_REJECTED).map((s) => s.link);
+  return { kept: [...hubs, ...pages].sort(byScore).map((s) => s.link), rejected };
 }

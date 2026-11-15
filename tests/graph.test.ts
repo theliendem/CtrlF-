@@ -129,3 +129,13 @@ test('ancestors of a hit show as a trail, even when their own read was ruled out
   assert.equal(cls('middle'), 'node trail');
   assert.equal(cls('leaf'), 'node hit');
 });
+
+test('a rejected-link glimpse flashes, fades out and is forgotten', (t) => {
+  const { graph, titles } = setup(t);
+  graph.upsert(node('root', 'reading'));
+  graph.upsert({ ...node('glimpse:root:x', 'ruled-out', 'root'), glimpse: true });
+  assert.deepEqual(titles(), ['root', 'glimpse:root:x']);
+  t.mock.timers.tick(1000);
+  assert.deepEqual(titles(), ['root']);
+  assert.equal((graph as unknown as { nodes: Map<string, unknown> }).nodes.has('glimpse:root:x'), false);
+});

@@ -1,7 +1,7 @@
 // Offscreen document: the engine. Scoring, fetching and parsing pages and files.
 import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
-import { loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
+import { loadModel, splitLinks, semanticPassages } from '../engine/semantic';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
@@ -26,7 +26,7 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   const canDig = msg.depth < msg.settings.maxDepth;
   const mode = msg.settings.mode;
   /** Exact queues every link; semantic keeps the ones whose words are close to the query. */
-  const pick = (links: DigLink[]): Promise<DigLink[]> => pickLinks(mode, msg.query, links, msg.depth + 1, context);
+  const pick = (links: DigLink[]): Promise<{ links: DigLink[]; rejected: DigLink[] }> => pickLinks(mode, msg.query, links, msg.depth + 1, context);
 
   /** Score a page and pass its links through the free filter. */
   const finish = async (page: PageText, base: string): Promise<DigReadResult> => {
@@ -35,9 +35,9 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     const { passages } = page.blocks.length ? await scorePage(msg.query, page.blocks, mode) : { passages: [] };
     signal.throwIfAborted();
     const visited = new Set(msg.visited);
-    const links = canDig ? await pick(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : [];
+    const { links, rejected } = canDig ? await pick(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : { links: [], rejected: [] };
     signal.throwIfAborted();
-    return { title: page.title, passages, links, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base, identity: pageIdentity(base, page.canonical, page.blocks) };
+    return { title: page.title, passages, links, rejected, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base, identity: pageIdentity(base, page.canonical, page.blocks) };
   };
 
   /** Read a file section by section; report each better match as it is found. */
@@ -64,7 +64,9 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     // LATER: OCR for image-only pages/slides and scanned PDFs.
     if (!hasText) throw new Error('No readable text (scanned or image-only file)');
     if (canDig) {
-      result.links = await pick(filterLinks(fileLinks, base, context).filter((link) => !msg.visited.includes(link.url)));
+      const picked = await pick(filterLinks(fileLinks, base, context).filter((link) => !msg.visited.includes(link.url)));
+      result.links = picked.links;
+      result.rejected = picked.rejected;
       result.skipped = skippedLinks(fileLinks, base, context, msg.settings);
     }
     return result;
@@ -117,8 +119,10 @@ async function scorePage(query: string, blocks: string[], mode: SearchMode): Pro
 }
 
 /** Exact follows every surviving link; semantic scores them by meaning and keeps the close ones. */
-export function pickLinks(mode: SearchMode, query: string, links: DigLink[], depth: number, context: DigContext): Promise<DigLink[]> {
-  return mode === 'semantic' ? semanticLinks(query, links, depth, isCanvas(context)) : Promise.resolve(exactLinks(links));
+export async function pickLinks(mode: SearchMode, query: string, links: DigLink[], depth: number, context: DigContext): Promise<{ links: DigLink[]; rejected: DigLink[] }> {
+  if (mode !== 'semantic') return { links: exactLinks(links), rejected: [] };
+  const { kept, rejected } = await splitLinks(query, links, depth, isCanvas(context));
+  return { links: kept, rejected };
 }
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) => {
@@ -129,7 +133,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) =>
       loadModel().then(() => sendResponse({ ok: true } satisfies EngineAck), (e: unknown) => sendResponse({ ok: false, error: String(e) } satisfies EngineAck));
       return true;
     case 'score-links':
-      pickLinks(msg.mode, msg.query, msg.links, msg.depth, msg.context).then(sendResponse, (e: unknown) => {
+      pickLinks(msg.mode, msg.query, msg.links, msg.depth, msg.context).then((picked) => sendResponse(picked.links), (e: unknown) => {
         console.error('[engine] score-links failed', e);
         sendResponse([]);
       });

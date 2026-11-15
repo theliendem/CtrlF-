@@ -168,6 +168,8 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       setStatus(msg.text, msg.running);
       break;
     case 'node':
+      // Rejected-link glimpses only animate in the tree; they aren't pages, results or counts.
+      if (msg.node.glimpse) { graph.upsert(msg.node); break; }
       nodes.set(msg.node.id, msg.node);
       graph.upsert(msg.node);
       renderCounters();

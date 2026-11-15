@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isCanvasHub, linkText, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
+import { isCanvasHub, linkText, semanticLinks, semanticPassages, splitLinks, type Embed } from '../src/engine/semantic.ts';
 import { runBestFirst } from '../src/background/queue.ts';
-import { LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, type DigEntry, type DigRun } from '../src/shared/types.ts';
+import { LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, SHOW_REJECTED, type DigEntry, type DigRun } from '../src/shared/types.ts';
 
 // Fake embedder: words map to shared "concept" axes, so texts with different words can still
 // mean the same thing. Normalized bag of concepts, like the real model's unit vectors.
@@ -95,4 +95,19 @@ test('best-first respects the page budget and stop', async () => {
   const stopped = run([entry('a', 0.9), entry('b', 0.8)]);
   await runBestFirst(stopped, async () => { current = false; }, () => current, 60, 1);
   assert.equal(stopped.queue.length, 1);
+});
+
+test('rejected links are the best ones not kept: past the cap first, then the weak ones', async () => {
+  const links = [
+    { url: 'https://site.edu/a', title: 'Cafeteria menu', heading: '' },
+    { url: 'https://site.edu/c', title: 'Exam information', heading: '' },
+    ...Array.from({ length: 20 }, (_, i) => ({ url: `https://site.edu/x${i}`, title: `Deadline note ${i}`, heading: '' })),
+  ];
+  const { kept, rejected } = await splitLinks('can I hand it in late', links, 1, false, fakeEmbed);
+  assert.equal(kept.length, LINK_PEEK);
+  assert.equal(rejected.length, 7); // 5 deadline notes past the cap, then the 2 weak links
+  assert.ok(rejected.slice(0, 5).every((l) => l.title.startsWith('Deadline')));
+  assert.ok(!rejected.some((r) => kept.some((k) => k.url === r.url)));
+  const many = Array.from({ length: 40 }, (_, i) => ({ url: `https://site.edu/m${i}`, title: `Menu ${i}`, heading: '' }));
+  assert.equal((await splitLinks('can I hand it in late', many, 1, false, fakeEmbed)).rejected.length, SHOW_REJECTED);
 });

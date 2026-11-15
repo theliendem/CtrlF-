@@ -45,6 +45,8 @@ export interface TreeNode {
   hidden?: boolean;
   /** Waiting in the real queue, but not yet revealed in the graph. */
   deferred?: boolean;
+  /** Semantic: a link the model judged and rejected, flashed in the tree then forgotten. Never read or counted. */
+  glimpse?: boolean;
   exactQuery?: string;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];
@@ -92,6 +94,8 @@ export interface DigReadResult {
   finalUrl?: string;
   /** Identity of what was read (canonical URL, text fingerprint), so aliases of a read page are dropped. */
   identity?: string[];
+  /** Semantic: the best links the model judged and didn't follow, best first (shown briefly in the tree). */
+  rejected?: DigLink[];
 }
 export interface DigEntry { node: TreeNode; priority: number }
 export interface DigRun { id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
@@ -174,6 +178,12 @@ export const LINK_MIN = 0.25;
 export const LINK_PEEK = 15;
 /** Subtracted from a link's score per level of depth. */
 export const LINK_DEPTH_PENALTY = 0.02;
+/** Semantic: kept links shown as waiting dots as soon as they're scored (the rest appear when read). */
+export const SHOW_WAITING = 5;
+/** Semantic: at most this many waiting dots on screen at once, so they never pile up into a wall. */
+export const MAX_WAITING_SHOWN = 24;
+/** Semantic: rejected links flashed per page, best first. */
+export const SHOW_REJECTED = 10;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
 

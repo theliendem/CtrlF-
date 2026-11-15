@@ -113,7 +113,7 @@ export class Graph {
       this.els.set(n.id, el);
     }
     el.label.textContent = n.state === 'hit' ? short(n.title) : '';
-    el.tip.textContent = `${n.title}\n${n.url}\n${n.state}${n.state === 'hit' ? ` · score ${n.best.toFixed(2)}` : ''}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
+    el.tip.textContent = n.glimpse ? `${n.title}\n${n.url}\nnot opened: didn't look related (${n.best.toFixed(2)})` : `${n.title}\n${n.url}\n${n.state}${n.state === 'hit' ? ` · score ${n.best.toFixed(2)}` : ''}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
     this.scheduleCleanup();
     this.layout();
   }
@@ -205,6 +205,8 @@ export class Graph {
     this.els.get(id)?.g.remove();
     this.els.get(id)?.edge?.remove();
     this.els.delete(id);
+    // A rejected-link glimpse never comes back or has children: forget it so the tree stays light.
+    if (this.nodes.get(id)?.glimpse) { this.nodes.delete(id); this.collected.delete(id); }
     this.scheduleCleanup();
     this.layout();
   }
