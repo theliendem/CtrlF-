@@ -1,5 +1,8 @@
 // Offscreen document: the engine. Scoring, fetching and parsing pages and files.
-import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
+// TEMP: hooks first, so the model runtime's WASM and GPU memory is counted by the RAM benchmark.
+import { installMemoryHooks, memorySnapshot } from '../debug/memory';
+installMemoryHooks();
+import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type MemReport, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
 import { loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
 import { discoverCourse, readCanvas } from '../engine/canvas';
@@ -8,7 +11,7 @@ import { downloadCanvasFile, officeSections } from '../engine/files';
 import { pdfSections } from '../engine/pdf';
 import { fetchSite } from '../engine/site';
 import { pageIdentity, urlKey } from '../engine/identity';
-import { recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
+import { cacheStats, recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
 
 const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
@@ -143,6 +146,11 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) =>
     case 'dig-read':
       digRead(msg).then(sendResponse, (e: unknown) => sendResponse({ title: '', passages: [], links: [], error: String(e) } satisfies DigReadResult));
       return true;
+    case 'mem-report': {
+      const cache = cacheStats();
+      sendResponse({ ...memorySnapshot(), cacheEntries: cache.entries, cacheBytes: cache.bytes } satisfies MemReport);
+      return false;
+    }
     case 'cancel-dig':
       cancelledThrough = Math.max(cancelledThrough, msg.run);
       for (const [run, active] of controllers) {

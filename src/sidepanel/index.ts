@@ -2,6 +2,7 @@
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
 import { Graph, strengthColor } from './graph';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
+import { startMemoryDebug } from './memory-debug'; // TEMP: RAM benchmark
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const q = $<HTMLInputElement>('q');
@@ -177,3 +178,5 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
   }
   return false;
 });
+
+startMemoryDebug($('mem')); // TEMP: RAM benchmark

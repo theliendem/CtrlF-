@@ -25,6 +25,18 @@ export function remember<T>(key: string, value: T): T {
   return value;
 }
 
+/** TEMP: rough size of what's cached (UTF-16 text, 2 bytes a character), for the RAM benchmark. */
+export function cacheStats(): { entries: number; bytes: number } {
+  let chars = 0;
+  const size = (value: unknown): void => {
+    if (typeof value === 'string') chars += value.length;
+    else if (Array.isArray(value)) value.forEach(size);
+    else if (value && typeof value === 'object') Object.values(value).forEach(size);
+  };
+  for (const value of store.values()) size(value);
+  return { entries: store.size, bytes: chars * 2 };
+}
+
 export function clearCache(): void {
   store.clear();
 }

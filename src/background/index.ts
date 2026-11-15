@@ -23,6 +23,7 @@ import { wordCount, MIN_WORDS } from '../engine/site';
 import { pageIdentity } from '../engine/identity';
 import { runBestFirst, runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
+import { memorySnapshot } from '../debug/memory'; // TEMP: RAM benchmark
 
 const MAX_HIGHLIGHTS = 30;
 /** A JavaScript-built page gets this long in a background tab to render. */
@@ -376,7 +377,7 @@ async function openResult(nodeId: string, openFile = false): Promise<void> {
   console.warn('[ctrlf++] Opened result but could not locate its passages', node.url);
 }
 
-chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
+chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) => {
   if (msg.to !== 'sw') return false;
   switch (msg.type) {
     case 'search': {
@@ -399,6 +400,10 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     case 'open-result':
       void openResult(msg.nodeId, msg.openFile).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
+    case 'mem-report':
+      // TEMP: RAM benchmark. Service workers usually don't expose a heap figure (reported as null).
+      sendResponse(memorySnapshot());
+      return false;
     case 'file-progress': {
       if (msg.run !== runId) break;
       const node = nodes.get(msg.url);
