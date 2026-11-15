@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { isCanvasHub, linkText, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
 import { runBestFirst } from '../src/background/queue.ts';
-import { LINK_MIN, LINK_PEEK, ROOT_FANOUT, SEMANTIC_RELEVANT, type DigEntry, type DigRun } from '../src/shared/types.ts';
+import { LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, type DigEntry, type DigRun } from '../src/shared/types.ts';
 
 // Fake embedder: words map to shared "concept" axes, so texts with different words can still
 // mean the same thing. Normalized bag of concepts, like the real model's unit vectors.
@@ -46,22 +46,18 @@ test('link text uses title, heading and URL path words, without ids or boilerpla
   assert.equal(linkText({ url: 'https://cs.wisc.edu/courses/late-policy.html', title: '', heading: '' }), 'late policy');
 });
 
-test('links are ranked by meaning and capped: the peek cap deeper, the root fan-out from the start page', async () => {
+test('links are ranked by meaning, weak ones dropped, at most the peek cap kept', async () => {
   const links = [
     { url: 'https://site.edu/a', title: 'Cafeteria menu', heading: '' },
     { url: 'https://site.edu/b', title: 'Overdue work policy', heading: '' },
     { url: 'https://site.edu/c', title: 'Exam information', heading: '' },
     ...Array.from({ length: 20 }, (_, i) => ({ url: `https://site.edu/x${i}`, title: `Deadline note ${i}`, heading: '' })),
   ];
-  const picked = await semanticLinks('can I hand it in late', links, 2, false, fakeEmbed);
+  const picked = await semanticLinks('can I hand it in late', links, 1, false, fakeEmbed);
   assert.equal(picked.length, LINK_PEEK);
+  assert.ok(picked.every((l) => l.score! >= LINK_MIN));
   assert.ok(!picked.some((l) => l.title === 'Cafeteria menu' || l.title === 'Exam information'));
   assert.ok(picked.every((l, i) => i === 0 || picked[i - 1].score! >= l.score!));
-  // From the starting page, weak links are kept too (up to the fan-out): the dig reads them by content.
-  const many = Array.from({ length: 100 }, (_, i) => ({ url: `https://site.edu/p${i}`, title: `Cafeteria ${i}`, heading: '' }));
-  const fromRoot = await semanticLinks('can I hand it in late', [...links, ...many], 1, false, fakeEmbed);
-  assert.equal(fromRoot.length, ROOT_FANOUT);
-  assert.equal(fromRoot[0].title, 'Overdue work policy');
 });
 
 test('Canvas hubs are never dropped or capped, only ordered behind better links', async () => {
@@ -71,7 +67,7 @@ test('Canvas hubs are never dropped or capped, only ordered behind better links'
   const picked = await semanticLinks('can I turn stuff in late', links, 1, true, fakeEmbed);
   assert.equal(picked.length, 24);
   assert.equal(picked[0].title, 'Late work');
-  assert.ok(picked.slice(1).every((l) => l.score === LINK_MIN && l.hub));
+  assert.ok(picked.slice(1).every((l) => l.score === LINK_MIN));
   assert.ok(isCanvasHub(`${base}/modules#context_module_1`) && isCanvasHub(base) && !isCanvasHub(`${base}/pages/late-work`));
 });
 
