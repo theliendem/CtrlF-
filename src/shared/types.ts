@@ -120,6 +120,8 @@ export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: Searc
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
 export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
+/** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth. */
+export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext }
 
 export type RuntimeMsg =
   | SearchMsg
@@ -134,7 +136,8 @@ export type RuntimeMsg =
   | WarmupMsg
   | DigReadMsg
   | CancelDigMsg
-  | ScorePageMsg;
+  | ScorePageMsg
+  | ScoreLinksMsg;
 
 // ---------- Service worker -> content script (chrome.tabs.sendMessage) ----------
 
@@ -153,3 +156,17 @@ export const RELEVANT = 0.45;
 export const STRONG = 0.6;
 export const W_COS = 0.7;
 export const W_KW = 0.3;
+
+// Semantic mode. MiniLM ranks well but scores paraphrases low: a no-shared-words match
+// ("is working with friends allowed" -> the collaboration policy) scored 0.26 hybrid; unrelated
+// passages with no shared words stayed at or under 0.24. Measured on syllabus-style text with the
+// bundled q8 model; tune on the demo course.
+export const SEMANTIC_RELEVANT = 0.25;
+/** Links under this are not followed (Canvas hubs get this as a floor, see engine/semantic.ts). */
+export const LINK_MIN = 0.25;
+/** At most this many links per page enter the queue (the PRD's "peek" cap). */
+export const LINK_PEEK = 15;
+/** Subtracted from a link's score per level of depth. */
+export const LINK_DEPTH_PENALTY = 0.02;
+
+export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);

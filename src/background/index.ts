@@ -1,6 +1,10 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
-  RELEVANT,
+  LINK_MIN,
+  relevantScore,
+  type HighlightPassage,
+  type Passage,
+  type SearchMode,
   type ContentMsg,
   type DigContext,
   type DigLink,
@@ -14,9 +18,8 @@ import {
   type TreeNode,
 } from '../shared/types';
 import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLinks } from '../engine/links';
-import { exactLinks } from '../engine/exact';
 import { wordCount, MIN_WORDS } from '../engine/site';
-import { runBranchBatches } from './queue';
+import { runBestFirst, runBranchBatches } from './queue';
 import { normalizeSettings } from '../shared/settings';
 
 const MAX_HIGHLIGHTS = 30;
@@ -85,6 +88,13 @@ async function toTab<T>(tabId: number, msg: ContentMsg): Promise<T> {
 let runId = Date.now();
 const nodes = new Map<string, TreeNode>();
 const highlightedTabs = new Set<number>();
+/** Mode of the current search (file progress arrives later and is scored the same way). */
+let mode: SearchMode = 'exact';
+
+/** Semantic hits are highlighted by their marked sentences, best first. */
+function passageHighlights(passages: Passage[]): HighlightPassage[] {
+  return passages.map((p, i) => ({ texts: p.marks, best: i === 0 }));
+}
 
 function status(text: string, running: boolean): void {
   toPanel({ to: 'panel', type: 'status', text, running });
@@ -116,11 +126,8 @@ async function search(query: string, windowId: number): Promise<void> {
   const settings = normalizeSettings(stored.searchSettings);
   if (run !== runId) return;
 
-  if (settings.mode === 'semantic') {
-    // LATER: semantic mode will rank links and passages; currently it performs no search.
-    status('Semantic search is not available yet. Choose Exact in settings.', false);
-    return;
-  }
+  mode = settings.mode;
+  const exact = mode === 'exact';
 
   status('Reading this page…', true);
   let page: PageText;
@@ -136,7 +143,7 @@ async function search(query: string, windowId: number): Promise<void> {
 
   const root: TreeNode = {
     id: 'root',
-    exactQuery: query,
+    exactQuery: exact ? query : undefined,
     parentId: null,
     url: page.url,
     title: page.title || page.url,
@@ -146,13 +153,13 @@ async function search(query: string, windowId: number): Promise<void> {
     best: 0,
   };
   emit(root);
-  status('Scoring this page…', true);
+  status(exact ? 'Scoring this page…' : 'Scoring this page by meaning…', true);
 
   const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: settings.mode, query, url: page.url, blocks: page.blocks });
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
-  const hits = res.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+  const hits = res.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
   console.log(`[ctrlf++] scored ${res.passages.length} passages in ${res.ms} ms`, res.passages.slice(0, 10));
   emit({
     ...root,
@@ -163,7 +170,7 @@ async function search(query: string, windowId: number): Promise<void> {
   });
 
   if (hits.length) {
-    await toTab<number>(tab.id, { type: 'highlight-exact', query });
+    await toTab<number>(tab.id, exact ? { type: 'highlight-exact', query } : { type: 'highlight', passages: passageHighlights(hits) });
     highlightedTabs.add(tab.id);
   }
   if (run !== runId) return;
@@ -179,7 +186,8 @@ async function search(query: string, windowId: number): Promise<void> {
   }
   enqueue(dig, root, seed.links);
   showSkipped(dig, root, seed.skipped ?? []);
-  await runBranchBatches(dig, async ({ node }) => {
+  const runQueue = exact ? runBranchBatches : runBestFirst;
+  await runQueue(dig, async ({ node }) => {
     if (run !== runId) return;
     emit({ ...node, state: 'reading', deferred: false });
     status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
@@ -210,20 +218,20 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
   if (parent.depth >= run.settings.maxDepth) return;
   for (const link of links) {
     const url = digLink(link.url, parent.url, run.context);
-    if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < 0.3)) continue;
+    if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < LINK_MIN)) continue;
     run.seen.add(url);
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0 };
     if (isCanvas(run.context)) node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
     else node.kind = siteFileKind(url) ?? 'page';
     if (isFile(node)) { node.parentUrl = parent.url; node.linkTitle = link.title; }
-    node.exactQuery = run.query;
-    run.queue.push({ node, priority: 1 });
+    if (run.settings.mode === 'exact') node.exactQuery = run.query;
+    run.queue.push({ node, priority: link.score ?? 1 });
     emit(node);
   }
 }
 
 function emitResult(node: TreeNode, result: DigReadResult): void {
-  const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+  const matches = result.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
   emit({ ...node, deferred: false, url: isFile(node) ? node.url : result.finalUrl ?? node.url, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
     state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
 }
@@ -268,7 +276,8 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: run.settings.mode, query: run.query, url: page.url, blocks: page.blocks });
     if (res.error) throw new Error(res.error);
     const canDig = node.depth < run.settings.maxDepth;
-    const links = canDig ? exactLinks(filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url))) : [];
+    const candidates = canDig ? filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url)) : [];
+    const links = candidates.length ? await toEngine<DigLink[]>({ to: 'offscreen', type: 'score-links', mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context }) : [];
     return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url };
   } finally {
     if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});
@@ -332,7 +341,7 @@ async function openResult(nodeId: string, openFile = false): Promise<void> {
     if (current.status === 'complete') {
       const message: ContentMsg = isFile(node)
         ? { type: 'highlight-file', fileId: node.fileId, url: node.url, title: node.linkTitle ?? node.title }
-        : { type: 'highlight-exact', query: node.exactQuery ?? '' };
+        : node.exactQuery ? { type: 'highlight-exact', query: node.exactQuery } : { type: 'highlight', passages: passageHighlights(node.hits) };
       const shown = await toTab<number>(tabId, message);
       highlightedTabs.add(tabId);
       if (shown > 0) return;
@@ -375,11 +384,17 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
   return false;
 });
 
-// Load the model as soon as the extension starts, so the first search isn't waiting on it.
+// In semantic mode, load the model as soon as the extension starts (or semantic is chosen),
+// so the first search isn't waiting on it. Exact mode never loads it.
 async function warmup(): Promise<void> {
+  const stored = await chrome.storage.local.get('searchSettings');
+  if (normalizeSettings(stored.searchSettings).mode !== 'semantic') return;
   const t0 = performance.now();
   const r = await toEngine<EngineAck>({ to: 'offscreen', type: 'warmup' });
   console.log(`[ctrlf++] engine warmup ${r.ok ? 'ok' : 'FAILED ' + r.error} in ${Math.round(performance.now() - t0)} ms`);
 }
 chrome.runtime.onInstalled.addListener(() => void warmup());
 chrome.runtime.onStartup.addListener(() => void warmup());
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.searchSettings) void warmup();
+});

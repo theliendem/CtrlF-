@@ -1,6 +1,7 @@
 // Offscreen document: the engine. Scoring, fetching and parsing pages and files.
-import { RELEVANT, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult } from '../shared/types';
+import { relevantScore, type DigContext, type DigLink, type DigReadMsg, type DigReadResult, type EngineAck, type FileData, type FileSection, type PageText, type RuntimeMsg, type ScorePageResult, type SearchMode } from '../shared/types';
 import { exactPassages, exactLinks } from '../engine/exact';
+import { loadModel, semanticLinks, semanticPassages } from '../engine/semantic';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { digLink, filterLinks, isCanvas, skippedLinks } from '../engine/links';
 import { downloadCanvasFile, officeSections } from '../engine/files';
@@ -12,7 +13,6 @@ const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
 
 export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
-  if (msg.settings.mode !== 'exact') throw new Error('Semantic search is not available yet. Choose Exact in settings.');
   if (msg.run <= cancelledThrough) throw new Error('Search stopped');
   const controller = new AbortController();
   const { signal } = controller;
@@ -23,15 +23,19 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   const timer = setTimeout(() => controller.abort(), 8000);
   const context = msg.context;
   const canDig = msg.depth < msg.settings.maxDepth;
+  const mode = msg.settings.mode;
+  /** Exact queues every link; semantic keeps the ones whose words are close to the query. */
+  const pick = (links: DigLink[]): Promise<DigLink[]> => pickLinks(mode, msg.query, links, msg.depth + 1, context);
 
   /** Score a page and pass its links through the free filter. */
   const finish = async (page: PageText, base: string): Promise<DigReadResult> => {
     clearTimeout(timer);
     signal.throwIfAborted();
-    const { passages } = page.blocks.length ? await scorePage(msg.query, page.blocks) : { passages: [] };
+    const { passages } = page.blocks.length ? await scorePage(msg.query, page.blocks, mode) : { passages: [] };
     signal.throwIfAborted();
     const visited = new Set(msg.visited);
-    const links = canDig ? exactLinks(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : [];
+    const links = canDig ? await pick(filterLinks(page.links, base, context).filter((link) => !visited.has(link.url))) : [];
+    signal.throwIfAborted();
     return { title: page.title, passages, links, skipped: canDig ? skippedLinks(page.links, base, context, msg.settings) : [], finalUrl: base };
   };
 
@@ -46,9 +50,9 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
       fileLinks.push(...section.links ?? []);
       if (!section.blocks.length) continue;
       hasText = true;
-      const scored = await scorePage(msg.query, section.blocks);
+      const scored = await scorePage(msg.query, section.blocks, mode);
       signal.throwIfAborted();
-      const hits = scored.passages.filter((p) => p.score >= RELEVANT && p.marks.length);
+      const hits = scored.passages.filter((p) => p.score >= relevantScore(mode) && p.marks.length);
       if (hits.length && (!result.passages.length || hits[0].score > result.passages[0].score)) {
         result = { title: file.title, kind: file.kind, passages: hits, links: [], location: section.location, pageNumber: section.pageNumber };
         const progress: RuntimeMsg = { to: 'sw', type: 'file-progress', run: msg.run, url: msg.url, result };
@@ -58,7 +62,7 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
     // LATER: OCR for image-only pages/slides and scanned PDFs.
     if (!hasText) throw new Error('No readable text (scanned or image-only file)');
     if (canDig) {
-      result.links = exactLinks(filterLinks(fileLinks, base, context).filter((link) => !msg.visited.includes(link.url)));
+      result.links = await pick(filterLinks(fileLinks, base, context).filter((link) => !msg.visited.includes(link.url)));
       result.skipped = skippedLinks(fileLinks, base, context, msg.settings);
     }
     return result;
@@ -104,25 +108,32 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   }
 }
 
-async function scorePage(query: string, blocks: string[]): Promise<ScorePageResult> {
+async function scorePage(query: string, blocks: string[], mode: SearchMode): Promise<ScorePageResult> {
   const t0 = performance.now();
-  const passages = exactPassages(query, blocks);
+  const passages = mode === 'semantic' ? await semanticPassages(query, blocks) : exactPassages(query, blocks);
   return { passages, ms: Math.round(performance.now() - t0) };
+}
+
+/** Exact follows every surviving link; semantic scores them by meaning and keeps the close ones. */
+export function pickLinks(mode: SearchMode, query: string, links: DigLink[], depth: number, context: DigContext): Promise<DigLink[]> {
+  return mode === 'semantic' ? semanticLinks(query, links, depth, isCanvas(context)) : Promise.resolve(exactLinks(links));
 }
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) => {
   if (msg.to !== 'offscreen') return false;
   switch (msg.type) {
     case 'warmup':
-      // LATER: warm up the model when semantic mode is implemented.
-      sendResponse({ ok: true } satisfies EngineAck);
+      // Only sent in semantic mode; Exact never loads the model.
+      loadModel().then(() => sendResponse({ ok: true } satisfies EngineAck), (e: unknown) => sendResponse({ ok: false, error: String(e) } satisfies EngineAck));
+      return true;
+    case 'score-links':
+      pickLinks(msg.mode, msg.query, msg.links, msg.depth, msg.context).then(sendResponse, (e: unknown) => {
+        console.error('[engine] score-links failed', e);
+        sendResponse([]);
+      });
       return true;
     case 'score-page':
-      if (msg.mode !== 'exact') {
-        sendResponse({ passages: [], ms: 0, error: 'Semantic search is not available yet.' } satisfies ScorePageResult);
-        return false;
-      }
-      scorePage(msg.query, msg.blocks).then(sendResponse, (e: unknown) => {
+      scorePage(msg.query, msg.blocks, msg.mode).then(sendResponse, (e: unknown) => {
         console.error('[engine] score-page failed', e);
         sendResponse({ passages: [], ms: 0, error: String(e) } satisfies ScorePageResult);
       });

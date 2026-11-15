@@ -3,7 +3,8 @@
 Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot in the code where it would go.
 
 - Settings toggle: stop digging when the current page already has a strong match
-- Implement Semantic search mode with relevance-based link selection; its settings option currently runs no search
+- Semantic mode: tune SEMANTIC_RELEVANT / LINK_MIN on the demo course (set from syllabus-style samples)
+- Semantic mode: mark the closest sentence inside long single-sentence passages, not the whole sentence
 - OCR for scanned PDFs and images
 - Old .ppt and .doc formats
 - Following off-site links (Google Docs, Box, publisher sites) with their own logins
