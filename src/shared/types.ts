@@ -129,12 +129,6 @@ export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number
 /** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth. */
 export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext }
 
-// TEMP: RAM benchmark (src/debug/memory.ts). Any page -> offscreen or service worker.
-export interface MemReportMsg { to: 'offscreen' | 'sw'; type: 'mem-report' }
-/** Bytes; heap is null where Chrome doesn't expose it. */
-export interface ContextMemory { heapUsed: number | null; heapTotal: number | null; wasm: number; gpu: number }
-export interface MemReport extends ContextMemory { cacheEntries?: number; cacheBytes?: number }
-
 export type RuntimeMsg =
   | SearchMsg
   | ClearMsg
@@ -149,8 +143,7 @@ export type RuntimeMsg =
   | DigReadMsg
   | CancelDigMsg
   | ScorePageMsg
-  | ScoreLinksMsg
-  | MemReportMsg;
+  | ScoreLinksMsg;
 
 // ---------- Service worker -> content script (chrome.tabs.sendMessage) ----------
 

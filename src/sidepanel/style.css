@@ -106,4 +106,3 @@ body {
 /* --hit is set per result from its score (red just over the cutoff, green at the top). */
 #results li .title { color: var(--hit, var(--green)); }
 #results .snippet { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mem { margin: 0; padding: 4px 12px; font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); border-top: 1px dashed var(--line); cursor: pointer; } /* TEMP: RAM benchmark */
