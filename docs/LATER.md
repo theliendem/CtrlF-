@@ -12,7 +12,7 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Rust/WASM port of scoring and the index
 - Databricks-trained link scorer and analytics dashboard
 - Contradiction finder
-- Persist the read cache (src/engine/cache.ts) to IndexedDB so it survives a browser restart
+- Persistent cache is only a hidden demo toggle (Option-click Settings). A real version needs expiry (re-check pages after a few hours, or with If-Modified-Since) and a per-site size budget
 - The read cache never expires within a session; newly posted Canvas content shows up only after reloading the extension
 - JavaScript-built pages read through the tab fallback aren't cached, so they need the network
 - Fuzzy highlight matching when a passage was cut mid-word or the page changed after extraction

@@ -8,7 +8,8 @@ import { downloadCanvasFile, officeSections } from '../engine/files';
 import { pdfSections } from '../engine/pdf';
 import { fetchSite } from '../engine/site';
 import { pageIdentity, urlKey } from '../engine/identity';
-import { recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
+import { cacheReady, recall, recordSections, remember, replaySections, type CachedRead } from '../engine/cache';
+import { setKeepCache } from '../engine/persist';
 
 const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
@@ -77,6 +78,7 @@ export async function digRead(msg: DigReadMsg): Promise<DigReadResult> {
   };
 
   try {
+    await cacheReady();
     if (msg.seed) {
       // The starting page: its own links, plus the course map on Canvas.
       let links = msg.seed;
@@ -131,6 +133,9 @@ export function pickLinks(mode: SearchMode, query: string, links: DigLink[], dep
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) => {
   if (msg.to !== 'offscreen') return false;
+  // The demo cache setting rides on every search message (the engine page can't read chrome.storage).
+  if (msg.type === 'dig-read') setKeepCache(msg.settings.keepCache);
+  else if (msg.type === 'score-page') setKeepCache(msg.keepCache);
   switch (msg.type) {
     case 'warmup':
       // Only sent in semantic mode; Exact never loads the model.

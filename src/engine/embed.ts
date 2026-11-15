@@ -2,6 +2,7 @@
 import { env, pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers';
 // Vite emits this file into the extension; the JS loader for it is already inside the ORT bundle.
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
+import { keepingCache, loadStore, onKeepCacheEnabled, saveStore } from './persist';
 
 env.allowRemoteModels = false;
 env.allowLocalModels = true;
@@ -49,10 +50,24 @@ export function loadModel(): Promise<FeatureExtractionPipeline> {
 }
 
 // Embedding cache keyed by text. Same passage on a second search costs nothing.
-// LATER: persist to IndexedDB so the cache survives a browser restart.
+// In memory only, unless the hidden "Keep cache for demos" setting copies it to IndexedDB (engine/persist.ts).
 /** ~1.5 KB per vector, so this caps the cache near 30 MB. Oldest entries go first. */
 const MAX_CACHED = 20000;
 const cache = new Map<string, Float32Array>();
+let loaded: Promise<void> | null = null;
+
+/** With the demo cache on, load the stored vectors into memory once. */
+function vectorsReady(): Promise<void> {
+  if (!keepingCache()) return Promise.resolve();
+  loaded ??= loadStore<Float32Array>('vectors').then((entries) => {
+    for (const [text, vec] of entries) if (!cache.has(text)) cache.set(text, vec);
+  });
+  return loaded;
+}
+onKeepCacheEnabled(() => {
+  loaded = null;
+  saveStore('vectors', cache.entries());
+});
 
 let pending: Promise<unknown> = Promise.resolve();
 
@@ -64,6 +79,7 @@ export function embed(texts: string[]): Promise<Float32Array[]> {
 }
 
 async function embedBatch(texts: string[]): Promise<Float32Array[]> {
+  await vectorsReady();
   // Similar lengths reduce padding; the text-keyed cache preserves the caller's order.
   const todo = [...new Set(texts.filter((t) => !cache.has(t)))].sort((a, b) => a.length - b.length);
   const fresh = new Map<string, Float32Array>();
@@ -81,9 +97,12 @@ async function embedBatch(texts: string[]): Promise<Float32Array[]> {
   }
   const result = texts.map((t) => fresh.get(t) ?? cache.get(t)!);
   for (const [t, v] of fresh) cache.set(t, v);
+  const dropped: string[] = [];
   for (const t of cache.keys()) {
     if (cache.size <= MAX_CACHED) break;
     cache.delete(t);
+    dropped.push(t);
   }
+  saveStore('vectors', fresh, dropped);
   return result;
 }

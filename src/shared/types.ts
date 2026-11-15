@@ -65,7 +65,8 @@ export interface PageText {
 export interface DigLink { url: string; title: string; heading: string; score?: number }
 export type SearchMode = 'exact' | 'semantic';
 export interface ExactMatch { start: number; end: number; text: string }
-export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
+/** keepCache: hidden demo setting; the engine also keeps its caches in IndexedDB so they survive restarts. */
+export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean; keepCache: boolean }
 export interface SkippedLink { url: string; title: string; state: 'not-followed' | 'unreadable'; kind: NodeKind }
 export interface CanvasContext { origin: string; courseId: string }
 /** Any other site: same-origin links only. */
@@ -127,7 +128,7 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 // ---------- Service worker -> offscreen engine ----------
 
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
-export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[] }
+export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[]; keepCache: boolean }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
 export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }

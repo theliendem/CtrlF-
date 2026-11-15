@@ -210,7 +210,7 @@ async function search(query: string, windowId: number, autoStop = true): Promise
   emit(root);
   status(exact ? 'Scoring this page…' : 'Scoring this page by meaning…', true);
 
-  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: settings.mode, query, url: page.url, blocks: page.blocks });
+  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: settings.mode, query, url: page.url, blocks: page.blocks, keepCache: settings.keepCache });
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
@@ -363,7 +363,7 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     }
     if (run.id !== runId) throw new Error('Search stopped');
     if (!page) throw new Error('Page did not load in time');
-    const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: run.settings.mode, query: run.query, url: page.url, blocks: page.blocks });
+    const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: run.settings.mode, query: run.query, url: page.url, blocks: page.blocks, keepCache: run.settings.keepCache });
     if (res.error) throw new Error(res.error);
     const canDig = node.depth < run.settings.maxDepth;
     const candidates = canDig ? filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url)) : [];

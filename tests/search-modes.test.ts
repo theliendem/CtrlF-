@@ -44,7 +44,7 @@ test('exact engine queues every module and every nested file with unrelated titl
 });
 
 test('exact page scoring needs no model and finds the phrase across text blocks', async () => {
-  const result = await send({ to: 'offscreen', type: 'score-page', mode: 'exact', query: 'midterm 2', url: base, blocks: ['MIDTERM', '2 is Friday. Homework is Monday.'] });
+  const result = await send({ to: 'offscreen', type: 'score-page', mode: 'exact', query: 'midterm 2', url: base, blocks: ['MIDTERM', '2 is Friday. Homework is Monday.'], keepCache: false });
   assert.equal(result.passages.length, 1);
   assert.deepEqual(result.passages[0].marks, ['MIDTERM\n2']);
 });

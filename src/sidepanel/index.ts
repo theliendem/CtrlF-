@@ -29,6 +29,8 @@ const searchMode = $<HTMLSelectElement>('search-mode');
 const maxDepth = $<HTMLInputElement>('max-depth');
 const showOffsite = $<HTMLInputElement>('show-offsite');
 const showUnreadable = $<HTMLInputElement>('show-unreadable');
+const keepCache = $<HTMLInputElement>('keep-cache');
+const keepCacheRow = $('keep-cache-row');
 const settingsStatus = $('settings-status');
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -61,6 +63,8 @@ function fillSettings(): void {
   maxDepth.value = String(settings.maxDepth);
   showOffsite.checked = settings.showOffsite;
   showUnreadable.checked = settings.showUnreadable;
+  keepCache.checked = settings.keepCache;
+  if (settings.keepCache) keepCacheRow.hidden = false;
 }
 fillSettings();
 const settingsReady = chrome.storage.local.get('searchSettings').then((stored) => {
@@ -73,9 +77,10 @@ function closeSettings(): void {
   settingsBtn.setAttribute('aria-expanded', 'false');
   settingsBtn.focus();
 }
-settingsBtn.addEventListener('click', async () => {
+settingsBtn.addEventListener('click', async (event) => {
   await settingsReady;
   if (!settingsForm.hidden) { closeSettings(); return; }
+  if (event.altKey) keepCacheRow.hidden = false; // hidden demo setting
   fillSettings();
   settingsForm.hidden = false;
   settingsBtn.setAttribute('aria-expanded', 'true');
@@ -85,7 +90,7 @@ $('settings-close').addEventListener('click', closeSettings);
 settingsForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!settingsForm.reportValidity()) return;
-  const next = normalizeSettings({ mode: searchMode.value, pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked });
+  const next = normalizeSettings({ mode: searchMode.value, pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked, keepCache: keepCache.checked });
   try {
     await chrome.storage.local.set({ searchSettings: next });
     settings = next;
