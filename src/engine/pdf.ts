@@ -1,15 +1,17 @@
-import { getDocument, GlobalWorkerOptions, PDFWorker } from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions, PDFWorker, VerbosityLevel } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { DigLink, FileSection } from '../shared/types';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
+// Font and colour warnings are noise for text extraction and clutter chrome://extensions; keep real errors.
+const verbosity = VerbosityLevel.ERRORS;
 
 export async function* pdfSections(bytes: Uint8Array, signal: AbortSignal): AsyncGenerator<FileSection> {
   signal.throwIfAborted();
   // PDF.js otherwise wraps extension URLs in a blob worker, which MV3's CSP blocks.
   const port = typeof Worker === 'undefined' ? undefined : new Worker(new URL(workerUrl, import.meta.url), { type: 'module' });
-  const worker = port ? PDFWorker.create({ port }) : undefined;
-  const task = getDocument({ data: bytes, worker, useSystemFonts: true, disableFontFace: true, useWasm: false });
+  const worker = port ? PDFWorker.create({ port, verbosity }) : undefined;
+  const task = getDocument({ data: bytes, worker, useSystemFonts: true, disableFontFace: true, useWasm: false, verbosity });
   // Never show a password prompt in the offscreen document.
   task.onPassword = () => { void task.destroy(); };
   const abort = (): void => { void task.destroy(); };
