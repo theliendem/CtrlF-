@@ -14,3 +14,5 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Fuzzy highlight matching when a passage was cut mid-word or the page changed after extraction
 - Smarter boilerplate removal on non-Canvas sites (only nav/header/footer are skipped today)
 - Huge pages: extraction stops at 30,000 words
+- File nodes and parsing (milestone 4); crawling other sites (milestone 6)
+- Canvas external-tool launches and discussion module items are excluded; announcements use the read-only announcements API

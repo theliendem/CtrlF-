@@ -2,11 +2,17 @@
 import {
   RELEVANT,
   type ContentMsg,
+  type DigLink,
+  type DigReadResult,
+  type DigRun,
+  type EngineAck,
   type PageText,
   type RuntimeMsg,
   type ScorePageResult,
   type TreeNode,
 } from '../shared/types';
+import { canvasContext, safeLink } from '../engine/links';
+import { runBestFirst } from './queue';
 
 const MAX_HIGHLIGHTS = 30;
 
@@ -66,9 +72,9 @@ async function toTab<T>(tabId: number, msg: ContentMsg): Promise<T> {
 
 // ---------- The search ----------
 
-let runId = 0;
-let searchedTabId: number | null = null;
+let runId = Date.now();
 const nodes = new Map<string, TreeNode>();
+const highlightedTabs = new Set<number>();
 
 function status(text: string, running: boolean): void {
   toPanel({ to: 'panel', type: 'status', text, running });
@@ -80,28 +86,33 @@ function emit(node: TreeNode): void {
 }
 
 async function search(query: string, windowId: number): Promise<void> {
+  cancelDig();
   const run = ++runId;
   nodes.clear();
   toPanel({ to: 'panel', type: 'reset', query });
 
   const [tab] = await chrome.tabs.query({ active: true, windowId });
+  if (run !== runId) return;
   if (!tab?.id || !/^https?:/.test(tab.url ?? '')) {
     // LATER: read local PDFs and file:// pages.
     status(`Can't read this page (${tab?.url?.split(':')[0] ?? 'no tab'}). Open a web page and try again.`, false);
     return;
   }
-  if (searchedTabId !== null) await clearTab(searchedTabId);
-  searchedTabId = tab.id;
+  await Promise.all([...highlightedTabs].map(clearTab));
+  highlightedTabs.clear();
+  if (run !== runId) return;
 
   status('Reading this page…', true);
   let page: PageText;
   try {
     page = await toTab<PageText>(tab.id, { type: 'extract' });
   } catch (e) {
+    if (run !== runId) return;
     console.error('[ctrlf++] extract failed', e);
     status(`Can't read this page: ${e instanceof Error ? e.message : String(e)}`, false);
     return;
   }
+  if (run !== runId) return;
 
   const root: TreeNode = {
     id: 'root',
@@ -118,6 +129,7 @@ async function search(query: string, windowId: number): Promise<void> {
 
   const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', query, url: page.url, blocks: page.blocks });
   if (run !== runId) return; // a newer search started
+  if (res.error) throw new Error(res.error);
 
   const hits = res.passages.filter((p) => p.score >= RELEVANT).slice(0, MAX_HIGHLIGHTS);
   console.log(`[ctrlf++] scored ${res.passages.length} passages in ${res.ms} ms`, res.passages.slice(0, 10));
@@ -132,8 +144,79 @@ async function search(query: string, windowId: number): Promise<void> {
   const shown = hits.length
     ? await toTab<number>(tab.id, { type: 'highlight', passages: hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) })
     : 0;
-  // LATER (milestone 3): keep digging from here instead of stopping.
-  status(hits.length ? `${hits.length} matches on this page (${shown} highlighted)` : 'No match on this page.', false);
+  if (hits.length) highlightedTabs.add(tab.id);
+  if (run !== runId) return;
+  const context = canvasContext(page.url);
+  if (!context) {
+    // LATER: non-Canvas crawling is milestone 6.
+    status(`${hits.length} matches on this page (${shown} highlighted). Digging currently supports Canvas courses.`, false);
+    return;
+  }
+  const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([safeLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0 };
+  status('Finding Canvas links…', true);
+  const seed = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: page.url, depth: 0, visited: [...dig.seen], seed: page.links });
+  if (run !== runId) return;
+  if (seed.error) {
+    status(`Current page searched. Canvas dig failed: ${seed.error}`, false);
+    return;
+  }
+  enqueue(dig, root, seed.links);
+  await runBestFirst(dig, async ({ node }) => {
+    if (run !== runId) return;
+    emit({ ...node, state: 'reading' });
+    status(`Digging Canvas: ${dig.started}/60 pages started…`, true);
+    try {
+      const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, visited: [...dig.seen] });
+      if (run !== runId) return;
+      if (result.error) throw new Error(result.error);
+      const matches = result.passages.filter((p) => p.score >= RELEVANT).slice(0, MAX_HIGHLIGHTS);
+      emit({ ...node, title: result.title || node.title, state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.text });
+      enqueue(dig, node, result.links);
+    } catch (error) {
+      if (run !== runId) return;
+      dig.failed++;
+      console.warn('[ctrlf++] Canvas read failed', node.url, error);
+      emit({ ...node, state: 'unreadable', snippet: String(error) });
+    }
+  }, () => run === runId);
+  if (run !== runId) return;
+  settlePending();
+  const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
+  status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ' · 60-page limit reached' : ' · Dig complete'}`, false);
+}
+
+function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
+  if (parent.depth >= 5) return;
+  for (const link of links) {
+    const url = safeLink(link.url, parent.url, run.context);
+    if (!url || run.seen.has(url) || (link.score ?? 0) < 0.3) continue;
+    run.seen.add(url);
+    const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', depth: parent.depth + 1, best: 0 };
+    run.queue.push({ node, priority: link.score! });
+    emit(node);
+  }
+}
+
+function cancelDig(): void {
+  const msg: RuntimeMsg = { to: 'offscreen', type: 'cancel-dig', run: runId };
+  void chrome.runtime.sendMessage(msg).catch(() => {});
+}
+
+function settlePending(): void {
+  for (const node of nodes.values()) {
+    if (node.state === 'queued' || node.state === 'reading') emit({ ...node, state: 'not-followed' });
+  }
+}
+
+function stop(clear: boolean): void {
+  cancelDig();
+  runId++;
+  settlePending();
+  if (clear) {
+    for (const id of highlightedTabs) void clearTab(id);
+    highlightedTabs.clear();
+  }
+  status(clear ? 'Stopped. Highlights cleared.' : 'Stopped. Results kept.', false);
 }
 
 async function clearTab(tabId: number): Promise<void> {
@@ -147,29 +230,46 @@ async function clearTab(tabId: number): Promise<void> {
 async function openResult(nodeId: string): Promise<void> {
   const node = nodes.get(nodeId);
   if (!node?.hits?.length) return;
-  // Root: the page is already open; re-highlight and scroll it.
-  // LATER (milestone 3): other nodes open in a new tab and highlight there.
-  if (node.id === 'root' && searchedTabId !== null) {
-    await chrome.tabs.update(searchedTabId, { active: true });
-    await toTab(searchedTabId, { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) });
+  const run = runId;
+  const tab = await chrome.tabs.create({ url: node.url, active: true });
+  if (tab.id === undefined) return;
+  const tabId = tab.id;
+  // Wait for Canvas to render its body, then retry highlights briefly for delayed content.
+  for (let attempt = 0; attempt < 40; attempt++) {
+    if (run !== runId) return;
+    const current = await chrome.tabs.get(tabId);
+    if (current.status === 'complete') {
+      const shown = await toTab<number>(tabId, { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) });
+      highlightedTabs.add(tabId);
+      if (shown > 0) return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
+  console.warn('[ctrlf++] Opened result but could not locate its passages', node.url);
 }
 
 chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
   if (msg.to !== 'sw') return false;
   switch (msg.type) {
-    case 'search':
-      search(msg.query, msg.windowId).catch((e: unknown) => {
+    case 'search': {
+      const pending = search(msg.query, msg.windowId);
+      const run = runId;
+      pending.catch((e: unknown) => {
+        if (run !== runId) return;
         console.error('[ctrlf++] search failed', e);
+        settlePending();
         status('Something went wrong. See the service worker console.', false);
       });
       break;
+    }
     case 'clear':
-      runId++;
-      if (searchedTabId !== null) void clearTab(searchedTabId);
+      stop(true);
+      break;
+    case 'stop':
+      stop(false);
       break;
     case 'open-result':
-      void openResult(msg.nodeId);
+      void openResult(msg.nodeId).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
   }
   return false;
@@ -178,7 +278,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
 // Load the model as soon as the extension starts, so the first search isn't waiting on it.
 async function warmup(): Promise<void> {
   const t0 = performance.now();
-  const r = await toEngine<{ ok: boolean; error?: string }>({ to: 'offscreen', type: 'warmup' });
+  const r = await toEngine<EngineAck>({ to: 'offscreen', type: 'warmup' });
   console.log(`[ctrlf++] engine warmup ${r.ok ? 'ok' : 'FAILED ' + r.error} in ${Math.round(performance.now() - t0)} ms`);
 }
 chrome.runtime.onInstalled.addListener(() => void warmup());

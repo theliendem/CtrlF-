@@ -52,7 +52,16 @@ export function loadModel(): Promise<FeatureExtractionPipeline> {
 // LATER: persist to IndexedDB so the cache survives a browser restart.
 const cache = new Map<string, Float32Array>();
 
-export async function embed(texts: string[]): Promise<Float32Array[]> {
+let pending: Promise<unknown> = Promise.resolve();
+
+// Four page fetches can finish together. ORT sessions must not run overlapping inference.
+export function embed(texts: string[]): Promise<Float32Array[]> {
+  const result = pending.then(() => embedBatch(texts));
+  pending = result.catch(() => {});
+  return result;
+}
+
+async function embedBatch(texts: string[]): Promise<Float32Array[]> {
   // Similar lengths reduce padding; the text-keyed cache preserves the caller's order.
   const todo = [...new Set(texts.filter((t) => !cache.has(t)))].sort((a, b) => a.length - b.length);
   if (todo.length) {

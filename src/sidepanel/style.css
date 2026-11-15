@@ -55,7 +55,7 @@ body {
 .counter { display: flex; gap: 12px; padding: 0 12px 8px; color: var(--muted); font-size: 12px; }
 .counter b { color: var(--fg); font-weight: 600; }
 .counter .green b { color: var(--green); }
-.graph { flex: 1; min-height: 0; border-top: 1px solid var(--line); position: relative; overflow: hidden; }
+.graph { flex: 1; min-height: 0; border-top: 1px solid var(--line); position: relative; overflow: auto; }
 .results { max-height: 30%; overflow-y: auto; border-top: 1px solid var(--line); }
 #results { list-style: none; margin: 0; padding: 0; }
 .status { margin: 0; padding: 6px 12px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
@@ -67,6 +67,7 @@ body {
 .node.hit circle { fill: var(--green); stroke: var(--green); }
 .node.trail circle { fill: color-mix(in srgb, var(--green) 35%, transparent); stroke: none; }
 .node.ruled-out circle { fill: var(--muted); stroke: none; opacity: 0.5; }
+.node.not-followed circle, .node.unreadable circle { stroke: var(--muted); opacity: 0.5; }
 .node text { fill: var(--fg); font-size: 11px; }
 #results li { display: flex; gap: 8px; padding: 7px 12px; cursor: pointer; border-bottom: 1px solid var(--line); }
 #results li:hover { background: var(--field); }

@@ -27,6 +27,8 @@ export class Graph {
     this.els.clear();
     this.edges.replaceChildren();
     this.dots.replaceChildren();
+    this.svg.style.minHeight = '';
+    this.svg.style.minWidth = '';
   }
 
   upsert(n: TreeNode): void {
@@ -52,7 +54,7 @@ export class Graph {
     }
     el.g.setAttribute('class', `node ${n.state}`);
     (el.g.querySelector('text') as SVGTextElement).textContent = n.state === 'hit' ? n.title : '';
-    (el.g.querySelector('title') as unknown as SVGTitleElement).textContent = `${n.title}\n${n.url}`;
+    (el.g.querySelector('title') as unknown as SVGTitleElement).textContent = `${n.title}\n${n.url}\n${n.state}${n.state === 'unreadable' ? `: ${n.snippet ?? ''}` : ''}`;
     (el.g.querySelector('circle') as SVGCircleElement).setAttribute('r', n.state === 'queued' ? '4' : '6');
     this.layout();
   }
@@ -74,6 +76,9 @@ export class Graph {
       return y;
     };
     (kids.get(null) ?? []).forEach(place);
+
+    this.svg.style.minHeight = `${row * DY + 40}px`;
+    this.svg.style.minWidth = `${Math.max(...[...pos.values()].map((p) => p.x), 0) + 260}px`;
 
     const h = this.host.clientHeight;
     const offY = Math.max(20, h / 2 - (row * DY) / 2);

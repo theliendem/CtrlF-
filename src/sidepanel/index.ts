@@ -26,7 +26,7 @@ form.addEventListener('submit', (e) => {
   chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'search', query, windowId: w.id! }));
 });
 
-stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'clear' }));
+stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'stop' }));
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;

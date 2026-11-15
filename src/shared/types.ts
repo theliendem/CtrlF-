@@ -47,7 +47,25 @@ export interface PageText {
   url: string;
   title: string;
   blocks: string[];
+  links: DigLink[];
 }
+
+export interface DigLink { url: string; title: string; heading: string; score?: number }
+export interface CanvasContext { origin: string; courseId: string }
+export interface CanvasItem {
+  id: number; title: string; type: string; page_url?: string; content_id?: number; external_url?: string;
+}
+export interface CanvasModule { id: number; name: string; items?: CanvasItem[]; items_count: number; state?: string }
+export interface CanvasPage { title: string; body?: string; locked_for_user?: boolean }
+export interface CanvasAssignment {
+  id: number; name: string; description?: string; locked_for_user?: boolean; is_quiz_assignment?: boolean; quiz_id?: number;
+}
+export interface CanvasAnnouncement { id: number; title: string; message?: string }
+export interface CanvasCourse { name: string; syllabus_body?: string }
+export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; error?: string }
+export interface DigEntry { node: TreeNode; priority: number }
+export interface DigRun { id: number; query: string; context: CanvasContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number }
+export interface EngineAck { ok: boolean; error?: string }
 
 export interface HighlightPassage {
   /** Pieces of page text to highlight; together they make one passage. */
@@ -60,6 +78,7 @@ export interface HighlightPassage {
 /** windowId: the browser window the panel is attached to, so the SW reads the right tab. */
 export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
+export interface StopMsg { to: 'sw'; type: 'stop' }
 export interface OpenResultMsg { to: 'sw'; type: 'open-result'; nodeId: string }
 
 // ---------- Service worker -> side panel ----------
@@ -73,17 +92,22 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
 export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; query: string; url: string; blocks: string[] }
-export interface ScorePageResult { passages: Passage[]; ms: number }
+export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
+export interface CanvasReadMsg { to: 'offscreen'; type: 'canvas-read'; run: number; query: string; context: CanvasContext; url: string; depth: number; visited: string[]; seed?: DigLink[] }
+export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
 
 export type RuntimeMsg =
   | SearchMsg
   | ClearMsg
+  | StopMsg
   | OpenResultMsg
   | FocusSearchMsg
   | ResetMsg
   | StatusMsg
   | NodeMsg
   | WarmupMsg
+  | CanvasReadMsg
+  | CancelDigMsg
   | ScorePageMsg;
 
 // ---------- Service worker -> content script (chrome.tabs.sendMessage) ----------
