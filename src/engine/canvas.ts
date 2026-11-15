@@ -16,7 +16,7 @@ export function allowedApi(url: URL, context: CanvasContext): boolean {
   if (!path.startsWith(root)) return false;
   const route = path.slice(root.length);
   if (/(?:^|[\W_])(logout|delete|submit|submissions?|quizzes?|grades?|inbox|people|users|accounts?|help)(?:$|[\W_])/i.test(route)) return false;
-  return /^(?:|\/modules(?:\/\d+\/items)?|\/pages\/[^/]+|\/assignments(?:\/\d+)?)$/.test(route);
+  return /^(?:|\/modules(?:\/\d+\/items)?|\/pages\/[^/]+|\/assignments(?:\/\d+)?|\/files\/\d+)$/.test(route);
 }
 
 export async function canvasGet<T>(raw: string, context: CanvasContext, signal: AbortSignal): Promise<T> {

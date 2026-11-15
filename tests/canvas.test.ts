@@ -72,7 +72,7 @@ test('HTTP errors, invalid JSON and pagination loops are reported', async (t) =>
   await assert.rejects(canvasList('/api/v1/courses/123/modules', context, signal), /pagination loop/);
 });
 
-test('module discovery keeps safe item titles and reads paginated items, excluding quizzes and files', async (t) => {
+test('module discovery keeps pages and files while excluding quizzes', async (t) => {
   const items = [
     { id: 1, type: 'Page', page_url: 'midterm-2', title: 'Midterm 2 review' },
     { id: 2, type: 'Quiz', content_id: 42, title: 'Secret quiz' },
@@ -89,7 +89,7 @@ test('module discovery keeps safe item titles and reads paginated items, excludi
   assert.ok(links[0].heading.includes('Midterm 2 review'));
   assert.ok(!links[0].heading.includes('Secret quiz'));
   const page = await readCanvas(links[0].url, context, signal);
-  assert.equal(filterLinks(page.links, page.url, context).length, 1);
+  assert.equal(filterLinks(page.links, page.url, context).length, 2);
   assert.ok(page.links.some((link) => link.url.endsWith('/files/99')));
   assert.equal(page.links[0].url, `${base}/pages/midterm-2`);
 });

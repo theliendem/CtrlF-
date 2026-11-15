@@ -13,11 +13,14 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^3.0.0",
     "@types/chrome": "^0.3.7",
+    "@xmldom/xmldom": "^0.9.12",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.2",
-    "onnxruntime-web": "^1.31.0-dev.20260914-8d85527a0"
+    "jszip": "^3.10.2",
+    "onnxruntime-web": "^1.31.0-dev.20260914-8d85527a0",
+    "pdfjs-dist": "^6.5.438"
   }
 }

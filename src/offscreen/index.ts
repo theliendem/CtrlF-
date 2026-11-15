@@ -5,6 +5,8 @@ import { embed, loadModel } from '../engine/embed';
 import { highlightPieces, scorePassages } from '../engine/score';
 import { discoverCourse, readCanvas } from '../engine/canvas';
 import { filterLinks, safeLink, skippedLinks } from '../engine/links';
+import { downloadCanvasFile, officeSections } from '../engine/files';
+import { pdfSections } from '../engine/pdf';
 
 const controllers = new Map<number, Set<AbortController>>();
 let cancelledThrough = 0;
@@ -18,6 +20,29 @@ async function canvasRead(msg: CanvasReadMsg): Promise<DigReadResult> {
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
     if (!safeLink(msg.url, msg.context.origin, msg.context)) throw new Error('Blocked unsafe Canvas URL');
+    if (!msg.seed && /\/files\/\d+$/.test(new URL(msg.url).pathname)) {
+      const file = await downloadCanvasFile(msg.url, msg.context, controller.signal);
+      clearTimeout(timer);
+      const sections = file.kind === 'pdf' ? pdfSections(file.bytes, controller.signal) : officeSections(file.bytes, file.kind, controller.signal);
+      let result: DigReadResult = { title: file.title, kind: file.kind, passages: [], links: [] };
+      let hasText = false;
+      for await (const section of sections) {
+        controller.signal.throwIfAborted();
+        if (!section.blocks.length) continue;
+        hasText = true;
+        const scored = await scorePage(msg.query, section.blocks);
+        controller.signal.throwIfAborted();
+        const hits = scored.passages.filter((p) => p.score >= RELEVANT && p.marks.length);
+        if (hits.length && (!result.passages.length || hits[0].score > result.passages[0].score)) {
+          result = { title: file.title, kind: file.kind, passages: hits, links: [], location: section.location, pageNumber: section.pageNumber };
+          const progress: RuntimeMsg = { to: 'sw', type: 'file-progress', run: msg.run, url: msg.url, result };
+          void chrome.runtime.sendMessage(progress).catch(() => {});
+        }
+      }
+      // LATER: OCR for image-only pages/slides and scanned PDFs.
+      if (!hasText) throw new Error('No readable text (scanned or image-only file)');
+      return result;
+    }
     const page = msg.seed
       ? { title: '', blocks: [], links: [...msg.seed, ...await discoverCourse(msg.context, controller.signal)] }
       : await readCanvas(msg.url, msg.context, controller.signal);

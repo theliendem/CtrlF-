@@ -107,6 +107,26 @@ function highlight(passages: HighlightPassage[]): number {
   return found;
 }
 
+function highlightFile(fileId: string, url: string, title: string): number {
+  clear();
+  const target = new URL(url);
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+    const href = new URL(link.href);
+    if (href.origin !== target.origin) continue;
+    const api = link.getAttribute('data-api-endpoint') ?? '';
+    const direct = href.pathname.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId || href.searchParams.get('preview') === fileId || api.match(/\/files\/(\d+)(?:\/|$)/)?.[1] === fileId;
+    const moduleTitle = /\/modules\/items\/\d+$/.test(href.pathname) && link.textContent?.trim() === title;
+    if (!direct && !moduleTitle) continue;
+    if (!link.checkVisibility({ visibilityProperty: true })) continue;
+    const range = new Range();
+    range.selectNodeContents(link);
+    CSS.highlights.set('ctrlfpp-best', new Highlight(range));
+    link.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return 1;
+  }
+  return 0;
+}
+
 function init(): void {
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(`
@@ -125,6 +145,9 @@ function init(): void {
         break;
       case 'highlight':
         sendResponse(highlight(msg.passages));
+        break;
+      case 'highlight-file':
+        sendResponse(highlightFile(msg.fileId, msg.url, msg.title));
         break;
       case 'clear-highlights':
         clear();

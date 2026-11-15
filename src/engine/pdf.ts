@@ -1,0 +1,41 @@
+import { getDocument, GlobalWorkerOptions, PDFWorker } from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import type { FileSection } from '../shared/types';
+
+GlobalWorkerOptions.workerSrc = workerUrl;
+
+export async function* pdfSections(bytes: Uint8Array, signal: AbortSignal): AsyncGenerator<FileSection> {
+  signal.throwIfAborted();
+  // PDF.js otherwise wraps extension URLs in a blob worker, which MV3's CSP blocks.
+  const port = typeof Worker === 'undefined' ? undefined : new Worker(new URL(workerUrl, import.meta.url), { type: 'module' });
+  const worker = port ? PDFWorker.create({ port }) : undefined;
+  const task = getDocument({ data: bytes, worker, useSystemFonts: true, disableFontFace: true, useWasm: false });
+  // Never show a password prompt in the offscreen document.
+  task.onPassword = () => { void task.destroy(); };
+  const abort = (): void => { void task.destroy(); };
+  signal.addEventListener('abort', abort, { once: true });
+  try {
+    const document = await task.promise;
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber++) {
+      signal.throwIfAborted();
+      const page = await document.getPage(pageNumber);
+      const text = await page.getTextContent();
+      const lines: string[] = [];
+      let line = '';
+      for (const item of text.items) {
+        if (!('str' in item)) continue;
+        line += item.str;
+        if (item.hasEOL) { lines.push(line.trim()); line = ''; }
+        else if (!line.endsWith(' ')) line += ' ';
+      }
+      if (line.trim()) lines.push(line.trim());
+      yield { blocks: lines.filter(Boolean), location: `Page ${pageNumber}`, pageNumber };
+      page.cleanup();
+    }
+  } finally {
+    signal.removeEventListener('abort', abort);
+    await task.destroy();
+    worker?.destroy();
+    port?.terminate();
+  }
+}

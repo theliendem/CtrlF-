@@ -28,6 +28,7 @@
 .settings p { margin: 0; color: var(--muted); font-size: 12px; }
 .settings-actions { display: flex; gap: 8px; }
 .settings-actions .btn { padding: 6px 10px; }
+.file-page { margin-top: 6px; padding: 4px 8px; }
 html, body { height: 100%; margin: 0; }
 body {
   display: flex;

@@ -108,7 +108,7 @@ Module and item titles count as the peek on Canvas, so no extra fetch is needed.
 ## Settings
 
 - Depth: 1 to 10, default 5
-- Page budget: default 60
+- Page budget: default 200, adjustable from 1 to 1,000 (updated at Neil's request)
 - Off-site links: hidden (default), or shown as "not followed"
 - Unreadable files: hidden (default), or shown as gray
 

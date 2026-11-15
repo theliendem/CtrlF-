@@ -38,6 +38,11 @@ export interface TreeNode {
   snippet?: string;
   /** "Page 4" / "Slide 14" for files. */
   location?: string;
+  pageNumber?: number;
+  parentUrl?: string;
+  fileId?: string;
+  linkTitle?: string;
+  hidden?: boolean;
   /** Relevant passages, best first, for on-page highlighting. */
   hits?: Passage[];
 }
@@ -64,7 +69,10 @@ export interface CanvasAssignment {
 }
 export interface CanvasAnnouncement { id: number; title: string; message?: string }
 export interface CanvasCourse { name: string; syllabus_body?: string }
-export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string }
+export interface CanvasFile { id: number; display_name: string; filename: string; url: string; size: number; 'content-type': string; locked_for_user?: boolean; hidden_for_user?: boolean }
+export interface FileSection { blocks: string[]; location?: string; pageNumber?: number }
+export interface FileData { bytes: Uint8Array; kind: Exclude<NodeKind, 'page'>; title: string }
+export interface DigReadResult { title: string; passages: Passage[]; links: DigLink[]; skipped?: SkippedLink[]; error?: string; kind?: NodeKind; location?: string; pageNumber?: number }
 export interface DigEntry { node: TreeNode; priority: number }
 export interface DigRun { id: number; query: string; context: CanvasContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
 export interface EngineAck { ok: boolean; error?: string }
@@ -81,7 +89,8 @@ export interface HighlightPassage {
 export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface StopMsg { to: 'sw'; type: 'stop' }
-export interface OpenResultMsg { to: 'sw'; type: 'open-result'; nodeId: string }
+export interface OpenResultMsg { to: 'sw'; type: 'open-result'; nodeId: string; openFile?: boolean }
+export interface FileProgressMsg { to: 'sw'; type: 'file-progress'; run: number; url: string; result: DigReadResult }
 
 // ---------- Service worker -> side panel ----------
 
@@ -103,6 +112,7 @@ export type RuntimeMsg =
   | ClearMsg
   | StopMsg
   | OpenResultMsg
+  | FileProgressMsg
   | FocusSearchMsg
   | ResetMsg
   | StatusMsg
@@ -118,8 +128,9 @@ export interface ExtractMsg { type: 'extract' }
 export interface HighlightMsg { type: 'highlight'; passages: HighlightPassage[] }
 export interface ClearHighlightsMsg { type: 'clear-highlights' }
 export interface PingMsg { type: 'ping' }
+export interface HighlightFileMsg { type: 'highlight-file'; fileId: string; url: string; title: string }
 
-export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg;
+export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg;
 
 // ---------- Tuning (PRD starting values) ----------
 

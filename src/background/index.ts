@@ -176,15 +176,15 @@ async function search(query: string, windowId: number): Promise<void> {
       const result = await toEngine<DigReadResult>({ to: 'offscreen', type: 'canvas-read', run, query, context, url: node.url, depth: node.depth, settings, visited: [...dig.seen] });
       if (run !== runId) return;
       if (result.error) throw new Error(result.error);
-      const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
-      emit({ ...node, title: result.title || node.title, state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
+      emitResult(node, result);
       enqueue(dig, node, result.links);
       showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
       dig.failed++;
       console.warn('[ctrlf++] Canvas read failed', node.url, error);
-      emit({ ...node, state: 'unreadable', snippet: String(error) });
+      const partial = nodes.get(node.id);
+      if (partial?.state !== 'hit') emit({ ...node, state: 'unreadable', snippet: String(error), hidden: !!node.fileId && !settings.showUnreadable });
     }
   }, () => run === runId, settings.pageBudget);
   if (run !== runId) return;
@@ -200,9 +200,17 @@ function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
     if (!url || run.seen.has(url) || (link.score ?? 0) < 0.3) continue;
     run.seen.add(url);
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', depth: parent.depth + 1, best: 0 };
+    node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
+    if (node.fileId) { node.parentUrl = parent.url; node.linkTitle = link.title; }
     run.queue.push({ node, priority: link.score! });
     emit(node);
   }
+}
+
+function emitResult(node: TreeNode, result: DigReadResult): void {
+  const matches = result.passages.filter((p) => p.score >= RELEVANT && p.marks.length > 0).slice(0, MAX_HIGHLIGHTS);
+  emit({ ...node, title: result.title || node.title, kind: result.kind ?? node.kind, location: result.location, pageNumber: result.pageNumber,
+    state: matches.length ? 'hit' : 'ruled-out', best: result.passages[0]?.score ?? 0, hits: matches, snippet: matches[0]?.marks.join(' ') });
 }
 
 function showSkipped(run: DigRun, parent: TreeNode, skipped: SkippedLink[]): void {
@@ -243,11 +251,15 @@ async function clearTab(tabId: number): Promise<void> {
   }
 }
 
-async function openResult(nodeId: string): Promise<void> {
+async function openResult(nodeId: string, openFile = false): Promise<void> {
   const node = nodes.get(nodeId);
   if (!node?.hits?.length) return;
+  if (openFile && node.kind === 'pdf' && node.pageNumber) {
+    await chrome.tabs.create({ url: `${node.url}/download?inline=1#page=${node.pageNumber}`, active: true });
+    return;
+  }
   const run = runId;
-  const tab = await chrome.tabs.create({ url: node.url, active: true });
+  const tab = await chrome.tabs.create({ url: node.parentUrl ?? node.url, active: true });
   if (tab.id === undefined) return;
   const tabId = tab.id;
   // Wait for Canvas to render its body, then retry highlights briefly for delayed content.
@@ -255,7 +267,10 @@ async function openResult(nodeId: string): Promise<void> {
     if (run !== runId) return;
     const current = await chrome.tabs.get(tabId);
     if (current.status === 'complete') {
-      const shown = await toTab<number>(tabId, { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) });
+      const message: ContentMsg = node.fileId
+        ? { type: 'highlight-file', fileId: node.fileId, url: node.url, title: node.linkTitle ?? node.title }
+        : { type: 'highlight', passages: node.hits.map((p, i) => ({ texts: p.marks, best: i === 0 })) };
+      const shown = await toTab<number>(tabId, message);
       highlightedTabs.add(tabId);
       if (shown > 0) return;
     }
@@ -285,8 +300,14 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       stop(false);
       break;
     case 'open-result':
-      void openResult(msg.nodeId).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
+      void openResult(msg.nodeId, msg.openFile).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
       break;
+    case 'file-progress': {
+      if (msg.run !== runId) break;
+      const node = nodes.get(msg.url);
+      if (node?.fileId) emitResult(node, msg.result);
+      break;
+    }
   }
   return false;
 });

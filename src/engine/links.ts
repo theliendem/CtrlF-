@@ -14,11 +14,14 @@ export function safeLink(raw: string, base: string, context: CanvasContext): str
     if (url.origin !== context.origin || url.username || url.password) return null;
     const path = decodeURIComponent(url.pathname);
     if (/(?:^|[\W_])(logout|delete|submit|submissions?|quizzes?|grades?|inbox|people|users|accounts?|help)(?:$|[\W_])/i.test(path)) return null;
+    const fileId = path.match(new RegExp(`^(?:/courses/${context.courseId})?/files/(\\d+)(?:/(?:download|preview))?$`));
     const prefix = `/courses/${context.courseId}`;
+    if (path === `${prefix}/files` && /^\d+$/.test(url.searchParams.get('preview') ?? '')) return `${context.origin}${prefix}/files/${url.searchParams.get('preview')}`;
+    if (fileId) return `${context.origin}${prefix}/files/${fileId[1]}`;
     if (!(path === prefix || path.startsWith(prefix + '/'))) return null;
     const route = path.slice(prefix.length).replace(/\/$/, '');
     if (!/^(?:|\/assignments(?:\/\d+|\/syllabus)?|\/pages(?:\/[^/]+)?|\/modules|\/announcements|\/discussion_topics\/\d+)$/.test(route)) {
-      // LATER: file nodes are added in milestone 4; other sites in milestone 6.
+      // LATER: direct non-Canvas file URLs and other sites in milestone 6.
       return null;
     }
     const hash = route === '/modules' && /^#context_module_\d+$/.test(url.hash) ? url.hash : '';
@@ -50,7 +53,7 @@ export function skippedLinks(links: DigLink[], base: string, context: CanvasCont
       const offsite = url.origin !== context.origin;
       const extension = url.pathname.match(/\.(pdf|pptx|docx)$/i)?.[1].toLowerCase();
       const file = /\/files\/\d+(?:\/|$)/.test(url.pathname) || !!extension;
-      if ((offsite && settings.showOffsite) || (!offsite && file && settings.showUnreadable)) {
+      if ((offsite && settings.showOffsite) || (!offsite && file && !safeLink(link.url, base, context) && settings.showUnreadable)) {
         out.set(url.href, { url: url.href, title: link.title || url.href, state: offsite ? 'not-followed' : 'unreadable', kind: extension as 'pdf' | 'pptx' | 'docx' | undefined ?? 'page' });
       }
     } catch { /* Malformed links do not become stubs. */ }

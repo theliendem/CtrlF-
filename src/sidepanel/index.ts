@@ -130,6 +130,17 @@ function renderResults(): void {
       snip.className = 'snippet';
       snip.textContent = n.snippet ?? '';
       body.append(title, snip);
+      if (n.kind === 'pdf' && n.pageNumber) {
+        const openPage = document.createElement('button');
+        openPage.type = 'button';
+        openPage.className = 'btn file-page';
+        openPage.textContent = `Open at page ${n.pageNumber}`;
+        openPage.addEventListener('click', (event) => {
+          event.stopPropagation();
+          send({ to: 'sw', type: 'open-result', nodeId: n.id, openFile: true });
+        });
+        body.append(openPage);
+      }
       li.append(icon, body);
       li.addEventListener('click', () => openResult(n.id));
       return li;

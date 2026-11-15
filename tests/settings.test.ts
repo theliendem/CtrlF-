@@ -10,7 +10,7 @@ test('settings default to 200 pages and clamp invalid saved values', () => {
   assert.equal(normalizeSettings({ pageBudget: 3, maxDepth: 2 }).pageBudget, 3);
 });
 
-test('external and file toggles expose display-only stubs without permitting fetches', () => {
+test('external stubs stay unfetched while Canvas files now enter the reader', () => {
   const context = { origin: 'https://canvas.wisc.edu', courseId: '123' };
   const base = `${context.origin}/courses/123`;
   const links = [
@@ -19,6 +19,6 @@ test('external and file toggles expose display-only stubs without permitting fet
   ];
   assert.equal(skippedLinks(links, base, context, DEFAULT_SETTINGS).length, 0);
   assert.deepEqual(skippedLinks(links, base, context, { ...DEFAULT_SETTINGS, showOffsite: true }).map((n) => n.state), ['not-followed']);
-  assert.deepEqual(skippedLinks(links, base, context, { ...DEFAULT_SETTINGS, showUnreadable: true }).map((n) => n.state), ['unreadable']);
-  assert.equal(filterLinks(links, base, context).length, 0);
+  assert.deepEqual(skippedLinks(links, base, context, { ...DEFAULT_SETTINGS, showUnreadable: true }), []);
+  assert.equal(filterLinks(links, base, context).length, 1);
 });

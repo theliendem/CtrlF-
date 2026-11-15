@@ -32,6 +32,14 @@ export class Graph {
   }
 
   upsert(n: TreeNode): void {
+    if (n.hidden) {
+      this.nodes.delete(n.id);
+      this.els.get(n.id)?.g.remove();
+      this.els.get(n.id)?.line?.remove();
+      this.els.delete(n.id);
+      this.layout();
+      return;
+    }
     this.nodes.set(n.id, n);
     let el = this.els.get(n.id);
     if (!el) {
