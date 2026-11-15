@@ -52,8 +52,22 @@ export async function canvasList<T>(raw: string, context: CanvasContext, signal:
 }
 
 /** Read inert HTML into blocks that match the content script's block boundaries. */
+/** One attribute in a tag: separator, name, optional value (quoted values are consumed whole). */
+const ATTR = /([\s/]*)([^\s"'>/=]+)(\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?/g;
+
+/**
+ * Remove inline event handler attributes (onload=, onerror=, ontoggle=...) from fetched HTML before
+ * DOMParser sees it. Chrome checks each handler against the extension's CSP while parsing, even in a
+ * document that never runs, and logs a blocked-handler error for every one. Nothing ran either way;
+ * this keeps the extension's error list clean. Other attributes, URLs and text are untouched.
+ */
+export function stripHandlers(html: string): string {
+  return html.replace(/<([a-zA-Z][^\s/>]*)([^>]*)>/g, (tag, name: string, attrs: string) =>
+    /on/i.test(attrs) ? `<${name}${attrs.replace(ATTR, (attr, _sep, attrName: string) => (/^on/i.test(attrName) ? '' : attr))}>` : tag);
+}
+
 export function parseHtml(html: string, url: string, title: string): PageText {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const doc = new DOMParser().parseFromString(stripHandlers(html), 'text/html');
   title ||= doc.title?.trim() ?? '';
   const canonical = doc.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.getAttribute('href') ?? undefined;
   doc.querySelectorAll('script,style,noscript,form').forEach((el) => el.remove());

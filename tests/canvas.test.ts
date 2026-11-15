@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { canvasContext, filterLinks, safeLink } from '../src/engine/links.ts';
-import { allowedApi, canvasGet, canvasList, discoverCourse, readCanvas } from '../src/engine/canvas.ts';
+import { allowedApi, canvasGet, canvasList, discoverCourse, readCanvas, stripHandlers } from '../src/engine/canvas.ts';
 
 const context = { origin: 'https://canvas.wisc.edu', courseId: '123' };
 const base = `${context.origin}/courses/123`;
@@ -98,4 +98,13 @@ test('module discovery keeps pages and files while excluding quizzes', async (t)
 test('quiz assignments are skipped instead of being scored as regular assignments', async (t) => {
   t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ id: 1, name: 'Quiz', is_quiz_assignment: true })));
   await assert.rejects(readCanvas(`${base}/assignments/1`, context, signal), /quiz assignment skipped/);
+});
+
+test('inline event handlers are stripped before parsing; URLs, values and text keep their "on"', () => {
+  assert.equal(stripHandlers('<details open ontoggle="x()"><summary>s</summary></details>'), '<details open><summary>s</summary></details>');
+  assert.equal(stripHandlers('<img src="a.png"onerror=alert(1)>'), '<img src="a.png">');
+  assert.equal(stripHandlers('<img/onerror=x src=a>'), '<img src=a>');
+  assert.equal(stripHandlers('<BODY ONLOAD=init()>'), '<BODY>');
+  const keep = '<p data-online="1" title="see onclick=here">Set onload=true.</p><a href="/once">x</a><a href=/lectures/online>y</a>';
+  assert.equal(stripHandlers(keep), keep);
 });
