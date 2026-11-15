@@ -21,7 +21,9 @@ const openResult = (nodeId: string): void => send({ to: 'sw', type: 'open-result
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   const query = q.value.trim();
-  if (query) send({ to: 'sw', type: 'search', query });
+  if (!query) return;
+  // The panel's own window, not "last focused" (that can be a DevTools window).
+  chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'search', query, windowId: w.id! }));
 });
 
 stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'clear' }));

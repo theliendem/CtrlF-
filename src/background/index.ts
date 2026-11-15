@@ -79,14 +79,15 @@ function emit(node: TreeNode): void {
   toPanel({ to: 'panel', type: 'node', node });
 }
 
-async function search(query: string): Promise<void> {
+async function search(query: string, windowId: number): Promise<void> {
   const run = ++runId;
   nodes.clear();
   toPanel({ to: 'panel', type: 'reset', query });
 
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  const [tab] = await chrome.tabs.query({ active: true, windowId });
   if (!tab?.id || !/^https?:/.test(tab.url ?? '')) {
-    status("Can't read this page. Open a web page and try again.", false);
+    // LATER: read local PDFs and file:// pages.
+    status(`Can't read this page (${tab?.url?.split(':')[0] ?? 'no tab'}). Open a web page and try again.`, false);
     return;
   }
   if (searchedTabId !== null) await clearTab(searchedTabId);
@@ -97,8 +98,8 @@ async function search(query: string): Promise<void> {
   try {
     page = await toTab<PageText>(tab.id, { type: 'extract' });
   } catch (e) {
-    console.error(e);
-    status("Can't read this page.", false);
+    console.error('[ctrlf++] extract failed', e);
+    status(`Can't read this page: ${e instanceof Error ? e.message : String(e)}`, false);
     return;
   }
 
@@ -158,7 +159,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
   if (msg.to !== 'sw') return false;
   switch (msg.type) {
     case 'search':
-      search(msg.query).catch((e: unknown) => {
+      search(msg.query, msg.windowId).catch((e: unknown) => {
         console.error('[ctrlf++] search failed', e);
         status('Something went wrong. See the service worker console.', false);
       });

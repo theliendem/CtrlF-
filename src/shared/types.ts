@@ -54,7 +54,8 @@ export interface HighlightPassage {
 
 // ---------- Side panel -> service worker ----------
 
-export interface SearchMsg { to: 'sw'; type: 'search'; query: string }
+/** windowId: the browser window the panel is attached to, so the SW reads the right tab. */
+export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface OpenResultMsg { to: 'sw'; type: 'open-result'; nodeId: string }
 
