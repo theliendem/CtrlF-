@@ -1,7 +1,0 @@
-# Sample PDFs are local-only: copyrighted material, never commit.
-benchmarking_src/
-bench/data/
-# Model weights are downloaded by bench/fetch_model.sh
-bench/model/
-target/
-bench/candle-bench/pkg/

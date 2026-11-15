@@ -1,262 +1,171 @@
-# Ctrl+F++ PRD
+# Ctrl+F++ PRD (v2)
 
-Nov 14, 2026 · Neil Dembla (Teammate A). Live version: https://claude.ai/artifact/7jLnHtqf3P89o46s9w6Pji
+Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase PRD
 
-## Summary
+## What it is
 
-Ctrl+F++ is a Chrome extension that finds what you mean, not just what you typed, and then digs through linked pages to find it when it isn't on the page you're on. We ship it in two phases, and Phase 2 is built on Phase 1.
+Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2"), and it searches the page you're on, then digs recursively through the relevant links, files and subpages behind it. The whole dig plays out live as a tree in Chrome's side panel. Everything runs on your laptop with a lightweight ML model, so there's no LLM and no page text sent to a server.
 
-- **Phase 1 (MVP): semantic find.** Type a sentence or loose phrase. Ctrl+F++ highlights the passages on the page that mean the same thing, even if they share no words with your query.
-- **Phase 2: the dig.** Ctrl+F++ scores every link on the page for relevance, follows the promising ones, searches each page it lands on, and repeats. A live tree in a sidebar shows where it's going: dead ends gray out and shrink, hits glow.
+**Theme fit ("Let's Dig In"):** Ctrl+F stops at the page. Ctrl+F++ digs.
 
-**Problem.** Information people need is usually one to five clicks away from where they're looking, buried in a PDF, a module, or a page they didn't know existed. Regular Ctrl+F only matches exact letters on the current page. Canvas's own AI search skips uploaded files like PDFs and Word docs entirely.
+**Demo-first rule:** this build exists to win a live demo on a known Canvas course. Edge cases get skipped, not solved. Every skipped case is marked in code with `// LATER:` and listed in docs/LATER.md, so it can be added after the hackathon.
 
-**Positioning.** Other AI tools answer from what's open. Ctrl+F++ goes and gets what isn't, and shows you the exact line.
+## The flow, end to end
 
-**MadHacks goal.** A working Phase 1 plus a working Phase 2 on Canvas, demoed live by Sunday 1:00 PM. Theme fit: "Ctrl+F stops at the page. Ctrl+F++ digs." Sponsor track: Databricks.
+1. The user presses Ctrl+Shift+F (Cmd+Shift+F on Mac). The side panel opens with the cursor in the search box.
+2. They type a phrase and press Enter.
+3. **Current page first.** The page's text is extracted, split into passages and scored. Relevant passages are highlighted on the page right away, and the page appears as the root node of the tree.
+4. **Always dig.** Even if the current page has matches, the dig continues. (LATER: a settings toggle for "stop if the current page has a strong match.")
+5. **Choosing links.**
+   - Every link on the page passes a free filter first (no nav, account or logout links, no help pages, nothing already visited, no same-page anchors, no off-site links).
+   - The survivors get a quick peek: title and headings only, capped at the top 15 links per page.
+   - Links that score high enough after the peek join the queue.
+6. **Digging.** The queue is best-first: the highest-scoring unvisited link anywhere in the tree goes next. Each opened page is extracted, scored and highlighted in the tree, and its links go through step 5.
+7. **Files.** PDF, PowerPoint (.pptx) and Word (.docx) files found on a page become child nodes. They're read page by page or slide by slide, and the node turns green as soon as any part matches.
+8. **Stopping.** The dig stops when it hits the page budget, when no unvisited link scores high enough, or when the user presses Stop.
+9. **Results.** Green nodes appear in the tree and in a small scrollable list under it. Clicking one opens it with the relevant parts highlighted.
 
-## Decision: run the model on-device
+## The engine
 
-On-device is faster for Ctrl+F++, and it isn't close once Phase 2 is running. Cloud only wins on accuracy for hard queries, so it's an optional later add-on, not the core.
+- **Model:** all-MiniLM-L6-v2 (a small sentence-embedding model, 384 dimensions), quantized and bundled in the extension. It runs through transformers.js in an offscreen document, on WebGPU with a WASM fallback. No downloads at runtime.
+- **Language:** TypeScript for the whole engine in this build. LATER: port scoring and the index to Rust compiled to WebAssembly if it turns out to be a bottleneck.
+- **Passages:** text split into one to three sentences, about 25 to 80 words.
+- **Passage score (hybrid):** 0.7 × cosine similarity + 0.3 × keyword score. The keyword score counts exact query terms, and numbers must match exactly, so "midterm 2" never matches "midterm 1". Tune the weights against the demo questions.
+- **Thresholds:**
+  - **relevant:** passage score ≥ 0.45. The node is green and the passage gets highlighted.
+  - **strong:** passage score ≥ 0.6. Used to rank the results list.
 
-- **Every call skips the network.** A small local embedding model turns a sentence into a vector in milliseconds. A cloud call adds a round trip every time, and hackathon Wi-Fi is the worst case.
-- **Phase 2 embeds a lot of text.** The dig visits dozens of pages and embeds every passage on each. A cloud API means uploading all of it, rate limits, and per-call cost.
-- **Privacy.** Page text, including Canvas content, never leaves the laptop. (Databricks only receives opt-in dig logs, never page text. See the Databricks section.)
+  Starting values; tune on the demo course.
+- **Link score:** the same hybrid score, run on the link's anchor text, URL path words and nearest heading, plus the peeked title and headings, with a small penalty per level of depth. Links under 0.3 are dropped.
+- **Embedding cache:** embeddings are cached per URL, so a second search on the same course is fast.
 
-**Model:** a small sentence-embedding model such as all-MiniLM-L6-v2 (384-dimension vectors), quantized and bundled inside the extension so there's no download at demo time.
+## Opening and reading pages
 
-**Rust and WebAssembly.** Rust compiled to WASM handles everything around the model: splitting text into passages, the vector index and top-k search, link scoring, and crawl-queue math. For the model itself there are two options; we don't know yet which is faster on our laptops:
-
-| Option | How it runs | Tradeoff |
+| Where | How | Notes |
 | --- | --- | --- |
-| Candle (Hugging Face's Rust ML library) compiled to WASM | CPU, with WASM SIMD | All Rust, one toolchain; CPU only |
-| transformers.js (ONNX Runtime Web) called from JS | WebGPU, falls back to WASM | Can use the laptop GPU; mixed Rust and JS |
+| Canvas (canvas.wisc.edu) | Canvas REST API, with the browser's login (credentials: 'include') | Strip a `while(1);` prefix; follow Link-header pagination |
+| Other sites | Fetch the HTML from the offscreen document | If the extracted text is nearly empty (a JavaScript-built page), fall back to a real tab in a minimized window, read it, close it |
+| Off-site links | Not followed | Settings toggle: hide them, or show them as gray "not followed" stubs |
 
-**Decision rule:** Teammate B spends at most 30 minutes benchmarking both (time to embed 500 passages). Use the winner for the model; Rust/WASM handles the index, scoring and crawl logic either way.
+**Canvas endpoints (all GET):**
+- syllabus: /api/v1/courses/:id?include[]=syllabus_body
+- modules and items: /api/v1/courses/:id/modules?include[]=items&per_page=100
+- pages: /api/v1/courses/:id/pages/:url
+- announcements: /api/v1/announcements?context_codes[]=course_:id
+- assignments: /api/v1/courses/:id/assignments
+- files: /api/v1/courses/:id/files/:file_id (gives the download URL)
 
-**Chrome detail:** Manifest V3 service workers get shut down when idle and have no DOMParser. The model, index, fetching and parsing run in an offscreen document (chrome.offscreen) so they stay loaded.
+Module and item titles count as the peek on Canvas, so no extra fetch is needed.
 
-## Users and demo scope
+**Read-only, always:** GET requests only. Never click buttons, submit forms, or open anything that changes state. Never fetch quizzes, submissions, grades, the inbox or people pages. Skip links containing logout, delete, submit, take or start quiz.
 
-Ctrl+F++ is built to work on any website, but Canvas has to work 100% before anything else gets polish.
+## Files
 
-| Priority | User | Example question |
+| Type | How it's read | Clicking a green file node |
 | --- | --- | --- |
-| 1 (demo) | A student in a Canvas course | "Can I use a calculator on the midterm?" |
-| 2 | Anyone reading a long or nested site (docs, government pages, apartment portals) | "How do I appeal a parking ticket?" |
+| PDF | pdf.js, page by page | Goes to the page the file is on, scrolls to and highlights the file's link; the sidebar card shows "Page 4" plus the snippet, with an "Open at page 4" button (the file URL + #page=4) |
+| PowerPoint (.pptx) | Unzip (JSZip), read slide XML in order | Same, with "Slide 14" plus the snippet |
+| Word (.docx) | Unzip (JSZip), read document XML | Same, with the snippet |
 
-**Rule:** when a choice comes up between "works great on Canvas" and "works okay everywhere," pick Canvas until Sunday 6 AM.
+- **Skipped:** PDFs with no text (scans), images, the old .ppt and .doc formats.
+- **Settings toggle:** hide unreadable files, or show them as gray "can't read" nodes.
+- LATER: OCR for scans, an in-extension PDF viewer with in-file highlighting.
 
-## Phase 1 MVP: semantic in-page find
+## The side panel
 
-The user types a sentence or loose phrase, and Ctrl+F++ highlights the passages on the current page that mean the same thing, ranked, even with zero shared words. Example: "can I turn stuff in late" finds "Assignments submitted after the deadline lose 10% per day."
+**Layout, top to bottom:**
+1. Search box, with a Stop button while a dig runs and a settings gear.
+2. A counter line: pages searched, pages ruled out, green found.
+3. The live graph, taking most of the height.
+4. A small scrollable results list: each green node's title, type icon, a one-line snippet and its page or slide number. Click to open.
 
-**How it works:**
+**The graph:**
+- Horizontal. The root is on the left and branches grow to the right, with siblings stacked vertically.
+- Nodes are small circles with connecting lines. Only green nodes show labels; every node shows its title and URL on hover.
+- The view pans and zooms smoothly to follow wherever the dig is working.
+- Constant smooth motion: nodes slide in from their parent, the layout re-flows with easing, and nothing jumps or snaps. It should look busy but stay easy to watch.
 
-1. The user opens the search bar with a shortcut. Chrome doesn't let extensions take over plain Ctrl+F, so the default is Ctrl+Shift+F (Cmd+Shift+F on Mac), changeable by the user.
-2. A content script walks the page's visible text, splits it into passages of one to three sentences, and remembers where each one sits.
-3. Passages get embedded and cached for that URL. If the page changes, only new or edited passages get re-embedded.
-4. On Enter (and as the user types, after a short pause), the query gets embedded and compared against every passage.
-5. Score = meaning similarity plus a small boost for exact word matches, so typing a literal word still behaves like normal Ctrl+F.
-6. Matches above a minimum score get highlighted. The best one is bright and scrolled into view, weaker ones are lighter, and arrow keys move between them ("2 of 7").
+| State | Look |
+| --- | --- |
+| queued | Small hollow circle |
+| reading | Yellow, gently pulsing |
+| relevant (hit) | Bright green, with a label |
+| trail | Faint green: every ancestor of a hit, so you can see the path that found it |
+| ruled out | Fades to gray, shrinks and disappears over about a second while the tree re-flows around it |
+| not followed / can't read | Gray stub (only if the settings toggles say to show them) |
 
-| ID | Requirement | Priority |
-| --- | --- | --- |
-| P1-1 | Search bar opens with a shortcut; Esc closes and clears highlights | P0 |
-| P1-2 | Finds passages by meaning with no shared words required | P0 |
-| P1-3 | Highlights without editing the page's HTML (CSS Custom Highlight API), so sites don't break | P0 |
-| P1-4 | Results ranked by score; next and previous navigation with a match counter | P0 |
-| P1-5 | Shows "No close matches" instead of weak junk when nothing clears the minimum score | P0 |
-| P1-6 | Works on Canvas pages, syllabus, announcements and assignment descriptions | P0 |
-| P1-7 | Exact-word matches still rank at the top | P1 |
-| P1-8 | Re-indexes when the page changes | P1 |
-| P1-9 | Searches inside frames on the page | P1 |
-| P1-10 | PDFs open in a Ctrl+F++ viewer (pdf.js) so they can be searched and highlighted; Chrome's built-in PDF viewer can't be scripted by extensions | P1 |
-| P1-11 | Hover a highlight to see its match score | P2 |
+**Clicking:**
+- A green page node opens that page in a new tab and highlights the relevant passages (CSS Custom Highlight API; never edits the page's HTML).
+- A green file node works as described in Files.
 
-**Targets:** results within 300 ms of Enter on an indexed page; a typical Canvas page indexed within 3 seconds.
+## On-page highlighting
 
-**Done when:** on three real Canvas pages, five questions with no word overlap each put the right passage in the top 3.
+- Highlights use the CSS Custom Highlight API, so the page's HTML is never edited.
+- The best match is brighter and scrolled into view, and the others are lighter.
+- This works on the current page and on any page opened from the tree. The content script gets the query and passage texts, finds them in the DOM and highlights them.
+- Search again or press Esc in the side panel to clear the highlights.
 
-## Phase 2: the dig
+## Settings
 
-When the answer isn't on the current page, Ctrl+F++ scores every link for relevance, follows the most promising ones, searches each page it lands on, and repeats, while a live tree in the sidebar shows what it's doing. It reuses Phase 1's model, chunking and scoring.
+- Depth: 1 to 10, default 5
+- Page budget: default 60
+- Off-site links: hidden (default), or shown as "not followed"
+- Unreadable files: hidden (default), or shown as gray
 
-### Starting a dig
-
-- A "Dig deeper" button sits under the Phase 1 results.
-- If the best match on the current page scores low, the button pulses as a hint. It never starts a dig on its own.
-
-### Deciding which links are worth opening
-
-The "lightweight ML model" is the same embedding model from Phase 1, plus a small learned weighting (see Databricks).
-
-1. Collect every link on the page; drop duplicates and same-page anchors.
-2. Build each link's context: anchor text, title attribute, words in the URL path, and the nearest heading and sentence.
-3. Embed that context and compare it to the query: a relevance score from 0 to 1.
-4. Combine with features using weights from link-weights.json: PDF bonus, syllabus bonus, keyword hits, depth penalty. Until Databricks produces learned weights, use hand-set defaults.
-5. Links under the minimum score are never opened. They show in the tree as faint stubs.
-
-### Crawl rules
-
-| Setting | Default | User can change? |
-| --- | --- | --- |
-| Scope | Same site only | Yes: any site |
-| Depth | 5 levels | Yes: 1 to 10 |
-| Page budget | 60 pages | Yes |
-| Pages fetched at once | 4 | No |
-| Timeout per page | 8 seconds | No |
-| Stop early | After 3 strong hits, ask "Keep digging?" | Yes |
-
-- **Order:** best-first. The highest-scoring unvisited link anywhere in the tree goes next.
-- **Read-only, always:** GET requests only. Never click buttons, submit forms, or open anything that changes state. Skip links containing logout, delete, submit, take, or start quiz.
-- Depth 5 can mean thousands of links, so the page budget is the real limit.
-
-### Searching each page
-
-- Fetch with the user's existing login, extract readable text, split and embed like Phase 1.
-- A page's score is its best passage's score.
-- JavaScript-built pages come back nearly empty from a plain fetch. On Canvas, use the Canvas API. Elsewhere, fall back to a hidden background tab (P1).
-
-### The live dig tree (side panel)
-
-The tree lives in Chrome's side panel and updates in real time. The starting page is the root at the top.
-
-| Node state | Looks like | Trigger |
-| --- | --- | --- |
-| skipped | Faint short stub, no label | Link scored under the minimum, never opened |
-| queued | Outlined circle | Scored high enough, waiting its turn |
-| digging | Pulsing circle, label shown | Being fetched and searched now |
-| dead | Fades to gray, shrinks to a dot, collapses after about 1.5 s | Searched, nothing relevant, no good links left |
-| relevant | Warm glow, size grows with score | Has a passage above the minimum score |
-| hit | Bright glow plus a one-line passage preview | Passage above the strong-hit score |
-
-**Interactions:** hover a node for title, URL and best passage; click a hit to open it scrolled to the passage and highlighted (text-fragment links for pages, the Ctrl+F++ PDF viewer for PDFs); a ranked hit list under the tree; Stop and Resume; a "Show dead ends" toggle; a counter of pages searched, budget left, and hits found.
-
-| ID | Requirement | Priority |
-| --- | --- | --- |
-| P2-1 | Links scored by relevance; best-first crawl with depth, budget and scope settings | P0 |
-| P2-2 | Read-only crawling with the skip list | P0 |
-| P2-3 | Live tree showing all six node states with animated transitions | P0 |
-| P2-4 | Clicking a hit opens the page with the passage highlighted | P0 |
-| P2-5 | Works across a full Canvas course: modules, pages, announcements, syllabus, PDFs | P0 |
-| P2-6 | Ranked hit list under the tree | P1 |
-| P2-7 | Stop, Resume and "Show dead ends" controls | P1 |
-| P2-8 | Hidden-tab fallback for JavaScript-built pages outside Canvas | P1 |
-| P2-9 | Results cached per course | P1 |
-| P2-10 | Contradiction finder: flags when two hits give different dates or rules for the same thing | P2 |
-
-**Done when:** from a Canvas course home page, three questions whose answers sit two or more levels deep (at least one inside a PDF) each end with the right hit glowing within 20 seconds.
-
-### Databricks (sponsor track)
-
-Every dig logs which links it followed and whether they paid off. Databricks trains a better link scorer from those logs, and the extension ships with the learned weights. A dashboard on the same data shows where people get lost.
-
-1. **Dig logs.** For each scored link, log a DigLog (see contracts). Opt-in. For the demo, only the team's own digs.
-2. **Delta table.** The extension exports logs as a JSON file; Teammate D uploads it into a Delta table in Databricks Free Edition. Live push via REST API is P1 (needs a token in the extension).
-3. **Train the link scorer.** A notebook fits a logistic regression predicting "will this link lead to a hit?" and exports databricks/link-weights.json, which the engine loads.
-4. **"Where students get lost" dashboard.** Most-asked questions, average depth to an answer, most common dead-end pages, PDFs that hold the most answers.
-
-**Privacy line:** the search stays on the laptop. Only opt-in dig logs (queries, scores and link features, never full page text) go to Databricks.
-
-| ID | Requirement | Priority |
-| --- | --- | --- |
-| DB-1 | Extension exports dig logs as JSON | P0 |
-| DB-2 | Logs in a Delta table; notebook trains the scorer and exports weights | P0 |
-| DB-3 | Engine loads the exported weights | P0 |
-| DB-4 | "Where students get lost" dashboard | P0 |
-| DB-5 | Live log upload from the extension | P1 |
-
-**Done when:** a before-and-after on the same demo question shows the learned scorer reaching the hit in fewer pages than the hand-set one.
+Fixed in code: 15 peeks per page, 4 pages fetched at once, an 8-second timeout per page.
 
 ## Architecture
 
 ```
- Content script            Service worker              Side panel
- (search bar,      <---->  (routes messages,   <---->  (live dig tree,
-  highlights,               crawl queue,                hit list,
-  reads page text)          settings)                   Stop/Resume)
-                                 ^
-                                 |
-                                 v
-                 Offscreen document: the engine
-                 - fetches and parses pages, pdf.js for PDFs
-                 - model + Rust/WASM: chunk, embed, index, score
-                       ^            ^            ^
-                       |            |            |
-                Canvas REST API  Same-site pages  PDF files
+ Content script                 Service worker                  Side panel
+ (reads page text,     <---->   (routes messages,      <---->   (search box, live graph,
+  highlights passages)           best-first queue,               results list, settings)
+                                 settings)
+                                     ^
+                                     v
+                     Offscreen document: the engine
+                     - model (transformers.js), passage + link scoring, cache
+                     - fetch + parse HTML, Canvas API, pdf.js, JSZip
 ```
 
-Pages, Canvas API responses and PDFs all go into the engine; only scores, passages and tree updates come out.
+Why the offscreen document: Manifest V3 service workers get shut down when idle and can't parse HTML, so the model, parsing and fetching live in the offscreen document.
 
-## Contracts
+## Build milestones (commit and push after each, and in between)
 
-The source of truth is shared/contracts.ts (message types, Passage, Hit, TreeEvent, DigLog, LinkWeights) and shared/engine-api.ts (the engine interface). The live PRD doc's type sketch is older than those files; where they differ, the code wins.
+1. **Scaffold.** MV3 extension with Vite and TypeScript. Ctrl+Shift+F opens the side panel with the search box focused. Loads with "Load unpacked."
+2. **Current page.** Extract, chunk, embed, hybrid-score, highlight on the page, show the root node, list results.
+3. **Canvas dig.** API source, peek via titles, best-first queue, node events, a basic graph.
+4. **Files.** PDF, PPTX and DOCX reading, file nodes, click behavior.
+5. **Graph polish.** Horizontal layout, smooth re-flow, pulsing yellow, trail, fade-out, follow camera, counter.
+6. **Other sites.** HTML fetch, empty-page fallback to a minimized tab, the off-site rule.
+7. **Settings.** The four settings and both toggles.
+8. **Demo hardening.** Run the demo questions on the demo course until they pass every time; warm the cache; record a backup video.
 
-## Canvas specifics
+**Deadlines:**
+- Feature freeze Sunday 6 AM
+- Submit on Devpost by 11 AM Sunday (the hard deadline is 12:00 PM)
 
-On Canvas, dig through the Canvas REST API instead of scraping pages. It works with the browser's existing login, returns clean text, and the course structure (modules, items, files) maps straight onto the dig tree.
+## Demo
 
-| Content | Endpoint (all GET) |
-| --- | --- |
-| Syllabus | /api/v1/courses/:id?include[]=syllabus_body |
-| Modules and items | /api/v1/courses/:id/modules?include[]=items |
-| Pages | /api/v1/courses/:id/pages/:url |
-| Announcements | /api/v1/announcements?context_codes[]=course_:id |
-| Assignments | /api/v1/courses/:id/assignments |
-| Files (PDFs) | /api/v1/courses/:id/files/:file_id (gives the download URL) |
+Run it on one known Canvas course with three or so prepared questions whose answers sit two or more levels deep, at least one inside a PDF or slide deck.
 
-- Detect Canvas by the /courses/:id URL pattern and switch to API mode.
-- Strip a `while(1);` prefix from JSON responses if present.
-- Follow pagination links in the Link response header.
-- PDFs: download with the session, extract text with pdf.js, record the page number for each passage.
-- Never fetched: quizzes, submissions, grades, inbox, people lists.
+1. Ctrl+Shift+F, then type the question.
+2. The current page lights up with highlights.
+3. The tree spreads right, yellow nodes pulse, gray ones fade away, and green ones light up with their trails.
+4. Click a green PDF node: it lands on the right page with the file highlighted and "Page 4" in the card.
+5. Show the results list.
+6. Turn Wi-Fi off and run it again from the cache to prove it's on-device.
 
-## Non-goals and risks
+## Parked
 
-**Not building this weekend:** AI-written answers or chat, browsers other than Chrome, mobile, accounts or sync, anything that writes to a site.
+- **Databricks:** for now it may host the project website only. It plays no part in a search. Decide before Devpost whether to enter the Databricks track at all.
 
-| Risk | Mitigation |
-| --- | --- |
-| Model too slow in the browser | 30-minute benchmark; quantized model; WebGPU if it wins; cache embeddings |
-| Canvas API calls fail from the extension | Test one call in hour one before building on it |
-| JavaScript-built pages come back empty | Canvas API on Canvas; hidden-tab fallback elsewhere (P1) |
-| Crawl runs away | Page budget, best-first, minimum link score, Stop |
-| Crawler triggers something | GET only, skip list, Canvas no-go list |
-| Wrong passage with confidence | Minimum score, "No close matches", always show the real passage |
-| Permission prompt scares users | Site access only where the user turns it on, Canvas first |
-| Tree too busy | Dead ends collapse, skipped links faint, only hits labeled by default |
-| Demo Wi-Fi dies | Runs locally, warm cache, backup video |
+## Later (not this weekend)
 
-## Team and build plan
-
-| Teammate | Tools | Tasks, in order |
-| --- | --- | --- |
-| A (Neil) | Claude Code | Scaffold and contracts; HTML and Canvas sources; offscreen engine host and crawler; integration and dig-log export |
-| B | Claude Code | Model benchmark; Rust/WASM engine; PDF text extraction; loading link weights |
-| C | Claude Code | Search bar and highlights; live dig tree; PDF viewer |
-| D | Browser, GitHub web, Databricks | Real Canvas captures and the test question set; Databricks pipeline and dashboard; testing; Devpost, pitch, backup video |
-
-Task details: docs/tasks/teammate-a.md through teammate-d.md. Team rules: CLAUDE.md.
-
-**Timeline:**
-
-1. Saturday, first hour: A's Task 0 merged to main; B's benchmark result in docs/status/teammate-b.md; D's Canvas captures uploaded.
-2. Saturday 6 PM checkpoint: Phase 1 works end to end on a Canvas page.
-3. Saturday midnight checkpoint: the crawler finds a PDF answer two levels deep and the tree draws it.
-4. Sunday 6 AM: animations, click-to-highlight and the Databricks dashboard done. Feature freeze.
-5. Sunday 9 AM: backup video recorded; demo rehearsed at least 10 times.
-6. Sunday 11 AM: submitted on Devpost (deadline 12:00 PM).
-
-## Demo checklist
-
-- [ ] Phase 1: a no-shared-words query highlights the right passage on a Canvas page
-- [ ] Phase 2: a PDF answer two or more levels deep glows in the tree within 20 seconds
-- [ ] Clicking that hit opens the PDF on the right page, highlighted
-- [ ] One dig on a non-Canvas site works
-- [ ] Works with Wi-Fi off after the cache is warm
-- [ ] Databricks before/after and dashboard ready
-- [ ] Backup video recorded
-- [ ] Devpost submitted by 11 AM Sunday
-
-**60-second demo:** Ctrl+Shift+F on a Canvas page; a loose question finds the passage with no shared words. Ask something not on the page, press Dig deeper, and let judges watch the tree branch, gray out dead ends, and glow on the PDF. Click it, land on the highlighted sentence. Turn Wi-Fi off and do it again.
+- Toggle: stop when the current page already has a strong match
+- OCR for scanned PDFs and images; .ppt and .doc formats
+- Following off-site links (Google Docs, Box) with their own logins
+- An in-extension PDF viewer with in-file highlighting
+- Rust/WASM engine
+- Databricks-trained link scorer and analytics dashboard
+- Contradiction finder (two sources giving different dates for the same thing)
