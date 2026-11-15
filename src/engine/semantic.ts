@@ -1,6 +1,6 @@
 // Semantic mode: rank passages and links by meaning (MiniLM) plus exact query words.
 // The embedder is a parameter so tests can run without the model.
-import { LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
+import { LINK_DEPTH_PENALTY, LINK_MIN, LINK_PEEK, ROOT_FANOUT, SEMANTIC_RELEVANT, W_COS, W_KW, type DigLink, type Passage } from '../shared/types';
 import { chunk } from './chunk';
 import { keywordScore, parseQuery } from './keywords';
 import { dot, highlightPieces, scorePassages } from './score';
@@ -65,8 +65,10 @@ export function isCanvasHub(url: string): boolean {
 }
 
 /**
- * Score links by meaning against the query, best first: drop weak ones and keep the top LINK_PEEK.
- * Canvas hubs are always kept (at least LINK_MIN) and don't count toward the cap.
+ * Score links by meaning against the query, best first, keeping the top ROOT_FANOUT from the starting
+ * page (depth 1) and LINK_PEEK from deeper pages. Nothing is dropped for a low score here: the service
+ * worker weighs each link with how relevant its parent page's text was. Canvas hubs are always kept
+ * (scored at least LINK_MIN, flagged hub) and don't count toward the cap.
  * depth is the depth the linked page would sit at.
  */
 export async function semanticLinks(query: string, links: DigLink[], depth: number, canvas: boolean, embed: Embed = modelEmbed): Promise<DigLink[]> {
@@ -78,10 +80,10 @@ export async function semanticLinks(query: string, links: DigLink[], depth: numb
     const { kw, conflict } = keywordScore(q, texts[i]);
     const score = (W_COS * dot(qVec, vecs[i]) + W_KW * kw) * (conflict ? CONFLICT_FACTOR : 1) - LINK_DEPTH_PENALTY * depth;
     const hub = canvas && isCanvasHub(link.url);
-    return { link: { ...link, score: hub ? Math.max(score, LINK_MIN) : score }, hub };
+    return { link: { ...link, score: hub ? Math.max(score, LINK_MIN) : score, ...(hub ? { hub: true } : {}) }, hub };
   });
   const byScore = (a: { link: DigLink }, b: { link: DigLink }): number => b.link.score! - a.link.score!;
   const hubs = scored.filter((s) => s.hub);
-  const pages = scored.filter((s) => !s.hub && s.link.score! >= LINK_MIN).sort(byScore).slice(0, LINK_PEEK);
+  const pages = scored.filter((s) => !s.hub).sort(byScore).slice(0, depth <= 1 ? ROOT_FANOUT : LINK_PEEK);
   return [...hubs, ...pages].sort(byScore).map((s) => s.link);
 }

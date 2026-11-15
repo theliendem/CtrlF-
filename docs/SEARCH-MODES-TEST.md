@@ -18,3 +18,11 @@ After reloading the extension, run a search with matching and nonmatching branch
 ## Branch rotation and gradual reveal
 
 Search from Modules with several modules available. The graph should not display a wall of waiting nodes. Nodes appear when their actual reads start. The queue chooses 1–3 random siblings, then switches to another parent when one is available, with up to four reads in flight. A gray parent with hidden waiting children must stay visible. Stop should keep found results, cancel remaining reads, and never reveal the hidden backlog. Exact search still queues all eligible links; the same page/depth limits apply.
+
+## Semantic: explore first, then follow what's getting closer
+
+Settings: Semantic, 200 pages, depth 5.
+
+1. Open the Wikipedia **Main Page** and search `Harry Potter`. Expect the starting page's links (up to 70) to be read first even though none mention the topic, then the dig to head toward it. In a replay of this exact dig with the real model it reached the **Harry Potter** article at depth 4 (via Beatrix Potter → Children's literature) and stopped by itself after about 165 pages.
+2. Search something the site doesn't have, e.g. `zorblax quantum pickle recipe` from the Harry Potter article. Expect one full level of reads, a little wandering, then the dig stops before the page limit with **Stopped: nothing was getting closer**, or **Nothing related found. Searched N pages, L levels deep.** when nothing matched.
+3. On Canvas, expect the same behavior as before: modules, syllabus and other index pages are always read.

@@ -62,7 +62,11 @@ export interface PageText {
   links: DigLink[];
 }
 
-export interface DigLink { url: string; title: string; heading: string; score?: number }
+export interface DigLink {
+  url: string; title: string; heading: string; score?: number;
+  /** Semantic: a Canvas index page (modules, syllabus…). Always queued, whatever its score. */
+  hub?: boolean;
+}
 export type SearchMode = 'exact' | 'semantic';
 export interface ExactMatch { start: number; end: number; text: string }
 export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean }
@@ -93,8 +97,16 @@ export interface DigReadResult {
   /** Identity of what was read (canonical URL, text fingerprint), so aliases of a read page are dropped. */
   identity?: string[];
 }
-export interface DigEntry { node: TreeNode; priority: number }
-export interface DigRun { id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings }
+export interface DigEntry {
+  node: TreeNode; priority: number;
+  /** Semantic: how relevant this page looks before it's read (no depth-1 boost). Text-less pages keep it. */
+  estimate?: number;
+}
+export interface DigRun {
+  id: number; query: string; context: DigContext; queue: DigEntry[]; seen: Set<string>; started: number; failed: number; settings: SearchSettings;
+  /** Semantic: the dig stopped because reads stopped getting closer to the query. */
+  stalled?: boolean;
+}
 export interface EngineAck { ok: boolean; error?: string }
 
 export interface HighlightPassage {
@@ -181,6 +193,17 @@ export const LINK_MIN = 0.25;
 export const LINK_PEEK = 15;
 /** Subtracted from a link's score per level of depth. */
 export const LINK_DEPTH_PENALTY = 0.02;
+/**
+ * Semantic: the starting page's best links (by link score), read whatever their score and before
+ * anything deeper, so a homepage with nothing on-topic still gets explored one level down.
+ */
+export const ROOT_FANOUT = 70;
+/** Semantic: a deeper link's priority = this × its own score + the rest × how close its parent page's text was. */
+export const W_LINK_PRIORITY = 0.6;
+/** Semantic: deeper links under this priority aren't queued (Canvas hubs always are). */
+export const PRIORITY_MIN = 0.15;
+/** Semantic: past depth 1, stop after this many reads in a row that neither find a match nor get closer. */
+export const STALL_LIMIT = 24;
 
 export const relevantScore = (mode: SearchMode): number => (mode === 'semantic' ? SEMANTIC_RELEVANT : RELEVANT);
 

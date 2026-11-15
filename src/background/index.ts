@@ -1,6 +1,5 @@
 // Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
 import {
-  LINK_MIN,
   hitStrength,
   relevantScore,
   type HighlightPassage,
@@ -22,6 +21,7 @@ import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLin
 import { wordCount, MIN_WORDS } from '../engine/site';
 import { pageIdentity } from '../engine/identity';
 import { runBestFirst, runBranchBatches } from './queue';
+import { linkPriority, pageRelevance, StallWatch } from './guide';
 import { normalizeSettings } from '../shared/settings';
 import { memorySnapshot } from '../debug/memory'; // TEMP: RAM benchmark
 
@@ -204,10 +204,11 @@ async function search(query: string, windowId: number): Promise<void> {
     status(`Current page searched. Dig failed: ${seed.error}`, false);
     return;
   }
-  enqueue(dig, root, seed.links);
+  enqueue(dig, root, seed.links, 0);
   showSkipped(dig, root, seed.skipped ?? []);
   const runQueue = exact ? runBranchBatches : runBestFirst;
-  await runQueue(dig, async ({ node }) => {
+  const stall = new StallWatch();
+  await runQueue(dig, async ({ node, estimate }) => {
     if (run !== runId) return;
     emit({ ...node, state: 'reading', deferred: false });
     status(`Digging ${where}: ${dig.started}/${settings.pageBudget} pages started…`, true);
@@ -223,7 +224,13 @@ async function search(query: string, windowId: number): Promise<void> {
         return;
       }
       emitResult(node, result);
-      enqueue(dig, node, result.links);
+      const relevance = pageRelevance(result.passages, estimate);
+      if (!exact && !dig.stalled && stall.record(node.depth, relevance, nodes.get(node.id)?.state === 'hit')) {
+        // Nothing is getting closer: drop what's waiting; reads already running still finish.
+        dig.stalled = true;
+        dig.queue.length = 0;
+      }
+      enqueue(dig, node, result.links, relevance);
       showSkipped(dig, node, result.skipped ?? []);
     } catch (error) {
       if (run !== runId) return;
@@ -236,21 +243,32 @@ async function search(query: string, windowId: number): Promise<void> {
   if (run !== runId) return;
   settlePending();
   const found = [...nodes.values()].filter((node) => node.state === 'hit').length;
-  status(`${dig.started - dig.failed} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${dig.queue.length ? ` · ${settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
+  const searched = dig.started - dig.failed;
+  if (dig.stalled && !found) {
+    const levels = Math.max(0, ...[...nodes.values()].filter((n) => n.state === 'ruled-out' && !n.hidden).map((n) => n.depth));
+    status(`Nothing related found. Searched ${searched} pages, ${levels} level${levels === 1 ? '' : 's'} deep.`, false);
+    return;
+  }
+  const end = dig.stalled ? ' · Stopped: nothing was getting closer' : dig.queue.length ? ` · ${settings.pageBudget}-page limit reached` : ' · Dig complete';
+  status(`${searched} pages searched · ${found} with matches${dig.failed ? ` · ${dig.failed} could not be read` : ''}${end}`, false);
 }
 
-function enqueue(run: DigRun, parent: TreeNode, links: DigLink[]): void {
-  if (parent.depth >= run.settings.maxDepth) return;
+/** parentRelevance: how close the parent page's text was to the query (semantic link priority). */
+function enqueue(run: DigRun, parent: TreeNode, links: DigLink[], parentRelevance: number): void {
+  if (parent.depth >= run.settings.maxDepth || run.stalled) return;
+  const exact = run.settings.mode === 'exact';
   for (const link of links) {
     const url = digLink(link.url, parent.url, run.context);
-    if (!url || run.seen.has(url) || (run.settings.mode !== 'exact' && (link.score ?? 0) < LINK_MIN)) continue;
+    if (!url || run.seen.has(url)) continue;
+    const rank = exact ? { priority: link.score ?? 1, estimate: undefined } : linkPriority(link, parentRelevance, parent.depth === 0);
+    if (!rank) continue;
     run.seen.add(url);
     const node: TreeNode = { id: url, parentId: parent.id, url, title: link.title || url, kind: 'page', state: 'queued', deferred: true, depth: parent.depth + 1, best: 0 };
     if (isCanvas(run.context)) node.fileId = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
     else node.kind = siteFileKind(url) ?? 'page';
     if (isFile(node)) { node.parentUrl = parent.url; node.linkTitle = link.title; }
     if (run.settings.mode === 'exact') node.exactQuery = run.query;
-    run.queue.push({ node, priority: link.score ?? 1 });
+    run.queue.push({ node, priority: rank.priority, estimate: rank.estimate });
     emit(node);
   }
 }
