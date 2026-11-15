@@ -368,7 +368,13 @@ export class Graph {
     c.s += (ct.s - c.s) * kc;
     if (Math.abs(ct.x - c.x) > 0.3 || Math.abs(ct.y - c.y) > 0.3 || Math.abs(ct.s - c.s) > 0.002) moving = true;
     const { w, h } = this.size();
-    this.view.setAttribute('transform', `translate(${(w / 2 - c.x * c.s).toFixed(1)},${(h / 2 - c.y * c.s).toFixed(1)}) scale(${c.s.toFixed(3)})`);
+    const oy = h / 2 - c.y * c.s;
+    this.view.setAttribute('transform', `translate(${(w / 2 - c.x * c.s).toFixed(1)},${oy.toFixed(1)}) scale(${c.s.toFixed(3)})`);
+    // Notebook rules: one per tree row, moving with the camera; they fade out when zoomed too far to read.
+    const gap = DY * c.s;
+    this.host.style.setProperty('--rule-gap', `${gap.toFixed(2)}px`);
+    this.host.style.setProperty('--rule-y', `${(((oy % gap) + gap) % gap).toFixed(1)}px`);
+    this.host.style.setProperty('--rule-alpha', clamp((gap - 9) / 9, 0, 1).toFixed(2));
     return moving;
   }
 }

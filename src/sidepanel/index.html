@@ -9,13 +9,23 @@
   <body>
     <header class="bar">
       <form id="search-form" class="search" autocomplete="off">
-        <input id="q" type="search" placeholder="What are you looking for?" autofocus spellcheck="false" />
-        <button id="stop" type="button" class="btn stop" hidden>Stop</button>
+        <svg class="search-glyph" viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="5.75" />
+          <path d="M8.5 6v5M6 8.5h5M12.75 12.75 17 17" />
+        </svg>
+        <input id="q" type="search" placeholder="What are you looking for?" aria-label="Search" autofocus spellcheck="false" />
+        <button id="stop" type="button" class="stop" hidden><span class="stop-square" aria-hidden="true"></span>Stop</button>
       </form>
-      <button id="settings" type="button" class="btn icon" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="settings-form">⚙</button>
+      <button id="settings" type="button" class="icon-btn" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="settings-form">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M3.5 6h8M15.5 6h1M3.5 14h1M8.5 14h8" />
+          <circle cx="13.5" cy="6" r="2" />
+          <circle cx="6.5" cy="14" r="2" />
+        </svg>
+      </button>
     </header>
     <form id="settings-form" class="settings" hidden>
-      <strong>Search settings</strong>
+      <h2>Search settings</h2>
       <label>Search mode <select id="search-mode"><option value="semantic">Semantic</option><option value="exact">Exact</option></select></label>
       <p>Exact matches your phrase and checks every safe content link, within your page and depth limits. Semantic finds passages that mean the same thing, even with different words, and follows the links closest to your question first. It runs an on-device model.</p>
       <label>Page limit <input id="page-budget" type="number" min="1" max="1000" step="1" required /></label>
@@ -23,12 +33,12 @@
       <label class="check"><input id="show-offsite" type="checkbox" /> Show skipped external links</label>
       <label class="check"><input id="show-unreadable" type="checkbox" /> Show unreadable files</label>
       <p>PDF, PowerPoint (.pptx), and Word (.docx) files are searched locally. External links are never followed.</p>
-      <div class="settings-actions"><button class="btn" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
+      <div class="settings-actions"><button class="btn primary" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
       <p id="settings-status" role="status">Changes apply to your next search.</p>
     </form>
-    <p id="status" class="status">Type a phrase and press Enter.</p>
+    <p id="status" class="status" role="status">Type a phrase and press Enter.</p>
     <main id="graph" class="graph"></main>
-    <section class="results">
+    <section class="results" hidden>
       <ul id="results"></ul>
     </section>
     <script type="module" src="./index.ts"></script>

@@ -2,6 +2,7 @@
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
 import { Graph, strengthColor } from './graph';
 import { DEFAULT_SETTINGS, normalizeSettings } from '../shared/settings';
+import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const q = $<HTMLInputElement>('q');
@@ -9,6 +10,7 @@ const form = $<HTMLFormElement>('search-form');
 const stopBtn = $<HTMLButtonElement>('stop');
 const statusEl = $<HTMLParagraphElement>('status');
 const resultsEl = $<HTMLUListElement>('results');
+const resultsBox = resultsEl.parentElement!;
 const settingsBtn = $<HTMLButtonElement>('settings');
 const settingsForm = $<HTMLFormElement>('settings-form');
 const pageBudget = $<HTMLInputElement>('page-budget');
@@ -96,44 +98,81 @@ window.addEventListener('focus', () => q.focus(), { once: true });
 
 function setStatus(text: string, running: boolean): void {
   statusEl.textContent = text;
+  statusEl.classList.toggle('running', running);
   stopBtn.hidden = !running;
 }
 
-const ICON: Record<TreeNode['kind'], string> = { page: '📄', pdf: '📕', pptx: '📊', docx: '📝' };
+// File glyphs: a page outline, with a band in the color people already know for each file type.
+const BAND: Record<TreeNode['kind'], string | null> = { page: null, pdf: '#d64541', pptx: '#d9782b', docx: '#2f6fd1' };
+function fileIcon(kind: TreeNode['kind']): SVGSVGElement {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 18 22');
+  svg.setAttribute('class', 'file');
+  svg.setAttribute('aria-hidden', 'true');
+  const sheet = document.createElementNS(NS, 'path');
+  sheet.setAttribute('d', 'M3 1.5h8l4.5 4.5v13a1.5 1.5 0 0 1-1.5 1.5H3A1.5 1.5 0 0 1 1.5 19V3A1.5 1.5 0 0 1 3 1.5Z M11 1.5V6h4.5');
+  sheet.setAttribute('fill', 'var(--paper)');
+  sheet.setAttribute('stroke', 'var(--ink-soft)');
+  sheet.setAttribute('stroke-width', '1.3');
+  sheet.setAttribute('stroke-linejoin', 'round');
+  svg.append(sheet);
+  const band = BAND[kind];
+  if (band) {
+    const r = document.createElementNS(NS, 'rect');
+    for (const [k, v] of Object.entries({ x: '0', y: '11', width: '13', height: '7', rx: '1.5', fill: band })) r.setAttribute(k, v);
+    svg.append(r);
+  } else {
+    const lines = document.createElementNS(NS, 'path');
+    lines.setAttribute('d', 'M5 10.5h8M5 13.5h8M5 16.5h5');
+    lines.setAttribute('stroke', 'var(--edge)');
+    lines.setAttribute('stroke-width', '1.3');
+    lines.setAttribute('stroke-linecap', 'round');
+    svg.append(lines);
+  }
+  return svg;
+}
+
+const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] => {
+  const e = document.createElement(tag);
+  e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+};
 
 function renderResults(): void {
   const hits = [...nodes.values()].filter((n) => n.state === 'hit').sort((a, b) => b.best - a.best);
+  resultsBox.hidden = hits.length === 0;
   resultsEl.replaceChildren(
-    ...hits.map((n) => {
-      const li = document.createElement('li');
-      li.className = n.best >= STRONG ? 'strong' : '';
+    ...hits.map((n, i) => {
+      const li = el('li', [n.best >= STRONG ? 'strong' : '', i === 0 ? 'top' : ''].join(' ').trim());
       li.style.setProperty('--hit', strengthColor(n.strength));
       li.title = n.url;
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      icon.textContent = ICON[n.kind];
-      const body = document.createElement('div');
-      body.className = 'body';
-      const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = n.title + (n.location ? ` · ${n.location}` : '');
-      const snip = document.createElement('div');
-      snip.className = 'snippet';
-      snip.textContent = n.snippet ?? '';
-      body.append(title, snip);
+      li.tabIndex = 0;
+      const body = el('div', 'body');
+      const head = el('div', 'head');
+      head.append(el('span', 'title', n.title));
+      if (n.location) head.append(el('span', 'where', n.location));
+      body.append(head);
+      if (n.snippet) {
+        const snip = el('div', 'snippet');
+        snip.append(el('mark', '', n.snippet));
+        body.append(snip);
+      }
       if (n.kind === 'pdf' && n.pageNumber) {
-        const openPage = document.createElement('button');
+        const openPage = el('button', 'file-page', `Open at page ${n.pageNumber}`);
         openPage.type = 'button';
-        openPage.className = 'btn file-page';
-        openPage.textContent = `Open at page ${n.pageNumber}`;
         openPage.addEventListener('click', (event) => {
           event.stopPropagation();
           openResult(n.id, true);
         });
         body.append(openPage);
       }
-      li.append(icon, body);
+      li.append(el('span', 'strength'), fileIcon(n.kind), body);
       li.addEventListener('click', () => openResult(n.id));
+      li.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && event.target === li) openResult(n.id);
+      });
       return li;
     }),
   );
