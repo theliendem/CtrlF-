@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ctrl+F++</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <form id="search-form" class="search" autocomplete="off">
+        <input id="q" type="search" placeholder="What are you looking for?" autofocus spellcheck="false" />
+        <button id="stop" type="button" class="btn stop" hidden>Stop</button>
+      </form>
+      <button id="settings" type="button" class="btn icon" title="Settings" aria-label="Settings">⚙</button>
+    </header>
+    <div id="counter" class="counter">
+      <span><b id="c-searched">0</b> searched</span>
+      <span><b id="c-ruled">0</b> ruled out</span>
+      <span class="green"><b id="c-found">0</b> found</span>
+    </div>
+    <main id="graph" class="graph">
+      <p class="hint">Type a phrase and press Enter.</p>
+    </main>
+    <section class="results">
+      <ul id="results"></ul>
+    </section>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>
