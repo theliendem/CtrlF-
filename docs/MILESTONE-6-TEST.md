@@ -1,6 +1,6 @@
 # Other sites: Chrome check
 
-Reload **Ctrl+F++** at `chrome://extensions`. Open a course website that isn't Canvas (for example a department course page with a schedule and lecture-note links) and open the panel with **Cmd+Shift+F**.
+Reload **Ctrl F++** at `chrome://extensions`. Open a course website that isn't Canvas (for example a department course page with a schedule and lecture-note links) and open the panel with **Cmd+Shift+F**.
 
 1. Search a phrase you know is on a page one or two links deep. Expect the dig to continue past the current page (status reads **Digging <hostname>…**), with the matching page turning green.
 2. Only same-site links are read. With **Show skipped external links** on, off-site links appear as gray stubs and are never opened. Login, logout, account, help, cart and image links never appear.

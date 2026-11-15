@@ -1,4 +1,4 @@
-# Ctrl+F++ PRD (v2)
+# Ctrl F++ PRD (v2)
 
 Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase PRD
 
@@ -8,9 +8,9 @@ Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase P
 
 ## What it is
 
-Ctrl+F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2"), and it searches the page you're on, then digs recursively through the relevant links, files and subpages behind it. The whole dig plays out live as a tree in Chrome's side panel. Everything runs on your laptop with a lightweight ML model, so there's no LLM and no page text sent to a server.
+Ctrl F++ is Ctrl+F rebuilt. You type what you're looking for ("info on midterm 2"), and it searches the page you're on, then digs recursively through the relevant links, files and subpages behind it. The whole dig plays out live as a tree in Chrome's side panel. Everything runs on your laptop with a lightweight ML model, so there's no LLM and no page text sent to a server.
 
-**Theme fit ("Let's Dig In"):** Ctrl+F stops at the page. Ctrl+F++ digs.
+**Theme fit ("Let's Dig In"):** Ctrl+F stops at the page. Ctrl F++ digs.
 
 **Demo-first rule:** this build exists to win a live demo on a known Canvas course. Edge cases get skipped, not solved. Every skipped case is marked in code with `// LATER:` and listed in docs/LATER.md, so it can be added after the hackathon.
 

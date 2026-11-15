@@ -1,6 +1,6 @@
 # Search mode test
 
-Reload Ctrl+F++ at `chrome://extensions`, refresh Canvas, and open the side panel.
+Reload Ctrl F++ at `chrome://extensions`, refresh Canvas, and open the side panel.
 
 1. Open the gear. **Search mode** should default to **Exact**, including when upgrading existing saved settings. Keep 200 pages and depth 5, then save.
 2. On MATH345 Modules, search a literal phrase you know appears inside a PDF or nested page, even if its link title does not mention that phrase. Use `midterm 2`, for example, only if that exact phrase exists in the text. Do not add conversational words like `info on` unless those words are in the document too.

@@ -8,7 +8,7 @@ Clicking a file result opens the Canvas page or module where it was found and hi
 
 ## Reload
 
-1. At `chrome://extensions`, reload **Ctrl+F++**.
+1. At `chrome://extensions`, reload **Ctrl F++**.
 2. Refresh the MATH345 tab, then open the panel with **Cmd+Shift+F**.
 3. In settings, keep the page limit at **200**, depth at **5**, and enable **Show unreadable files** for this test. Save.
 

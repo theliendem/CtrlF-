@@ -1,4 +1,4 @@
-/* Ctrl+F++ panel. Layout lives here; every look is a set of tokens on :root[data-theme].
+/* Ctrl F++ panel. Layout lives here; every look is a set of tokens on :root[data-theme].
    The default look (Notebook) is defined here; the others live in themes.css.
    graph.ts sets camera variables on .graph every frame (--rule-gap, --rule-y, --grid-x, --cam-x, --col-gap,
    --rule-alpha) so a theme's background can move with the tree. */

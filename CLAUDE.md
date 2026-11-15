@@ -1,6 +1,6 @@
-# Ctrl+F++: rules for Claude
+# Ctrl F++: rules for Claude
 
-We're building Ctrl+F++ at MadHacks 2026 (submissions close Sunday Nov 15 at 12:00 PM; we submit by 11:00 AM). One developer (Neil) with one Claude Code. The spec is docs/PRD.md; read it before writing code and follow it.
+We're building Ctrl F++ at MadHacks 2026 (submissions close Sunday Nov 15 at 12:00 PM; we submit by 11:00 AM). One developer (Neil) with one Claude Code. The spec is docs/PRD.md; read it before writing code and follow it.
 
 ## How to work
 

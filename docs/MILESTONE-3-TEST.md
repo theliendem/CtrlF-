@@ -10,7 +10,7 @@
 
 ## Test steps
 
-1. Open `chrome://extensions`, find **Ctrl+F++**, and click its reload button. Refresh the MATH345 tab too, then reopen the side panel with **Cmd+Shift+F**.
+1. Open `chrome://extensions`, find **Ctrl F++**, and click its reload button. Refresh the MATH345 tab too, then reopen the side panel with **Cmd+Shift+F**.
 2. In Canvas, open **MATH345 → Modules**. Choose an unlocked **Page** item, not a file, quiz or external tool. Copy its exact title into the extension and press Enter. This gives the test a known destination instead of relying on a guessed phrase.
 3. Watch the tree. It should continue beyond the root even if the current page has a match. The page count should grow, nodes should change from hollow to yellow to green/gray, and the chosen page should appear as a green result. Fast reads may make yellow brief. At the end, the status should say **Dig complete** or show the configured page limit, and Stop should disappear.
 4. Click that green page's result. Expect a **new tab**, the correct Canvas page, a bright yellow best match, and scrolling to that match. Other matches may be lighter yellow. No quiz, submission or external-tool page should open.
@@ -19,7 +19,7 @@
 
 ## If something fails
 
-Send the query, the final status text, whether the expected page appeared, and whether its new tab highlighted text. For a read error, hover the gray node to see its error. For an engine error, open `chrome://extensions` → Ctrl+F++ → **service worker** and copy the first red error. Do not send authentication cookies or tokens.
+Send the query, the final status text, whether the expected page appeared, and whether its new tab highlighted text. For a read error, hover the gray node to see its error. For an engine error, open `chrome://extensions` → Ctrl F++ → **service worker** and copy the first red error. Do not send authentication cookies or tokens.
 
 Automated checks: `npm test` covers safe URL filtering, GET-only API requests, prefix stripping, pagination, quiz exclusion, best-first order, concurrency, page budget and stopping. `npm run build` checks TypeScript and builds `dist/`. These checks do not replace the signed-in Canvas test above.
 

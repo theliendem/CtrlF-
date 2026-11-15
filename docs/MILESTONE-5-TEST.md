@@ -1,6 +1,6 @@
 # Graph polish: Chrome check
 
-Reload **Ctrl+F++** at `chrome://extensions`, refresh the MATH345 tab, and open the panel with **Cmd+Shift+F**. Search an Exact phrase from Modules that appears in a nested page or PDF.
+Reload **Ctrl F++** at `chrome://extensions`, refresh the MATH345 tab, and open the panel with **Cmd+Shift+F**. Search an Exact phrase from Modules that appears in a nested page or PDF.
 
 1. New nodes slide out from their parent. The tree re-flows smoothly with no jumps as nodes appear and disappear.
 2. Reading nodes are yellow, pulse gently, and send out a ripple. Their incoming edge is tinted yellow.
