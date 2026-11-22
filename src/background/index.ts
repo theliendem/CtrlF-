@@ -181,6 +181,25 @@ function emit(node: TreeNode): void {
   toPanel({ to: 'panel', type: 'node', node });
 }
 
+const isWebTab = (tab?: chrome.tabs.Tab): boolean => !!tab?.id && /^https?:/.test(tab.url ?? '');
+
+/**
+ * The page to search: the active tab in the panel's window. Some Chromium browsers (e.g. Cra) host
+ * the side panel as its own extension tab or window, so that "active tab" is our panel. Then use the
+ * web tab the user was on most recently.
+ */
+async function pageTab(windowId: number): Promise<chrome.tabs.Tab | undefined> {
+  const [tab] = await extensionApi.tabs.query({ active: true, windowId });
+  if (isWebTab(tab)) return tab;
+  const web = (await extensionApi.tabs.query({})).filter(isWebTab);
+  const recent = (t: chrome.tabs.Tab): number => (t as chrome.tabs.Tab & { lastAccessed?: number }).lastAccessed ?? 0;
+  // The most recently used web tab; if the browser doesn't report that, one that's showing.
+  web.sort((a, b) => recent(b) - recent(a) || Number(b.active) - Number(a.active));
+  if (web[0]) return web[0];
+  console.warn('[ctrlf++] no web page found; active tab in window', windowId, 'is', tab?.url);
+  return tab;
+}
+
 async function search(query: string, windowId: number, autoStop = true, refresh = false): Promise<void> {
   cancelDig();
   const run = ++runId;
@@ -188,7 +207,7 @@ async function search(query: string, windowId: number, autoStop = true, refresh 
   nodes.clear();
   toPanel({ to: 'panel', type: 'reset', query });
 
-  const [tab] = await extensionApi.tabs.query({ active: true, windowId });
+  const tab = await pageTab(windowId);
   if (run !== runId) return;
   if (!tab?.id || !/^https?:/.test(tab.url ?? '')) {
     // LATER: read local PDFs and file:// pages.
