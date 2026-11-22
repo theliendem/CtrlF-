@@ -1,29 +1,16 @@
 // On-device sentence embeddings: bundled fp16 on WebGPU, with a WASM q8 fallback.
-import { env, pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers';
-// Vite emits this file into the extension; the JS loader for it is already inside the ORT bundle.
-import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
-import { keepingCache, loadStore, onKeepCacheEnabled, saveStore } from './persist';
+import { pipeline, type FeatureExtractionPipeline } from '@huggingface/transformers';
+import { MemoryCache, MiB } from './memory';
+import { EMBEDDING_MODEL as MODEL, MAX_EMBED_TOKENS, infer, localDevice } from './model-runtime';
+import { splitToFit, type TokenCount } from './chunk';
+import { checkpoint } from './inference';
 
-env.allowRemoteModels = false;
-env.allowLocalModels = true;
-env.localModelPath = '/models/';
-env.useBrowserCache = false;
-// transformers.js points the runtime at a CDN by default. Use the bundled copy instead
-// (and skip its blob-URL cache, which the extension CSP blocks).
-env.useWasmCache = false;
-const ort = env.backends.onnx as { wasm?: { wasmPaths?: unknown; numThreads?: number } };
-if (ort.wasm) {
-  ort.wasm.wasmPaths = { wasm: new URL(ortWasmUrl, location.href).href };
-  ort.wasm.numThreads = 1; // offscreen docs aren't cross-origin isolated, so no threads
-}
-
-const MODEL = 'all-MiniLM-L6-v2';
 const DIM = 384;
 const BATCH = 16;
-const MAX_TOKENS = 128;
+const MAX_TOKENS = MAX_EMBED_TOKENS;
 
 let extractor: Promise<FeatureExtractionPipeline> | null = null;
-let backend = 'wasm/q8';
+let backend = `${localDevice}/q8`;
 
 async function createExtractor(): Promise<FeatureExtractionPipeline> {
   let model: FeatureExtractionPipeline | undefined;
@@ -35,7 +22,7 @@ async function createExtractor(): Promise<FeatureExtractionPipeline> {
       console.warn('[ctrlf++] WebGPU load failed; falling back to WASM q8', error);
     }
   }
-  model ??= await pipeline('feature-extraction', MODEL, { dtype: 'q8', device: 'wasm' });
+  model ??= await pipeline('feature-extraction', MODEL, { dtype: 'q8', device: localDevice });
   model.tokenizer._tokenizerConfig.model_max_length = MAX_TOKENS;
   console.log(`[ctrlf++] loaded ${backend}, max ${MAX_TOKENS} tokens, batch ${BATCH}`);
   return model;
@@ -49,60 +36,53 @@ export function loadModel(): Promise<FeatureExtractionPipeline> {
   return extractor;
 }
 
-// Embedding cache keyed by text. Same passage on a second search costs nothing.
-// In memory only, unless the hidden "Keep cache for demos" setting copies it to IndexedDB (engine/persist.ts).
-/** ~1.5 KB per vector, so this caps the cache near 30 MB. Oldest entries go first. */
-const MAX_CACHED = 20000;
-const cache = new Map<string, Float32Array>();
-let loaded: Promise<void> | null = null;
+const cache = new MemoryCache<Float32Array>(7 * MiB);
 
-/** With the demo cache on, load the stored vectors into memory once. */
-function vectorsReady(): Promise<void> {
-  if (!keepingCache()) return Promise.resolve();
-  loaded ??= loadStore<Float32Array>('vectors').then((entries) => {
-    for (const [text, vec] of entries) if (!cache.has(text)) cache.set(text, vec);
-  });
-  return loaded;
-}
-onKeepCacheEnabled(() => {
-  loaded = null;
-  saveStore('vectors', cache.entries());
-});
-
-let pending: Promise<unknown> = Promise.resolve();
-
-// Four page fetches can finish together. ORT sessions must not run overlapping inference.
-export function embed(texts: string[]): Promise<Float32Array[]> {
-  const result = pending.then(() => embedBatch(texts));
-  pending = result.catch(() => {});
-  return result;
+/** Count special tokens too, using exactly the tokenizer used for inference. */
+export async function tokenCounter(): Promise<TokenCount> {
+  const model = await loadModel();
+  return (text) => model.tokenizer.encode(text).length;
 }
 
-async function embedBatch(texts: string[]): Promise<Float32Array[]> {
-  await vectorsReady();
+export function embed(texts: string[], signal?: AbortSignal): Promise<Float32Array[]> {
+  return infer(() => embedBatch(texts, signal), signal);
+}
+
+async function embedBatch(texts: string[], signal?: AbortSignal): Promise<Float32Array[]> {
+  await checkpoint(signal);
   // Similar lengths reduce padding; the text-keyed cache preserves the caller's order.
-  const todo = [...new Set(texts.filter((t) => !cache.has(t)))].sort((a, b) => a.length - b.length);
+  const hits = new Map<string, Float32Array>();
+  for (const text of texts) { const hit = cache.get(text); if (hit) hits.set(text, hit); }
+  const todo = [...new Set(texts.filter((t) => !hits.has(t)))].sort((a, b) => a.length - b.length);
   const fresh = new Map<string, Float32Array>();
   if (todo.length) {
     const model = await loadModel();
+    await checkpoint(signal);
     const start = performance.now();
-    for (let i = 0; i < todo.length; i += BATCH) {
-      const batch = todo.slice(i, i + BATCH);
-      const out = await model(batch, { pooling: 'mean', normalize: true });
+    const windows = todo.map((text) => splitToFit(text, (piece) => model.tokenizer.encode(piece).length <= MAX_TOKENS));
+    const flat = windows.flat();
+    const vectors: Float32Array[] = [];
+    for (let i = 0; i < flat.length; i += BATCH) {
+      await checkpoint(signal);
+      const out = await model(flat.slice(i, i + BATCH), { pooling: 'mean', normalize: true });
+      signal?.throwIfAborted();
       const data = out.data as Float32Array;
-      batch.forEach((t, j) => fresh.set(t, data.slice(j * DIM, (j + 1) * DIM)));
+      for (let j = 0; j < Math.min(BATCH, flat.length - i); j++) vectors.push(data.slice(j * DIM, (j + 1) * DIM));
     }
+    let offset = 0;
+    todo.forEach((text, i) => {
+      const vector = new Float32Array(DIM);
+      for (let j = 0; j < windows[i].length; j++) {
+        const next = vectors[offset++];
+        for (let k = 0; k < DIM; k++) vector[k] += next[k];
+      }
+      const norm = Math.hypot(...vector) || 1;
+      fresh.set(text, vector.map((value) => value / norm));
+    });
     const ms = performance.now() - start;
     console.log(`[ctrlf++] ${backend}: embedded ${todo.length} passages in ${Math.round(ms)} ms (${(ms / todo.length).toFixed(1)} ms/passage)`);
   }
-  const result = texts.map((t) => fresh.get(t) ?? cache.get(t)!);
+  const result = texts.map((t) => fresh.get(t) ?? hits.get(t)!);
   for (const [t, v] of fresh) cache.set(t, v);
-  const dropped: string[] = [];
-  for (const t of cache.keys()) {
-    if (cache.size <= MAX_CACHED) break;
-    cache.delete(t);
-    dropped.push(t);
-  }
-  saveStore('vectors', fresh, dropped);
   return result;
 }

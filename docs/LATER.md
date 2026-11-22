@@ -12,8 +12,6 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Rust/WASM port of scoring and the index
 - Databricks-trained link scorer and analytics dashboard
 - Contradiction finder
-- Persistent cache is only a hidden demo toggle (Option-click Settings). A real version needs expiry (re-check pages after a few hours, or with If-Modified-Since) and a per-site size budget
-- The read cache never expires within a session; newly posted Canvas content shows up only after reloading the extension
 - JavaScript-built pages read through the tab fallback aren't cached, so they need the network
 - Fuzzy highlight matching when a passage was cut mid-word or the page changed after extraction
 - Smarter boilerplate removal on non-Canvas sites (only nav/header/footer are skipped today)
@@ -24,4 +22,3 @@ Skipped for the MadHacks demo. Each item has a `// LATER:` comment at the spot i
 - Password-protected files, Word headers/footnotes/tracked changes, and embedded objects
 - Documents over 50 MB; stream or cache their bytes instead of keeping the entire file in memory
 - Canvas external-tool launches and discussion module items are excluded; announcements use the read-only announcements API
-- Side panel rebuilds the whole results list and rescans the graph on every node message (O(n) each). Fine for Semantic on Canvas; Exact on a link-heavy site may stutter. Batch updates per animation frame.

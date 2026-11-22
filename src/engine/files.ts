@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import type { CanvasContext, CanvasFile, FileData, FileSection } from '../shared/types';
 import { canvasGet } from './canvas';
+import type { CanvasFetch } from '../shared/canvas-api';
 
 export const MAX_BYTES = 50 * 1024 * 1024;
 
@@ -12,10 +13,10 @@ export function fileKind(filename: string, mime: string): FileData['kind'] | nul
   return null;
 }
 
-export async function downloadCanvasFile(url: string, context: CanvasContext, signal: AbortSignal): Promise<FileData> {
+export async function downloadCanvasFile(url: string, context: CanvasContext, signal: AbortSignal, request?: CanvasFetch): Promise<FileData> {
   const id = new URL(url).pathname.match(/\/files\/(\d+)$/)?.[1];
   if (!id) throw new Error('Invalid Canvas file link');
-  const file = await canvasGet<CanvasFile>(`/api/v1/courses/${context.courseId}/files/${id}`, context, signal);
+  const file = await canvasGet<CanvasFile>(`/api/v1/courses/${context.courseId}/files/${id}`, context, signal, request);
   if (file.locked_for_user || file.hidden_for_user) throw new Error('File locked or hidden');
   const kind = fileKind(file.filename, file['content-type']);
   // LATER: OCR, images, legacy .ppt/.doc and password-protected files.

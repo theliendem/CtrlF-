@@ -1,0 +1,443 @@
+{
+  "description": "Handwritten synthetic CS/course content. Dates and policies are fictional, not statements about the user course. Fixed train/test split; no-answer queries have no relevant page.",
+  "pages": [
+    {
+      "id": "lists-overview",
+      "title": "Overview: Linked Lists",
+      "blocks": [
+        "Linked Lists",
+        "A linked list stores a sequence of elements in nodes connected by references. This overview introduces singly and doubly linked lists, traversal, insertion, deletion, and the tradeoffs compared with arrays. Each node stores data and a reference to the next node."
+      ]
+    },
+    {
+      "id": "lists-announcement",
+      "title": "LEC28: Doubly Linked Lists Posted!",
+      "blocks": [
+        "Lecture Update",
+        "The recording for lecture 28 about doubly linked lists is now posted. Watch the recording before the next class. This announcement does not provide the full linked list overview."
+      ]
+    },
+    {
+      "id": "lists-program",
+      "title": "Program 7: Instructions",
+      "blocks": [
+        "Program 7",
+        "Implement a train using a doubly linked list. Your submission must include a Node class, insertion and deletion tests, and a working iterator. Submit the Java source files to the assignment portal by Wednesday."
+      ]
+    },
+    {
+      "id": "lists-chat",
+      "title": "LLM: Linked Lists",
+      "blocks": [
+        "Practice Prompts",
+        "Ask a chatbot to quiz you on linked lists. Discuss nodes and references with the assistant and check its responses against the course notes."
+      ]
+    },
+    {
+      "id": "recursion",
+      "title": "Overview: Recursion",
+      "blocks": [
+        "Recursion",
+        "A recursive method calls itself on a smaller problem until a base case is reached. Trace the call stack to understand how each call returns. The Fibonacci sequence and factorial illustrate recursive decomposition."
+      ]
+    },
+    {
+      "id": "binary-search",
+      "title": "Binary Search",
+      "blocks": [
+        "Searching Sorted Arrays",
+        "Binary search repeatedly halves the search interval in a sorted array. Its worst case running time is O(log n). Linear search checks each element and takes O(n) time."
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "Stacks",
+      "blocks": [
+        "Stack Operations",
+        "A stack removes the most recently added item first. This last in first out structure uses push to insert and pop to remove. An undo history can be implemented with a stack."
+      ]
+    },
+    {
+      "id": "queue",
+      "title": "Queues",
+      "blocks": [
+        "Queue Operations",
+        "A queue removes the earliest added item first. This first in first out structure uses enqueue and dequeue. A printer job scheduler is a typical example."
+      ]
+    },
+    {
+      "id": "iterator",
+      "title": "Iterators",
+      "blocks": [
+        "Iterating Over Collections",
+        "An iterator visits collection elements without exposing the internal representation. The hasNext method checks whether another element exists; next returns that element."
+      ]
+    },
+    {
+      "id": "exceptions",
+      "title": "Exception Handling",
+      "blocks": [
+        "Handling Errors",
+        "Use try and catch to handle exceptions without terminating the entire Java application. A finally block runs after the try and catch blocks to clean up resources."
+      ]
+    },
+    {
+      "id": "generics",
+      "title": "Generics",
+      "blocks": [
+        "Generic Types",
+        "Java generics let one class work with different element types while preserving compile time type safety. Use a type parameter such as T rather than casting every stored Object."
+      ]
+    },
+    {
+      "id": "inheritance",
+      "title": "Inheritance",
+      "blocks": [
+        "Extending Classes",
+        "A subclass inherits fields and methods from a superclass. Use extends to declare the relationship. Overriding a method changes its behavior for instances of the subclass."
+      ]
+    },
+    {
+      "id": "midterm1",
+      "title": "Midterm 1 Schedule",
+      "blocks": [
+        "Midterm 1",
+        "Monday, September 28 at 7 PM in room 101. Bring your student ID and two pencils."
+      ]
+    },
+    {
+      "id": "midterm2",
+      "title": "Midterm 2 Schedule",
+      "blocks": [
+        "Midterm 2",
+        "Friday, October 30 at 6 PM in room 205. Bring your student ID and two pencils."
+      ]
+    },
+    {
+      "id": "program7",
+      "title": "Program 7 Deadline",
+      "blocks": [
+        "Program 7",
+        "The deadline is Wednesday, November 11 at 11:59 PM. Upload the source code to Gradescope."
+      ]
+    },
+    {
+      "id": "program8",
+      "title": "Program 8 Deadline",
+      "blocks": [
+        "Program 8",
+        "The deadline is Wednesday, November 25 at 11:59 PM. Upload the source code to Gradescope."
+      ]
+    },
+    {
+      "id": "collaboration",
+      "title": "Collaboration Policy",
+      "blocks": [
+        "Academic Conduct",
+        "You may discuss general approaches with classmates. Every student must write and submit their own code. Sharing source files or copying another person's implementation is prohibited."
+      ]
+    },
+    {
+      "id": "late",
+      "title": "Late Work",
+      "blocks": [
+        "Submission Policy",
+        "Assignments submitted after the deadline lose ten percent per day. No submissions are accepted more than three days late."
+      ]
+    },
+    {
+      "id": "office",
+      "title": "Drop-in Help",
+      "blocks": [
+        "Getting Help",
+        "Teaching assistants offer drop-in help on Tuesday and Thursday from 2 PM to 4 PM in the computer science lab. No appointment is required."
+      ]
+    },
+    {
+      "id": "grading",
+      "title": "Grading Policy",
+      "blocks": [
+        "Course Grades",
+        "Programming projects account for forty percent of the final grade. Exams account for fifty percent and participation accounts for ten percent."
+      ]
+    },
+    {
+      "id": "bst",
+      "title": "Binary Search Trees",
+      "blocks": [
+        "Ordered Trees",
+        "Each node in a binary search tree has at most two children. Keys in the left subtree are smaller and keys in the right subtree are larger. Inorder traversal visits keys in sorted order."
+      ]
+    },
+    {
+      "id": "arrays",
+      "title": "Arrays",
+      "blocks": [
+        "Array Storage",
+        "An array stores elements in consecutive indexed slots and provides constant time access by index. Its length is fixed after allocation, unlike a linked structure that grows by adding nodes."
+      ]
+    },
+    {
+      "id": "sorting",
+      "title": "Sorting Algorithms",
+      "blocks": [
+        "Merge Sort",
+        "Merge sort divides the input into halves, sorts them recursively, and merges the sorted halves. Its worst case time complexity is O(n log n)."
+      ]
+    },
+    {
+      "id": "null",
+      "title": "Null References",
+      "blocks": [
+        "NullPointerException",
+        "A NullPointerException occurs when code tries to access a field or call a method through a null reference. Check whether an object exists before dereferencing it."
+      ]
+    },
+    {
+      "id": "polymorphism",
+      "title": "Polymorphism",
+      "blocks": [
+        "Dynamic Dispatch",
+        "A superclass reference can point to a subclass instance. The overridden instance method called at runtime depends on the actual object type, not just the reference declaration."
+      ]
+    },
+    {
+      "id": "noise",
+      "title": "Course Announcements",
+      "blocks": [
+        "Campus Update",
+        "The cafeteria serves lunch from eleven until two. Bicycle parking is located beside the library. The campus art show opens next week."
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "query": "linked list",
+      "expected": [
+        "lists-overview"
+      ],
+      "split": "test",
+      "kind": "topic"
+    },
+    {
+      "query": "why use nodes instead of an array",
+      "expected": [
+        "lists-overview"
+      ],
+      "split": "test",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "when is midterm 2",
+      "expected": [
+        "midterm2"
+      ],
+      "split": "train",
+      "kind": "number"
+    },
+    {
+      "query": "second midterm room",
+      "expected": [
+        "midterm2"
+      ],
+      "split": "train",
+      "kind": "number"
+    },
+    {
+      "query": "when is midterm 1",
+      "expected": [
+        "midterm1"
+      ],
+      "split": "test",
+      "kind": "number"
+    },
+    {
+      "query": "program 7 due date",
+      "expected": [
+        "program7"
+      ],
+      "split": "train",
+      "kind": "number"
+    },
+    {
+      "query": "when do I turn in program 8",
+      "expected": [
+        "program8"
+      ],
+      "split": "test",
+      "kind": "number"
+    },
+    {
+      "query": "can I work with friends",
+      "expected": [
+        "collaboration"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "can I copy my partner code",
+      "expected": [
+        "collaboration"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "what happens if I submit late",
+      "expected": [
+        "late"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "how many days after the deadline can I submit",
+      "expected": [
+        "late"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "where can I get help without an appointment",
+      "expected": [
+        "office"
+      ],
+      "split": "test",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "how much do projects count toward my grade",
+      "expected": [
+        "grading"
+      ],
+      "split": "train",
+      "kind": "question"
+    },
+    {
+      "query": "a method calling itself",
+      "expected": [
+        "recursion"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "fibonacci sequence",
+      "expected": [
+        "recursion"
+      ],
+      "split": "train",
+      "kind": "topic"
+    },
+    {
+      "query": "search a sorted array efficiently",
+      "expected": [
+        "binary-search"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "remove the most recently added item",
+      "expected": [
+        "stack"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "first in first out",
+      "expected": [
+        "queue"
+      ],
+      "split": "test",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "what do hasNext and next do",
+      "expected": [
+        "iterator"
+      ],
+      "split": "train",
+      "kind": "question"
+    },
+    {
+      "query": "handle errors with try catch",
+      "expected": [
+        "exceptions"
+      ],
+      "split": "train",
+      "kind": "topic"
+    },
+    {
+      "query": "one class that stores different types safely",
+      "expected": [
+        "generics"
+      ],
+      "split": "test",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "subclass extends superclass",
+      "expected": [
+        "inheritance"
+      ],
+      "split": "train",
+      "kind": "topic"
+    },
+    {
+      "query": "visit tree keys in sorted order",
+      "expected": [
+        "bst"
+      ],
+      "split": "train",
+      "kind": "paraphrase"
+    },
+    {
+      "query": "merge sort running time",
+      "expected": [
+        "sorting"
+      ],
+      "split": "test",
+      "kind": "question"
+    },
+    {
+      "query": "when is midterm 4",
+      "expected": [],
+      "split": "train",
+      "kind": "no-answer"
+    },
+    {
+      "query": "what is the program 12 deadline",
+      "expected": [],
+      "split": "test",
+      "kind": "no-answer"
+    },
+    {
+      "query": "what is the professor phone number",
+      "expected": [],
+      "split": "train",
+      "kind": "no-answer"
+    },
+    {
+      "query": "where do I buy the required textbook",
+      "expected": [],
+      "split": "train",
+      "kind": "no-answer"
+    },
+    {
+      "query": "what is the final exam date",
+      "expected": [],
+      "split": "train",
+      "kind": "no-answer"
+    },
+    {
+      "query": "how do I request a parking permit",
+      "expected": [],
+      "split": "test",
+      "kind": "no-answer"
+    }
+  ]
+}

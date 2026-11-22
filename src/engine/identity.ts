@@ -2,15 +2,18 @@
 // through many URLs (redirect titles served with 200, ?title= aliases, mobile/desktop), so two
 // different links can read the same page. Any shared key means the second read is a duplicate.
 // Pure functions: used by the offscreen engine and the service worker.
+import { canvasContext } from './links';
 
 /** Below this many words, pages are too generic ("Loading…", stubs) to fingerprint safely. */
 const MIN_FINGERPRINT_WORDS = 50;
 
-/** A URL without its fragment; #section links read the same document. */
+/** Ordinary fragments share a document; Canvas module fragments select distinct API reads. */
 export function urlKey(raw: string): string | null {
   try {
     const url = new URL(raw);
-    url.hash = '';
+    const module = canvasContext(raw) && /^\/courses\/\d+\/modules\/?$/.test(url.pathname)
+      && /^#context_module_\d+$/.test(url.hash);
+    if (!module) url.hash = '';
     return `url:${url.href}`;
   } catch {
     return null;

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isCanvasHub, isFileLink, linkText, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
+import { isCanvasHub, isFileLink, linkText, topicTitleBoost, semanticLinks, semanticPassages, type Embed } from '../src/engine/semantic.ts';
 import { runBestFirst } from '../src/background/queue.ts';
 import { LINK_MIN, LINK_PEEK, SEMANTIC_RELEVANT, type DigEntry, type DigRun } from '../src/shared/types.ts';
 
@@ -26,7 +26,7 @@ test('a passage with no shared words is found and its closest sentence is marked
     'Welcome to the course. We meet in room 1240.',
     'Grading. Work submitted after the deadline loses 10% per day. Groups of three are fine for projects.',
   ];
-  const passages = await semanticPassages('can I turn stuff in late', blocks, fakeEmbed);
+  const passages = await semanticPassages('can I turn stuff in late', blocks, { embed: fakeEmbed, countTokens: (text) => text.split(/\s+/).length, rerank: null });
   const best = passages[0];
   assert.ok(best.score >= SEMANTIC_RELEVANT, `score ${best.score}`);
   assert.equal(best.kw, 0); // no query word appears in it
@@ -34,7 +34,7 @@ test('a passage with no shared words is found and its closest sentence is marked
 });
 
 test('keyword sentences are still marked directly when the query words appear', async () => {
-  const passages = await semanticPassages('midterm calculator', ['You may bring a calculator to the midterm. Lunch is not provided.'], fakeEmbed);
+  const passages = await semanticPassages('midterm calculator', ['You may bring a calculator to the midterm. Lunch is not provided.'], { embed: fakeEmbed, countTokens: (text) => text.split(/\s+/).length, rerank: null });
   assert.deepEqual(passages[0].marks, ['You may bring a calculator to the midterm.']);
 });
 
@@ -133,4 +133,81 @@ test('best-first pauses with the rest still queued, and a second run resumes it'
   await runBestFirst(dig, visit, () => true, 60, 2);
   assert.deepEqual(order, ['5', '4', '3', '2', '1', '0']);
   assert.equal(dig.queue.length, 0);
+});
+
+const fakeCount = (text: string): number => text.split(/\s+/).length;
+
+test('reranker sees query/passage pairs and can promote a candidate below the old cutoff', async () => {
+  const query = 'when is the assessment';
+  const chunks = [
+    { text: 'Assessment policy mentions the assessment.', parts: ['Assessment policy mentions the assessment.'] },
+    { text: 'Friday at ten in the morning.', parts: ['Friday at ten in the morning.'] },
+  ];
+  let calls = 0;
+  const output = await semanticPassages(query, ['nonempty'], {
+    embed: async (texts) => texts.map(() => new Float32Array([0])),
+    countTokens: fakeCount, chunks, rerankWeight: 0.65,
+    rerank: async (q, texts) => {
+      calls++;
+      assert.equal(q, query);
+      assert.equal(texts.length, 2);
+      return texts.map((text) => text.startsWith('Friday') ? 0.95 : 0.05);
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(output[0].text, chunks[1].text);
+  assert.ok(output[0].score >= SEMANTIC_RELEVANT);
+  assert.deepEqual(output[0].marks, ['Friday at ten in the morning.']);
+});
+
+test('reranking is capped at twenty candidates and still penalizes conflicting exam numbers', async () => {
+  const chunks = Array.from({ length: 35 }, (_, i) => ({ text: `Midterm ${i + 1} date is Friday.`, parts: [`Midterm ${i + 1} date is Friday.`] }));
+  const output = await semanticPassages('midterm 2 date', ['nonempty'], {
+    embed: async (texts) => texts.map(() => new Float32Array([1])), countTokens: fakeCount, chunks,
+    rerank: async (_query, texts) => { assert.equal(texts.length, 20); return texts.map(() => 1); },
+  });
+  assert.equal(output.length, 20);
+  assert.equal(output[0].text, 'Midterm 2 date is Friday.');
+  assert.ok(output[0].score > output[1].score);
+});
+
+test('invalid reranker outputs fail explicitly and empty pages load no models', async () => {
+  const options = { embed: fakeEmbed, countTokens: fakeCount, rerank: async () => [NaN] };
+  await assert.rejects(semanticPassages('midterm', ['Midterm is Friday.'], options), /invalid scores/);
+  assert.deepEqual(await semanticPassages('midterm', [], { rerank: async () => { throw new Error('must not run'); } }), []);
+});
+
+
+test('short topic queries prefer an exact overview title without boosting unrelated pages or questions', () => {
+  assert.ok(topicTitleBoost('linked list', 'Overview: Linked Lists') > 0);
+  assert.equal(topicTitleBoost('linked list', 'LLM: Linked Lists'), 0);
+  assert.equal(topicTitleBoost('linked list', 'LEC28: Doubly Linked Lists Posted!'), 0);
+  assert.equal(topicTitleBoost('when is midterm 2', 'Overview: Midterm 2'), 0);
+  assert.equal(topicTitleBoost('program 7', 'Overview: Program 8'), 0);
+});
+
+test('cancelling passage embedding prevents reranking and further scoring', async () => {
+  const controller = new AbortController();
+  let reranked = false;
+  await assert.rejects(semanticPassages('midterm', ['Midterm review notes.'], {
+    signal: controller.signal,
+    countTokens: (text) => text.split(/\s+/).length,
+    embed: async (texts, signal) => {
+      assert.equal(signal, controller.signal);
+      controller.abort();
+      return fakeEmbed(texts);
+    },
+    rerank: async () => { reranked = true; return [1]; },
+  }), { name: 'AbortError' });
+  assert.equal(reranked, false);
+});
+
+test('cancelled link scoring returns no stale recommendations', async () => {
+  const controller = new AbortController();
+  await assert.rejects(semanticLinks('midterm', [{ url: 'https://example.edu/notes', title: 'Midterm', heading: '' }], 1, false,
+    async (texts, signal) => {
+      assert.equal(signal, controller.signal);
+      controller.abort();
+      return fakeEmbed(texts);
+    }, true, controller.signal), { name: 'AbortError' });
 });

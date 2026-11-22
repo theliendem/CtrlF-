@@ -1,88 +1,84 @@
-// Splits page blocks into passages of about 25-80 words (1-3 sentences for prose).
-// Paragraphs stay whole. Short blocks (headings, list items, table cells) are merged
-// forward, so a heading travels with the paragraph under it.
+// Original substrings are preserved for highlighting. Context is used for ranking only.
+export interface Chunk { text: string; parts: string[] }
+export type TokenCount = (text: string) => number;
+export interface ChunkOptions { countTokens?: TokenCount; maxTokens?: number; overlap?: boolean; title?: string }
+const sentences = new Intl.Segmenter('en', { granularity: 'sentence' });
+const words = (text: string): number => text.split(/\s+/u).filter(Boolean).length;
 
-const MIN_CHUNK_WORDS = 25;
-const MAX_WORDS = 80;
-const SHORT = 15; // blocks under this many words are "short" and get merged
-const HEADING = 8; // a short run this small is a heading and travels with the next paragraph
-const MAX_SENTENCES = 3;
+/** Split oversized sentences, even a single long code identifier, without dropping characters. */
+export function splitToFit(text: string, fits: (text: string) => boolean): string[] {
+  const pieces: string[] = [];
+  let remaining = text.trim();
+  while (remaining && !fits(remaining)) {
+    // Find a fitting prefix, then prefer its last word boundary. Token counts need not be monotonic.
+    let length = Math.max(1, Math.floor(remaining.length / 2));
+    while (length > 1 && !fits(remaining.slice(0, length))) length = Math.floor(length / 2);
+    if (!fits(remaining.slice(0, length))) throw new Error('Token budget cannot fit one character');
+    const boundary = remaining.slice(0, length).search(/\s+\S*$/u);
+    if (boundary > 0 && fits(remaining.slice(0, boundary))) length = boundary;
+    pieces.push(remaining.slice(0, length).trim());
+    remaining = remaining.slice(length).trim();
+  }
+  if (remaining) pieces.push(remaining);
+  return pieces;
+}
 
-const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
-const words = (s: string): number => s.split(/\s+/).filter(Boolean).length;
-
-/** Breaks a long block into groups of up to 3 sentences / 80 words. */
-function splitLong(block: string): string[] {
-  const out: string[] = [];
-  let cur: string[] = [];
-  let n = 0;
-  const flush = (): void => {
-    if (cur.length) out.push(cur.join(' '));
-    cur = [];
-    n = 0;
+/** Infer short heading blocks; actual token counts are supplied by the bundled tokenizer. */
+export function chunk(blocks: string[], options: ChunkOptions = {}): Chunk[] {
+  const count = options.countTokens ?? words;
+  const maxTokens = options.maxTokens ?? 256;
+  const fits = (text: string): boolean => count(text) <= maxTokens && words(text) <= 80;
+  const out: Chunk[] = [];
+  let heading = '';
+  let headingUsed = false;
+  let previous = '';
+  let parts: string[] = [];
+  const textFor = (body: string[]): string => {
+    let text = body.join(' ');
+    // Reserve the document topic before local heading/overlap context. Never drop body text.
+    const contexts = [options.title, heading, options.overlap !== false ? previous : ''];
+    const included: string[] = [];
+    for (const context of contexts) {
+      const candidate = [...included, context, body.join(' ')].filter(Boolean).join(' ');
+      if (context && !text.includes(context) && !included.includes(context) && fits(candidate)) {
+        included.push(context);
+        text = candidate;
+      }
+    }
+    return [...included, body.join(' ')].join(' ');
   };
-  for (const seg of segmenter.segment(block)) {
-    const s = seg.segment.trim();
-    if (!s) continue;
-    const w = words(s);
-    if (w > MAX_WORDS) {
+  const flush = (): void => {
+    if (!parts.length) return;
+    const text = textFor(parts);
+    out.push({ text, parts });
+    headingUsed ||= text.includes(heading);
+    previous = parts.at(-1)!;
+    parts = [];
+  };
+  const flushHeading = (): void => {
+    if (heading && !headingUsed) out.push({ text: heading, parts: [heading] });
+  };
+  for (const raw of blocks) {
+    const block = raw.trim();
+    if (!block) continue;
+    if (words(block) <= 8 && !/[.!?;\n]/u.test(block) && fits(block)) {
       flush();
-      const ws = s.split(/\s+/);
-      for (let i = 0; i < ws.length; i += 60) out.push(ws.slice(i, i + MAX_WORDS).join(' '));
+      flushHeading();
+      heading = block;
+      headingUsed = false;
+      previous = '';
       continue;
     }
-    if (n + w > MAX_WORDS || (cur.length >= MAX_SENTENCES && n >= MIN_CHUNK_WORDS)) flush();
-    cur.push(s);
-    n += w;
-  }
-  flush();
-  return out;
-}
-
-/** A passage plus the blocks it was built from, so highlights can target just the matching pieces. */
-export interface Chunk {
-  text: string;
-  parts: string[];
-}
-
-const mk = (parts: string[]): Chunk => ({ text: parts.join(' '), parts });
-
-export function chunk(blocks: string[]): Chunk[] {
-  const out: Chunk[] = [];
-  let pending: string[] = []; // short blocks waiting for context
-  let pendingWords = 0;
-  const flushPending = (): void => {
-    if (pending.length) out.push(mk(pending));
-    pending = [];
-    pendingWords = 0;
-  };
-
-  for (const block of blocks) {
-    const w = words(block);
-    if (w < SHORT) {
-      if (pendingWords + w > MAX_WORDS) flushPending();
-      pending.push(block);
-      pendingWords += w;
-      if (pendingWords >= MIN_CHUNK_WORDS) flushPending();
-    } else if (w <= MAX_WORDS) {
-      if (pendingWords <= HEADING && pendingWords + w <= MAX_WORDS) {
-        out.push(mk([...pending, block]));
-        pending = [];
-        pendingWords = 0;
-      } else {
-        flushPending();
-        out.push(mk([block]));
+    for (const { segment } of sentences.segment(block)) {
+      const context = options.title || heading;
+      const bodyFits = (text: string): boolean => fits(text) && (!context || count(context) > maxTokens / 3 || fits(`${context} ${text}`));
+      for (const piece of splitToFit(segment, bodyFits)) {
+        if (parts.length && (!bodyFits([...parts, piece].join(' ')) || (parts.length >= 3 && words(parts.join(' ')) >= 25))) flush();
+        parts.push(piece);
       }
-    } else {
-      const pieces = splitLong(block).map((p) => mk([p]));
-      if (pending.length && pieces.length && pendingWords <= HEADING && pendingWords + words(pieces[0].text) <= MAX_WORDS) {
-        pieces[0] = mk([...pending, pieces[0].text]);
-        pending = [];
-        pendingWords = 0;
-      } else flushPending();
-      out.push(...pieces);
     }
   }
-  flushPending();
+  flush();
+  flushHeading();
   return out;
 }

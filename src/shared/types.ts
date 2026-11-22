@@ -1,3 +1,5 @@
+import { SEMANTIC_TUNING } from '../engine/tuning';
+
 // Shared message and data types. Every message shape lives here.
 // Runtime messages carry `to` so each extension page only answers its own.
 
@@ -19,7 +21,9 @@ export interface Passage {
   text: string;
   /** Exact relevant sentences or clauses to highlight, without surrounding passage text. */
   marks: string[];
-  score: number; // hybrid: 0.7 * cos + 0.3 * kw (after number penalty)
+  score: number; // Final reranked score in semantic mode; 1 for exact matches.
+  retrievalScore?: number;
+  rerankScore?: number;
   cos: number;
   kw: number;
 }
@@ -65,10 +69,15 @@ export interface PageText {
 export interface DigLink { url: string; title: string; heading: string; score?: number }
 export type SearchMode = 'exact' | 'semantic';
 export interface ExactMatch { start: number; end: number; text: string }
-/** keepCache: hidden demo setting; the engine also keeps its caches in IndexedDB so they survive restarts. */
+/** keepCache is retained for saved-settings compatibility; search caches are memory-only. */
 export interface SearchSettings { mode: SearchMode; pageBudget: number; maxDepth: number; showOffsite: boolean; showUnreadable: boolean; keepCache: boolean }
 export interface SkippedLink { url: string; title: string; state: 'not-followed' | 'unreadable'; kind: NodeKind }
-export interface CanvasContext { origin: string; courseId: string }
+export interface CanvasContext {
+  origin: string;
+  courseId: string;
+  /** Firefox/Zen requests use the session belonging to the tab that started the search. */
+  sourceTabId?: number;
+}
 /** Any other site: same-origin links only. */
 export interface SiteContext { origin: string; courseId?: undefined }
 export type DigContext = CanvasContext | SiteContext;
@@ -107,7 +116,7 @@ export interface HighlightPassage {
 // ---------- Side panel -> service worker ----------
 
 /** windowId: the browser window the panel is attached to, so the SW reads the right tab. */
-export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number }
+export interface SearchMsg { to: 'sw'; type: 'search'; query: string; windowId: number; refresh?: boolean }
 export interface ClearMsg { to: 'sw'; type: 'clear' }
 export interface StopMsg { to: 'sw'; type: 'stop' }
 /** Continue a dig that paused itself; query and windowId rerun the search if the worker lost it. */
@@ -127,13 +136,15 @@ export interface NodeMsg { to: 'panel'; type: 'node'; node: TreeNode }
 
 // ---------- Service worker -> offscreen engine ----------
 
+export interface RefreshContentMsg { to: 'offscreen'; type: 'refresh-content' }
+export interface ScoreLinksResult { links: DigLink[]; error?: string }
 export interface WarmupMsg { to: 'offscreen'; type: 'warmup' }
-export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; mode: SearchMode; query: string; url: string; blocks: string[]; keepCache: boolean }
+export interface ScorePageMsg { to: 'offscreen'; type: 'score-page'; run?: number; mode: SearchMode; query: string; url: string; title?: string; blocks: string[]; keepCache: boolean }
 export interface ScorePageResult { passages: Passage[]; ms: number; error?: string }
 export interface DigReadMsg { to: 'offscreen'; type: 'dig-read'; run: number; query: string; context: DigContext; url: string; depth: number; settings: SearchSettings; visited: string[]; seed?: DigLink[] }
 export interface CancelDigMsg { to: 'offscreen'; type: 'cancel-dig'; run: number }
 /** Pick which links to follow (pages read in a tab). Replies with DigLink[], best first. depth = the links' own depth; from = the page they're on. */
-export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext; from: string }
+export interface ScoreLinksMsg { to: 'offscreen'; type: 'score-links'; run?: number; mode: SearchMode; query: string; links: DigLink[]; depth: number; context: DigContext; from: string }
 
 export type RuntimeMsg =
   | SearchMsg
@@ -146,6 +157,7 @@ export type RuntimeMsg =
   | ResetMsg
   | StatusMsg
   | NodeMsg
+  | RefreshContentMsg
   | WarmupMsg
   | DigReadMsg
   | CancelDigMsg
@@ -161,7 +173,11 @@ export interface ClearHighlightsMsg { type: 'clear-highlights' }
 export interface PingMsg { type: 'ping' }
 export interface HighlightFileMsg { type: 'highlight-file'; fileId?: string; url: string; title: string }
 
-export type ContentMsg = ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg | HighlightExactMsg;
+export interface CanvasApiGetMsg { type: 'canvas-api-get'; requestId: string; url: string; context: CanvasContext }
+export interface CanvasApiCancelMsg { type: 'canvas-api-cancel'; requestId: string }
+export type CanvasApiResponse = { status: number; body: string; link: string | null } | { error: string };
+
+export type ContentMsg = CanvasApiGetMsg | CanvasApiCancelMsg | ExtractMsg | HighlightMsg | ClearHighlightsMsg | PingMsg | HighlightFileMsg | HighlightExactMsg;
 
 // ---------- Tuning (PRD starting values) ----------
 
@@ -172,11 +188,8 @@ export const W_KW = 0.3;
 /** Penalty when a passage or link names the same thing with a different number. Pushes it under the cutoff. */
 export const CONFLICT_FACTOR = 0.4;
 
-// Semantic mode. MiniLM ranks well but scores paraphrases low: a no-shared-words match
-// ("is working with friends allowed" -> the collaboration policy) scored 0.26 hybrid; unrelated
-// passages with no shared words stayed at or under 0.24. Measured on syllabus-style text with the
-// bundled q8 model; tune on the demo course.
-export const SEMANTIC_RELEVANT = 0.25;
+// Semantic cutoff is calibrated against the labeled retrieval benchmark (docs/SEMANTIC-SEARCH.md).
+export const SEMANTIC_RELEVANT = SEMANTIC_TUNING.relevant;
 /** Links under this are not followed (Canvas hubs get this as a floor, see engine/semantic.ts). */
 export const LINK_MIN = 0.25;
 /** At most this many links per page enter the queue (the PRD's "peek" cap). */

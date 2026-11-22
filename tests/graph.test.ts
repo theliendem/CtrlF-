@@ -154,3 +154,16 @@ test('a bridge points at the child on the path to its best hit below', () => {
   assert.equal(b.get('b'), 'b1');
   assert.ok(!b.has('a1') && !b.has('b1'));
 });
+
+test('batched graph updates preserve hidden queue ancestry and settle without revealing the backlog', (t) => {
+  const { graph, titles } = setup(t);
+  graph.upsertMany([
+    node('root', 'ruled-out'),
+    { ...node('queued', 'queued', 'root'), deferred: true },
+  ]);
+  t.mock.timers.tick(1000);
+  assert.deepEqual(titles(), ['root']);
+  graph.upsertMany([{ ...node('queued', 'not-followed', 'root'), deferred: true }]);
+  t.mock.timers.tick(1000);
+  assert.deepEqual(titles(), []);
+});

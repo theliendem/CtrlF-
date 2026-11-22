@@ -1,35 +1,21 @@
 import type { CanvasAnnouncement, CanvasAssignment, CanvasContext, CanvasCourse, CanvasItem, CanvasModule, CanvasPage, DigLink, PageText } from '../shared/types';
 import { pageLinks } from '../shared/page-links';
 
-/** Validate every request, including pagination. Never follow HTTP redirects to an unchecked URL. */
-export function allowedApi(url: URL, context: CanvasContext): boolean {
-  if (url.origin !== context.origin || url.username || url.password) return false;
-  for (const [key, value] of url.searchParams) {
-    if (!['page', 'per_page', 'include[]', 'context_codes[]', 'start_date', 'end_date'].includes(key)) return false;
-    if (key === 'include[]' && !['items', 'syllabus_body'].includes(value)) return false;
-  }
-  let path: string;
-  try { path = decodeURIComponent(url.pathname); } catch { return false; }
-  const root = `/api/v1/courses/${context.courseId}`;
-  if (path === '/api/v1/announcements') {
-    return url.searchParams.getAll('context_codes[]').join() === `course_${context.courseId}`;
-  }
-  if (!path.startsWith(root)) return false;
-  const route = path.slice(root.length);
-  if (/(?:^|[\W_])(logout|delete|submit|submissions?|quizzes?|grades?|inbox|people|users|accounts?|help)(?:$|[\W_])/i.test(route)) return false;
-  return /^(?:|\/modules(?:\/\d+\/items)?|\/pages(?:\/[^/]+)?|\/assignments(?:\/\d+)?|\/files\/\d+)$/.test(route);
-}
+import { allowedApi, directCanvasFetch, type CanvasFetch } from '../shared/canvas-api';
+export { allowedApi } from '../shared/canvas-api';
 
-export async function canvasGet<T>(raw: string, context: CanvasContext, signal: AbortSignal): Promise<T> {
+export async function canvasGet<T>(raw: string, context: CanvasContext, signal: AbortSignal, request: CanvasFetch = directCanvasFetch): Promise<T> {
   const url = new URL(raw, context.origin);
   if (!allowedApi(url, context)) throw new Error('Blocked unsafe Canvas API URL');
-  const response = await fetch(url.href, { method: 'GET', credentials: 'include', redirect: 'error', signal });
-  if (!response.ok) throw new Error(`Canvas HTTP ${response.status}`);
+  const response = await request(url.href, context, signal);
+  if (!response.ok) throw new Error(response.status === 401
+      ? 'Canvas HTTP 401: sign in again in the Canvas tab, then retry the search.'
+      : `Canvas HTTP ${response.status}`);
   const data: unknown = JSON.parse((await response.text()).replace(/^\s*while\s*\(\s*1\s*\)\s*;\s*/, ''));
   return data as T;
 }
 
-export async function canvasList<T>(raw: string, context: CanvasContext, signal: AbortSignal): Promise<T[]> {
+export async function canvasList<T>(raw: string, context: CanvasContext, signal: AbortSignal, request: CanvasFetch = directCanvasFetch): Promise<T[]> {
   const result: T[] = [];
   const visited = new Set<string>();
   let next: string | undefined = new URL(raw, context.origin).href;
@@ -39,8 +25,10 @@ export async function canvasList<T>(raw: string, context: CanvasContext, signal:
     visited.add(next);
     const url = new URL(next);
     if (!allowedApi(url, context) || url.pathname !== initialPath) throw new Error('Blocked unsafe Canvas pagination URL');
-    const response: Response = await fetch(next, { method: 'GET', credentials: 'include', redirect: 'error', signal });
-    if (!response.ok) throw new Error(`Canvas HTTP ${response.status}`);
+    const response: Response = await request(next, context, signal);
+    if (!response.ok) throw new Error(response.status === 401
+      ? 'Canvas HTTP 401: sign in again in the Canvas tab, then retry the search.'
+      : `Canvas HTTP ${response.status}`);
     const data: unknown = JSON.parse((await response.text()).replace(/^\s*while\s*\(\s*1\s*\)\s*;\s*/, ''));
     if (!Array.isArray(data)) throw new Error('Canvas returned a non-list response');
     result.push(...data as T[]);
@@ -105,9 +93,9 @@ function itemLinks(items: CanvasItem[], context: CanvasContext, heading: string)
   });
 }
 
-export async function discoverCourse(context: CanvasContext, signal: AbortSignal): Promise<DigLink[]> {
+export async function discoverCourse(context: CanvasContext, signal: AbortSignal, request: CanvasFetch = directCanvasFetch): Promise<DigLink[]> {
   const base = `${context.origin}/courses/${context.courseId}`;
-  const modules = await canvasList<CanvasModule>(`/api/v1/courses/${context.courseId}/modules?include[]=items&per_page=100`, context, signal);
+  const modules = await canvasList<CanvasModule>(`/api/v1/courses/${context.courseId}/modules?include[]=items&per_page=100`, context, signal, request);
   return [
     ...modules.filter((m) => m.state !== 'locked').map((m) => ({
       url: `${base}/modules#context_module_${m.id}`, title: m.name,
@@ -121,7 +109,7 @@ export async function discoverCourse(context: CanvasContext, signal: AbortSignal
   ];
 }
 
-export async function readCanvas(url: string, context: CanvasContext, signal: AbortSignal): Promise<PageText> {
+export async function readCanvas(url: string, context: CanvasContext, signal: AbortSignal, request: CanvasFetch = directCanvasFetch): Promise<PageText> {
   const base = `${context.origin}/courses/${context.courseId}`;
   const api = `/api/v1/courses/${context.courseId}`;
   const parsed = new URL(url);
@@ -130,27 +118,27 @@ export async function readCanvas(url: string, context: CanvasContext, signal: Ab
   if (route === '/modules' && parsed.hash) {
     const id = parsed.hash.match(/^#context_module_(\d+)$/)?.[1];
     if (!id) throw new Error('Invalid module URL');
-    const items = await canvasList<CanvasItem>(`${api}/modules/${id}/items?per_page=100`, context, signal);
+    const items = await canvasList<CanvasItem>(`${api}/modules/${id}/items?per_page=100`, context, signal, request);
     page = { url, title: '', blocks: [], links: itemLinks(items, context, '') };
   } else if (route === '/modules') {
-    page = { url, title: 'Modules', blocks: [], links: await discoverCourse(context, signal) };
+    page = { url, title: 'Modules', blocks: [], links: await discoverCourse(context, signal, request) };
   } else if (route === '/pages') {
-    const pages = await canvasList<CanvasPage>(`${api}/pages?per_page=100`, context, signal);
+    const pages = await canvasList<CanvasPage>(`${api}/pages?per_page=100`, context, signal, request);
     page = { url, title: 'Pages', blocks: [], links: pages.filter((p) => p.url && !p.locked_for_user).map((p) => ({ url: `${base}/pages/${encodeURIComponent(p.url!)}`, title: p.title, heading: '' })) };
   } else if (route.startsWith('/pages/')) {
-    const data = await canvasGet<CanvasPage>(`${api}${route}`, context, signal);
+    const data = await canvasGet<CanvasPage>(`${api}${route}`, context, signal, request);
     if (data.locked_for_user) throw new Error('Page locked');
     page = parseHtml(data.body ?? '', url, data.title);
   } else if (/^\/assignments\/\d+$/.test(route)) {
-    const data = await canvasGet<CanvasAssignment>(`${api}${route}`, context, signal);
+    const data = await canvasGet<CanvasAssignment>(`${api}${route}`, context, signal, request);
     if (data.locked_for_user || data.is_quiz_assignment || data.quiz_id) throw new Error('Locked or quiz assignment skipped');
     page = parseHtml(data.description ?? '', url, data.name);
   } else if (route === '/assignments') {
-    const assignments = await canvasList<CanvasAssignment>(`${api}/assignments?per_page=100`, context, signal);
+    const assignments = await canvasList<CanvasAssignment>(`${api}/assignments?per_page=100`, context, signal, request);
     page = { url, title: 'Assignments', blocks: [], links: assignments.filter((a) => !a.locked_for_user && !a.is_quiz_assignment && !a.quiz_id).map((a) => ({ url: `${base}/assignments/${a.id}`, title: a.name, heading: '' })) };
   } else if (route === '/announcements' || /^\/discussion_topics\/\d+$/.test(route)) {
     // Read announcement bodies from the announcements endpoint, never discussion replies.
-    const announcements = await canvasList<CanvasAnnouncement>(`/api/v1/announcements?context_codes[]=course_${context.courseId}&per_page=100&start_date=2000-01-01&end_date=${new Date().toISOString().slice(0, 10)}`, context, signal);
+    const announcements = await canvasList<CanvasAnnouncement>(`/api/v1/announcements?context_codes[]=course_${context.courseId}&per_page=100&start_date=2000-01-01&end_date=${new Date().toISOString().slice(0, 10)}`, context, signal, request);
     if (route === '/announcements') {
       page = { url, title: 'Announcements', blocks: [], links: announcements.map((a) => ({ url: `${base}/discussion_topics/${a.id}`, title: a.title, heading: '' })) };
     } else {
@@ -159,7 +147,7 @@ export async function readCanvas(url: string, context: CanvasContext, signal: Ab
       page = parseHtml(data.message ?? '', url, data.title);
     }
   } else if (route === '' || route === '/assignments/syllabus') {
-    const data = await canvasGet<CanvasCourse>(`${api}?include[]=syllabus_body`, context, signal);
+    const data = await canvasGet<CanvasCourse>(`${api}?include[]=syllabus_body`, context, signal, request);
     page = parseHtml(data.syllabus_body ?? '', url, `${data.name} syllabus`);
   } else {
     throw new Error('Unsupported Canvas page');

@@ -71,6 +71,7 @@ export class Graph {
   private camTarget = { x: 0, y: 0, s: 1 };
   private manualUntil = 0;
   private frame = 0;
+  private batching = false;
   private last = 0;
   private drag: { x: number; y: number; moved: boolean } | null = null;
   private suppressClick = false;
@@ -100,6 +101,18 @@ export class Graph {
     this.manualUntil = 0;
     this.cam = { x: 0, y: 0, s: 1 };
     this.camTarget = { x: 0, y: 0, s: 1 };
+  }
+
+  /** Apply a burst of queue updates with one cleanup scan and one layout pass. */
+  upsertMany(nodes: Iterable<TreeNode>): void {
+    this.batching = true;
+    try {
+      for (const node of nodes) this.upsert(node);
+    } finally {
+      this.batching = false;
+      this.scheduleCleanup();
+      this.layout();
+    }
   }
 
   upsert(n: TreeNode): void {
@@ -188,6 +201,7 @@ export class Graph {
   }
 
   private scheduleCleanup(): void {
+    if (this.batching) return;
     const protectedIds = this.protectedAncestors();
     const bridge = bridges(this.nodes.values());
     for (const [id, el] of this.els) {
@@ -234,6 +248,7 @@ export class Graph {
   }
 
   private layout(): void {
+    if (this.batching) return;
     // Leaf-order layout: each leaf takes the next row; parents sit at their children's middle.
     const kids = new Map<string | null, TreeNode[]>();
     for (const id of this.els.keys()) {

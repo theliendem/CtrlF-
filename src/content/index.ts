@@ -1,9 +1,11 @@
+import { extensionApi } from '../shared/browser';
 // Content script: reads the page's visible text and highlights passages with the CSS Custom Highlight API.
 // It never edits the page's HTML.
 import type { ContentMsg, DigLink, HighlightPassage, PageText } from '../shared/types';
 import { visibleTextNodes } from './dom';
 import { pageLinks } from '../shared/page-links';
 import { exactMatches } from '../engine/exact';
+import { createCanvasApiReader } from './canvas';
 
 declare global {
   interface Window { __ctrlfpp?: boolean }
@@ -154,6 +156,7 @@ function highlightExact(query: string): number {
 }
 
 function init(): void {
+  const canvasApi = createCanvasApiReader(() => location.href);
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(`
     ::highlight(ctrlfpp-best) { background-color: #ffcf33; color: #111; }
@@ -161,8 +164,15 @@ function init(): void {
   `);
   document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
 
-  chrome.runtime.onMessage.addListener((msg: ContentMsg, _sender, sendResponse) => {
+  extensionApi.runtime.onMessage.addListener((msg: ContentMsg, _sender, sendResponse) => {
     switch (msg.type) {
+      case 'canvas-api-get':
+        void canvasApi.read(msg).then(sendResponse);
+        return true;
+      case 'canvas-api-cancel':
+        canvasApi.cancel(msg.requestId);
+        sendResponse(true);
+        break;
       case 'ping':
         sendResponse(true);
         break;

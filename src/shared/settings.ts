@@ -12,6 +12,6 @@ export function normalizeSettings(input: unknown): SearchSettings {
     maxDepth: integer(value?.maxDepth, DEFAULT_SETTINGS.maxDepth, 1, 10),
     showOffsite: value?.showOffsite === true,
     showUnreadable: value?.showUnreadable === true,
-    keepCache: value?.keepCache === true,
+    keepCache: false,
   };
 }

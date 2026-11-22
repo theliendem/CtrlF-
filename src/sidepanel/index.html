@@ -24,6 +24,16 @@
           <circle cx="6.5" cy="14" r="2" />
         </svg>
       </button>
+      <div class="search-tools">
+        <div class="mode-control" role="group" aria-label="Search mode">
+          <button id="mode-semantic" type="button" class="mode-option" aria-pressed="true" title="Find passages with similar meaning">Semantic</button>
+          <button id="mode-exact" type="button" class="mode-option" aria-pressed="false" title="Find your exact phrase">Exact</button>
+        </div>
+        <button id="refresh" type="button" class="refresh-btn" title="Fetch fresh content and repeat search" aria-label="Refresh content and repeat search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.6 7A6 6 0 1 0 16 12M15.6 3.5V7H12" /></svg>
+          <span>Refresh</span>
+        </button>
+      </div>
     </header>
     <form id="settings-form" class="settings" hidden>
       <h2>Search settings</h2>
@@ -34,8 +44,7 @@
       <label>Maximum depth <input id="max-depth" type="number" min="1" max="10" step="1" required /></label>
       <label class="check"><input id="show-offsite" type="checkbox" /> Show skipped external links</label>
       <label class="check"><input id="show-unreadable" type="checkbox" /> Show unreadable files</label>
-      <!-- Hidden demo setting: Option/Alt-click the settings button to show it. It stays visible while on. -->
-      <label id="keep-cache-row" class="check" hidden><input id="keep-cache" type="checkbox" /> Keep cache for demos (survives restarts)</label>
+      <p>Recent content is cached in memory for five minutes. Refresh content checks for updates. Search content is not saved to disk.</p>
       <p>PDF, PowerPoint (.pptx), and Word (.docx) files are searched locally. External links are never followed.</p>
       <div class="settings-actions"><button class="btn primary" type="submit">Save settings</button><button id="settings-close" class="btn" type="button">Close</button></div>
       <p id="settings-status" role="status">Changes apply to your next search.</p>

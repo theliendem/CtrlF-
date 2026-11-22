@@ -7,7 +7,7 @@ const EXACT = { ...DEFAULT_SETTINGS, mode: 'exact' as const };
 
 let listener: (message: RuntimeMsg, sender: unknown, respond: (response: any) => void) => unknown;
 Object.assign(globalThis, { chrome: { runtime: { onMessage: { addListener: (handler: typeof listener) => { listener = handler; } } } } });
-await import('../src/offscreen/index.ts');
+await import('../src/offscreen/entry.ts');
 const send = (message: RuntimeMsg): Promise<any> => new Promise((resolve) => listener(message, {}, resolve));
 const context = { origin: 'https://canvas.wisc.edu', courseId: '123' };
 const base = `${context.origin}/courses/123`;
@@ -24,7 +24,7 @@ test('semantic settings no longer stop a read before it starts', async (t) => {
 test('exact link picking for tab-read pages queues every link without the model', async () => {
   const links = [{ url: `${base}/pages/a`, title: 'A', heading: '' }, { url: `${base}/pages/b`, title: 'B', heading: '' }];
   const picked = await send({ to: 'offscreen', type: 'score-links', mode: 'exact', query: 'aardvark', links, depth: 1, context, from: base });
-  assert.deepEqual(picked.map((l: { score: number }) => l.score), [1, 1]);
+  assert.deepEqual(picked.links.map((l: { score: number }) => l.score), [0, 0]);
 });
 
 test('exact engine queues every module and every nested file with unrelated titles', async (t) => {
@@ -70,4 +70,55 @@ test('a second read of the same pages works offline from the cache', async (t) =
   assert.equal(again.error, undefined);
   assert.deepEqual(again.links, first.links);
   assert.deepEqual(moduleAgain.links, module.links);
+});
+
+test('exact engine ranks link titles, URLs and headings while retaining every candidate', async () => {
+  const links = [
+    { url: `${base}/pages/policies`, title: 'Policies', heading: '' },
+    { url: `${base}/pages/review`, title: 'Midterm 2 review', heading: '' },
+    { url: `${base}/pages/midterm-2`, title: 'Notes', heading: '' },
+    { url: `${base}/pages/misc`, title: 'Resources', heading: 'Midterm 2' },
+  ];
+  const picked = await send({ to: 'offscreen', type: 'score-links', mode: 'exact', query: 'midterm 2', links, depth: 2, context, from: base });
+  assert.equal(picked.links.length, links.length);
+  assert.ok(picked.links[1].score > picked.links[2].score);
+  assert.ok(picked.links[2].score > picked.links[3].score);
+  assert.ok(picked.links[3].score > picked.links[0].score);
+});
+
+test('Stop cancels starting-page scoring and rejects late work from the stopped search', async () => {
+  const run = 100;
+  const pending = send({ to: 'offscreen', type: 'score-page', run, mode: 'exact', query: 'midterm', url: base, blocks: ['midterm'], keepCache: false });
+  listener({ to: 'offscreen', type: 'cancel-dig', run }, {}, () => {});
+  assert.ok((await pending).error);
+  const late = await send({ to: 'offscreen', type: 'score-page', run, mode: 'exact', query: 'midterm', url: base, blocks: ['midterm'], keepCache: false });
+  assert.match(late.error, /stopped/i);
+  const fresh = await send({ to: 'offscreen', type: 'score-page', run: run + 1, mode: 'exact', query: 'midterm', url: base, blocks: ['midterm'], keepCache: false });
+  assert.equal(fresh.passages.length, 1);
+});
+
+
+test('link scoring errors remain distinguishable from no matching links', async () => {
+  const result = await send({ to: 'offscreen', type: 'score-links', run: 1, mode: 'exact', query: 'exam', links: [], depth: 1, context, from: base });
+  assert.ok(result.error);
+  assert.deepEqual(result.links, []);
+});
+
+test('refresh bypasses cached course maps and retrieves changed content', async (t) => {
+  const own = { origin: context.origin, courseId: '888' };
+  const url = `${own.origin}/courses/888`;
+  let name = 'Original module';
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => { calls++; return new Response(JSON.stringify([{ id: 1, name, items_count: 0 }])); });
+  const read = () => send({ to: 'offscreen', type: 'dig-read', run: 200, query: 'module', context: own, url, depth: 0, settings: EXACT, visited: [], seed: [] });
+  const first = await read();
+  assert.equal(first.error, undefined);
+  const initialCalls = calls;
+  name = 'Changed module';
+  await read();
+  assert.equal(calls, initialCalls);
+  assert.deepEqual(await send({ to: 'offscreen', type: 'refresh-content' }), { ok: true });
+  const fresh = await read();
+  assert.ok(calls > initialCalls);
+  assert.ok(fresh.links.some((link: { title: string }) => link.title === name));
 });

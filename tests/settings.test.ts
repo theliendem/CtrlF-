@@ -7,6 +7,7 @@ test('settings default to 200 pages and clamp invalid saved values', () => {
   assert.deepEqual(normalizeSettings(undefined), DEFAULT_SETTINGS);
   assert.deepEqual(normalizeSettings({ pageBudget: 5000, maxDepth: -3, showOffsite: true, showUnreadable: 'yes' }), { mode: 'semantic', pageBudget: 1000, maxDepth: 1, showOffsite: true, showUnreadable: false, keepCache: false });
   assert.equal(normalizeSettings({ pageBudget: NaN }).pageBudget, 200);
+  assert.equal(normalizeSettings({ keepCache: true }).keepCache, false);
   assert.equal(normalizeSettings({ pageBudget: 3, maxDepth: 2 }).pageBudget, 3);
 });
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pageIdentity, textFingerprint } from '../src/engine/identity.ts';
+import { pageIdentity, textFingerprint, urlKey } from '../src/engine/identity.ts';
 import { siteLink } from '../src/engine/links.ts';
 import { hitStrength, SEMANTIC_RELEVANT } from '../src/shared/types.ts';
 import { strengthColor } from '../src/sidepanel/graph.ts';
@@ -25,6 +25,41 @@ test('different pages, and short generic pages, are not merged', () => {
   const b = pageIdentity('https://site.edu/b', undefined, article.map((s) => s.replace('Hitler', 'Himmler')));
   assert.ok(!shares(a, b));
   assert.equal(textFingerprint(['Loading…']), null);
+});
+
+test('Canvas module API reads have distinct identities from each other and the module index', () => {
+  const base = 'https://canvas.wisc.edu/courses/123/modules';
+  const index = pageIdentity(base, undefined, []);
+  const first = pageIdentity(`${base}#context_module_11`, undefined, []);
+  const second = pageIdentity(`${base}#context_module_22`, undefined, []);
+  assert.ok(!shares(first, second));
+  assert.ok(!shares(index, first));
+  assert.ok(!shares(index, second));
+  assert.ok(shares(first, pageIdentity(`${base}#context_module_11`, undefined, [])));
+  // Other section anchors still identify the same document, even on Canvas.
+  assert.equal(urlKey(`${base}#top`), urlKey(base));
+  assert.equal(urlKey('https://site.edu/courses/123/modules#context_module_11'),
+    urlKey('https://site.edu/courses/123/modules'));
+});
+
+test('Canvas module discovery retains all child links regardless of read completion order', () => {
+  const base = 'https://canvas.wisc.edu/courses/123/modules';
+  const modules = [
+    { url: `${base}#context_module_11`, links: ['doubly-linked-lists'] },
+    { url: `${base}#context_module_22`, links: ['overview-linked-lists', 'program-7', 'llm-linked-lists'] },
+  ];
+  for (const reads of [modules, [...modules].reverse()]) {
+    const seen = new Set(pageIdentity(base, undefined, []));
+    const discovered: string[] = [];
+    for (const read of reads) {
+      // The background drops duplicate reads before enqueuing their child links.
+      const keys = pageIdentity(read.url, undefined, []);
+      if (keys.some((key) => seen.has(key))) continue;
+      keys.forEach((key) => seen.add(key));
+      discovered.push(...read.links);
+    }
+    assert.deepEqual(discovered.sort(), modules.flatMap((read) => read.links).sort());
+  }
 });
 
 test('wiki revision, diff, history and namespace links are never queued', () => {

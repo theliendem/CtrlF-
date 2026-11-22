@@ -1,3 +1,4 @@
+import { extensionApi } from '../shared/browser';
 // Side panel: search box, live graph, results list, settings.
 import { STRONG, type RuntimeMsg, type TreeNode } from '../shared/types';
 import { Graph, bridges, strengthColor } from './graph';
@@ -25,12 +26,11 @@ let digRunning = false;
 const settingsBtn = $<HTMLButtonElement>('settings');
 const settingsForm = $<HTMLFormElement>('settings-form');
 const pageBudget = $<HTMLInputElement>('page-budget');
+const modeButtons = { semantic: $<HTMLButtonElement>('mode-semantic'), exact: $<HTMLButtonElement>('mode-exact') };
 const searchMode = $<HTMLSelectElement>('search-mode');
 const maxDepth = $<HTMLInputElement>('max-depth');
 const showOffsite = $<HTMLInputElement>('show-offsite');
 const showUnreadable = $<HTMLInputElement>('show-unreadable');
-const keepCache = $<HTMLInputElement>('keep-cache');
-const keepCacheRow = $('keep-cache-row');
 const settingsStatus = $('settings-status');
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -59,15 +59,14 @@ themeSelect.addEventListener('change', () => {
 
 function fillSettings(): void {
   searchMode.value = settings.mode;
+  for (const [mode, button] of Object.entries(modeButtons)) button.setAttribute('aria-pressed', String(mode === settings.mode));
   pageBudget.value = String(settings.pageBudget);
   maxDepth.value = String(settings.maxDepth);
   showOffsite.checked = settings.showOffsite;
   showUnreadable.checked = settings.showUnreadable;
-  keepCache.checked = settings.keepCache;
-  if (settings.keepCache) keepCacheRow.hidden = false;
 }
 fillSettings();
-const settingsReady = chrome.storage.local.get('searchSettings').then((stored) => {
+const settingsReady = extensionApi.storage.local.get('searchSettings').then((stored) => {
   settings = normalizeSettings(stored.searchSettings);
   fillSettings();
 }).catch(() => { settingsStatus.textContent = 'Could not load saved settings. Defaults shown.'; });
@@ -77,10 +76,10 @@ function closeSettings(): void {
   settingsBtn.setAttribute('aria-expanded', 'false');
   settingsBtn.focus();
 }
-settingsBtn.addEventListener('click', async (event) => {
+settingsBtn.addEventListener('click', async () => {
   await settingsReady;
   if (!settingsForm.hidden) { closeSettings(); return; }
-  if (event.altKey) keepCacheRow.hidden = false; // hidden demo setting
+
   fillSettings();
   settingsForm.hidden = false;
   settingsBtn.setAttribute('aria-expanded', 'true');
@@ -90,9 +89,9 @@ $('settings-close').addEventListener('click', closeSettings);
 settingsForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!settingsForm.reportValidity()) return;
-  const next = normalizeSettings({ mode: searchMode.value, pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked, keepCache: keepCache.checked });
+  const next = normalizeSettings({ mode: searchMode.value, pageBudget: pageBudget.valueAsNumber, maxDepth: maxDepth.valueAsNumber, showOffsite: showOffsite.checked, showUnreadable: showUnreadable.checked, keepCache: false });
   try {
-    await chrome.storage.local.set({ searchSettings: next });
+    await extensionApi.storage.local.set({ searchSettings: next });
     settings = next;
     fillSettings();
     settingsStatus.textContent = 'Saved. Applies to your next search.';
@@ -101,10 +100,28 @@ settingsForm.addEventListener('submit', async (event) => {
   }
 });
 
+let modeSaved: Promise<void> = settingsReady;
+for (const mode of ['semantic', 'exact'] as const) modeButtons[mode].addEventListener('click', () => {
+  for (const [value, button] of Object.entries(modeButtons)) button.setAttribute('aria-pressed', String(value === mode));
+  modeSaved = modeSaved.then(async () => {
+    try {
+      const next = { ...settings, mode, keepCache: false } as typeof settings;
+      await extensionApi.storage.local.set({ searchSettings: next });
+      settings = next;
+      fillSettings();
+    } catch { statusEl.textContent = 'Could not save search mode. Try again.'; fillSettings(); }
+  });
+});
+$('refresh').addEventListener('click', async () => {
+  const query = q.value.trim() || shownQuery;
+  await modeSaved;
+  if (query) void extensionApi.windows.getCurrent().then(w => send({ to: 'sw', type: 'search', query, windowId: w.id!, refresh: true }));
+});
+
 const nodes = new Map<string, TreeNode>();
 const graph = new Graph($('graph'), (id) => openResult(id));
 
-const send = (msg: RuntimeMsg): void => void chrome.runtime.sendMessage(msg).catch(() => {});
+const send = (msg: RuntimeMsg): void => void extensionApi.runtime.sendMessage(msg).catch(() => {});
 const openResult = (nodeId: string): void => {
   const node = nodes.get(nodeId);
   const next = nodes.get(bridges(nodes.values()).get(nodeId) ?? '');
@@ -114,20 +131,24 @@ const openResult = (nodeId: string): void => {
 /** The query of the search on screen, for "Keep searching". */
 let shownQuery = '';
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const query = q.value.trim();
   if (!query) return;
+  await modeSaved;
   // The panel's own window, not "last focused" (that can be a DevTools window).
-  chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'search', query, windowId: w.id! }));
+  extensionApi.windows.getCurrent().then((w) => send({ to: 'sw', type: 'search', query, windowId: w.id! }));
 });
 
 resumeBtn.addEventListener('click', () => {
   resumeBtn.hidden = true;
-  chrome.windows.getCurrent().then((w) => send({ to: 'sw', type: 'resume', query: shownQuery, windowId: w.id! }));
+  extensionApi.windows.getCurrent().then((w) => send({ to: 'sw', type: 'resume', query: shownQuery, windowId: w.id! }));
 });
 
-stopBtn.addEventListener('click', () => send({ to: 'sw', type: 'stop' }));
+stopBtn.addEventListener('click', () => {
+  setStatus('Stopping…', true);
+  send({ to: 'sw', type: 'stop' });
+});
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
@@ -194,6 +215,20 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: s
   return e;
 };
 
+// Large link queues can deliver many updates together. Render the list once per frame.
+let resultsFrame = 0;
+const graphUpdates = new Map<string, TreeNode>();
+function scheduleResults(): void {
+  if (resultsFrame) return;
+  resultsFrame = requestAnimationFrame(() => {
+    resultsFrame = 0;
+    graph.upsertMany(graphUpdates.values());
+    graphUpdates.clear();
+    renderResults();
+  });
+}
+
+const resultRows = new Map<string, { row: HTMLLIElement; signature: string }>();
 function renderResults(): void {
   // Bridges led to matches but aren't matches themselves, so they stay out of the list.
   const bridge = bridges(nodes.values());
@@ -203,12 +238,18 @@ function renderResults(): void {
   resultsBox.hidden = hits.length === 0;
   noResults.hidden = !nothing;
   if (nothing) noResultsTitle.textContent = `No matches for “${shownQuery}”`;
-  resultsEl.replaceChildren(
-    ...hits.map((n, i) => {
+  const active = document.activeElement;
+  const wanted = new Set(hits.map(n => n.id));
+  for (const [id, entry] of resultRows) if (!wanted.has(id)) { entry.row.remove(); resultRows.delete(id); }
+  const rows = hits.map((n, i) => {
+      const signature = JSON.stringify([n.title, n.url, n.best, n.strength, n.kind, n.location, n.snippet, i === 0]);
+      const existing = resultRows.get(n.id);
+      if (existing?.signature === signature) return existing.row;
       const li = el('li', [n.best >= STRONG ? 'strong' : '', i === 0 ? 'top' : ''].join(' ').trim());
       li.style.setProperty('--hit', strengthColor(n.strength));
       li.title = n.url;
       li.tabIndex = 0;
+      li.setAttribute('role', 'link');
       const body = el('div', 'body');
       const head = el('div', 'head');
       head.append(el('span', 'title', n.title));
@@ -224,12 +265,16 @@ function renderResults(): void {
       li.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && event.target === li) openResult(n.id);
       });
-      return li;
-    }),
-  );
+      if (existing) { existing.row.replaceChildren(...li.childNodes); existing.row.className = li.className; existing.row.style.cssText = li.style.cssText; existing.row.title = li.title; }
+      const row = existing?.row ?? li;
+      resultRows.set(n.id, { row, signature });
+      return row;
+    });
+  rows.forEach((row, i) => { if (resultsEl.children[i] !== row) resultsEl.insertBefore(row, resultsEl.children[i] ?? null); });
+  if (active instanceof HTMLElement && resultsEl.contains(active)) active.focus({ preventScroll: true });
 }
 
-chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
+extensionApi.runtime.onMessage.addListener((msg: RuntimeMsg) => {
   if (msg.to !== 'panel') return false;
   switch (msg.type) {
     case 'focus-search':
@@ -238,6 +283,7 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     case 'reset':
       shownQuery = msg.query;
       nodes.clear();
+      graphUpdates.clear();
       graph.reset();
       renderResults();
       break;
@@ -246,8 +292,8 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       break;
     case 'node':
       nodes.set(msg.node.id, msg.node);
-      graph.upsert(msg.node);
-      renderResults();
+      graphUpdates.set(msg.node.id, msg.node);
+      scheduleResults();
       if (msg.node.hits?.length) console.log('[ctrlf++]', msg.node.title, msg.node.hits);
       break;
   }

@@ -1,0 +1,1347 @@
+{
+  "description": "Handwritten synthetic CS/course content. Dates and policies are fictional, not statements about the user course. Fixed train/test split; no-answer queries have no relevant page.",
+  "models": {
+    "embedding": "all-MiniLM-L6-v2 q8",
+    "reranker": "ms-marco-MiniLM-L-6-v2 q8",
+    "backend": "local CPU; browser uses WASM/WebGPU"
+  },
+  "limits": "Ranks the supplied pages after reading them; does not measure crawling, signed-in Canvas fetch reliability, or browser latency. User regression competitors are title-only if documented by the dataset.",
+  "settings": {
+    "candidates": 20,
+    "topicTitleBoost": 0.1,
+    "rerankWeight": 0.2,
+    "relevant": 0.3
+  },
+  "elapsedMs": 5833,
+  "baseline": {
+    "train": {
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.25
+    },
+    "test": {
+      "queries": 10,
+      "answerable": 8,
+      "noAnswer": 2,
+      "hitAt1": 0.875,
+      "hitAt3": 1,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0
+    }
+  },
+  "chunkingOnly": {
+    "train": {
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.5
+    },
+    "test": {
+      "queries": 10,
+      "answerable": 8,
+      "noAnswer": 2,
+      "hitAt1": 0.875,
+      "hitAt3": 1,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.5
+    }
+  },
+  "improved": {
+    "train": {
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 1
+    },
+    "test": {
+      "queries": 10,
+      "answerable": 8,
+      "noAnswer": 2,
+      "hitAt1": 0.875,
+      "hitAt3": 1,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 1
+    }
+  },
+  "recommendedFromTrain": {
+    "weight": 0.2,
+    "threshold": 0.3,
+    "queries": 20,
+    "answerable": 16,
+    "noAnswer": 4,
+    "hitAt1": 0.9375,
+    "hitAt3": 0.9375,
+    "mrr": 0.9375,
+    "noAnswerAccuracy": 1,
+    "utility": 0.953125
+  },
+  "grid": [
+    {
+      "weight": 0.2,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 1,
+      "utility": 0.953125
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 1,
+      "utility": 0.953125
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 1,
+      "utility": 0.953125
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.35,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.4,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.45,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.5,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 1,
+      "utility": 0.90625
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.890625
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.65,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.25,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.8,
+      "threshold": 0.3,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.875,
+      "hitAt3": 0.875,
+      "mrr": 0.875,
+      "noAnswerAccuracy": 0.75,
+      "utility": 0.84375
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.5,
+      "utility": 0.828125
+    },
+    {
+      "weight": 0.5,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.5,
+      "utility": 0.828125
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0.25,
+      "utility": 0.765625
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 1,
+      "mrr": 0.9583333333333334,
+      "noAnswerAccuracy": 0,
+      "utility": 0.7395833333333334
+    },
+    {
+      "weight": 0.2,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0,
+      "utility": 0.703125
+    },
+    {
+      "weight": 0.1,
+      "threshold": 0.2,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0,
+      "utility": 0.703125
+    },
+    {
+      "weight": 0.35,
+      "threshold": 0.15,
+      "queries": 20,
+      "answerable": 16,
+      "noAnswer": 4,
+      "hitAt1": 0.9375,
+      "hitAt3": 0.9375,
+      "mrr": 0.9375,
+      "noAnswerAccuracy": 0,
+      "utility": 0.703125
+    }
+  ],
+  "cases": [
+    {
+      "query": "linked list",
+      "split": "test",
+      "kind": "topic",
+      "expected": [
+        "lists-overview"
+      ],
+      "baselineTop3": [
+        {
+          "id": "lists-overview",
+          "score": 0.8543331130781824
+        },
+        {
+          "id": "lists-announcement",
+          "score": 0.7509941183932434
+        },
+        {
+          "id": "lists-program",
+          "score": 0.5887759743199529
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "lists-overview",
+          "score": 0.9777109777161651
+        },
+        {
+          "id": "lists-announcement",
+          "score": 0.8238707072473331
+        },
+        {
+          "id": "lists-chat",
+          "score": 0.7593675742077266
+        }
+      ]
+    },
+    {
+      "query": "why use nodes instead of an array",
+      "split": "test",
+      "kind": "paraphrase",
+      "expected": [
+        "lists-overview"
+      ],
+      "baselineTop3": [
+        {
+          "id": "arrays",
+          "score": 0.5205580538169439
+        },
+        {
+          "id": "lists-overview",
+          "score": 0.4011337790213262
+        },
+        {
+          "id": "bst",
+          "score": 0.2592092036549157
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "arrays",
+          "score": 0.5074320345956813
+        },
+        {
+          "id": "lists-overview",
+          "score": 0.3174150406103361
+        }
+      ]
+    },
+    {
+      "query": "when is midterm 2",
+      "split": "train",
+      "kind": "number",
+      "expected": [
+        "midterm2"
+      ],
+      "baselineTop3": [
+        {
+          "id": "midterm2",
+          "score": 0.6611496254723656
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "midterm2",
+          "score": 0.791262777345297
+        }
+      ]
+    },
+    {
+      "query": "second midterm room",
+      "split": "train",
+      "kind": "number",
+      "expected": [
+        "midterm2"
+      ],
+      "baselineTop3": [
+        {
+          "id": "midterm2",
+          "score": 0.6079532790761137
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "midterm2",
+          "score": 0.7188113677021626
+        }
+      ]
+    },
+    {
+      "query": "when is midterm 1",
+      "split": "test",
+      "kind": "number",
+      "expected": [
+        "midterm1"
+      ],
+      "baselineTop3": [
+        {
+          "id": "midterm1",
+          "score": 0.6713030588481473
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "midterm1",
+          "score": 0.7700344870198509
+        }
+      ]
+    },
+    {
+      "query": "program 7 due date",
+      "split": "train",
+      "kind": "number",
+      "expected": [
+        "program7"
+      ],
+      "baselineTop3": [
+        {
+          "id": "program7",
+          "score": 0.6836886501992796
+        },
+        {
+          "id": "lists-program",
+          "score": 0.4618848252529676
+        },
+        {
+          "id": "midterm1",
+          "score": 0.2702182796228297
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "program7",
+          "score": 0.737154804657394
+        },
+        {
+          "id": "lists-program",
+          "score": 0.42005334069151723
+        }
+      ]
+    },
+    {
+      "query": "when do I turn in program 8",
+      "split": "test",
+      "kind": "number",
+      "expected": [
+        "program8"
+      ],
+      "baselineTop3": [
+        {
+          "id": "program8",
+          "score": 0.6451020482749301
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "program8",
+          "score": 0.6901360964279774
+        }
+      ]
+    },
+    {
+      "query": "can I work with friends",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "collaboration"
+      ],
+      "baselineTop3": [],
+      "improvedTop3": []
+    },
+    {
+      "query": "can I copy my partner code",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "collaboration"
+      ],
+      "baselineTop3": [
+        {
+          "id": "collaboration",
+          "score": 0.42423040372907206
+        },
+        {
+          "id": "program7",
+          "score": 0.275015595563772
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "collaboration",
+          "score": 0.35519629585866935
+        }
+      ]
+    },
+    {
+      "query": "what happens if I submit late",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "late"
+      ],
+      "baselineTop3": [
+        {
+          "id": "late",
+          "score": 0.45099567902603516
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "late",
+          "score": 0.5772000196508379
+        }
+      ]
+    },
+    {
+      "query": "how many days after the deadline can I submit",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "late"
+      ],
+      "baselineTop3": [
+        {
+          "id": "late",
+          "score": 0.6269247590000053
+        },
+        {
+          "id": "program8",
+          "score": 0.3483835413386332
+        },
+        {
+          "id": "program7",
+          "score": 0.3200723058747497
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "late",
+          "score": 0.6697321520728213
+        },
+        {
+          "id": "program7",
+          "score": 0.3283205846955765
+        },
+        {
+          "id": "program8",
+          "score": 0.3245494560539544
+        }
+      ]
+    },
+    {
+      "query": "where can I get help without an appointment",
+      "split": "test",
+      "kind": "paraphrase",
+      "expected": [
+        "office"
+      ],
+      "baselineTop3": [
+        {
+          "id": "office",
+          "score": 0.5224502045968799
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "office",
+          "score": 0.5133285924240099
+        }
+      ]
+    },
+    {
+      "query": "how much do projects count toward my grade",
+      "split": "train",
+      "kind": "question",
+      "expected": [
+        "grading"
+      ],
+      "baselineTop3": [
+        {
+          "id": "grading",
+          "score": 0.5478159656989887
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "grading",
+          "score": 0.5967114173476089
+        }
+      ]
+    },
+    {
+      "query": "a method calling itself",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "recursion"
+      ],
+      "baselineTop3": [
+        {
+          "id": "recursion",
+          "score": 0.5095993450070979
+        },
+        {
+          "id": "polymorphism",
+          "score": 0.36965221272102516
+        },
+        {
+          "id": "inheritance",
+          "score": 0.3692623311121544
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "recursion",
+          "score": 0.6199145806032006
+        },
+        {
+          "id": "null",
+          "score": 0.30379243101858394
+        }
+      ]
+    },
+    {
+      "query": "fibonacci sequence",
+      "split": "train",
+      "kind": "topic",
+      "expected": [
+        "recursion"
+      ],
+      "baselineTop3": [
+        {
+          "id": "recursion",
+          "score": 0.6196663275594146
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "recursion",
+          "score": 0.6657498215043383
+        }
+      ]
+    },
+    {
+      "query": "search a sorted array efficiently",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "binary-search"
+      ],
+      "baselineTop3": [
+        {
+          "id": "binary-search",
+          "score": 0.7220189149212064
+        },
+        {
+          "id": "bst",
+          "score": 0.41801819363681836
+        },
+        {
+          "id": "arrays",
+          "score": 0.3328706236632136
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "binary-search",
+          "score": 0.7548217820271663
+        },
+        {
+          "id": "bst",
+          "score": 0.3446212130119249
+        }
+      ]
+    },
+    {
+      "query": "remove the most recently added item",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "stack"
+      ],
+      "baselineTop3": [
+        {
+          "id": "stack",
+          "score": 0.6649182109488939
+        },
+        {
+          "id": "queue",
+          "score": 0.439534726291894
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "stack",
+          "score": 0.7067096584850326
+        },
+        {
+          "id": "queue",
+          "score": 0.5299378839810726
+        }
+      ]
+    },
+    {
+      "query": "first in first out",
+      "split": "test",
+      "kind": "paraphrase",
+      "expected": [
+        "queue"
+      ],
+      "baselineTop3": [
+        {
+          "id": "queue",
+          "score": 0.5707146309955391
+        },
+        {
+          "id": "stack",
+          "score": 0.45373462056094654
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "queue",
+          "score": 0.6445382973409453
+        },
+        {
+          "id": "stack",
+          "score": 0.5494460597690165
+        }
+      ]
+    },
+    {
+      "query": "what do hasNext and next do",
+      "split": "train",
+      "kind": "question",
+      "expected": [
+        "iterator"
+      ],
+      "baselineTop3": [
+        {
+          "id": "iterator",
+          "score": 0.6318900950189004
+        },
+        {
+          "id": "lists-announcement",
+          "score": 0.30865835190766716
+        },
+        {
+          "id": "lists-overview",
+          "score": 0.29184160414229704
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "iterator",
+          "score": 0.7044593190068813
+        }
+      ]
+    },
+    {
+      "query": "handle errors with try catch",
+      "split": "train",
+      "kind": "topic",
+      "expected": [
+        "exceptions"
+      ],
+      "baselineTop3": [
+        {
+          "id": "exceptions",
+          "score": 0.7292317062404797
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "exceptions",
+          "score": 0.768175099520472
+        }
+      ]
+    },
+    {
+      "query": "one class that stores different types safely",
+      "split": "test",
+      "kind": "paraphrase",
+      "expected": [
+        "generics"
+      ],
+      "baselineTop3": [
+        {
+          "id": "generics",
+          "score": 0.5841644425303231
+        },
+        {
+          "id": "polymorphism",
+          "score": 0.27016715104702194
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "generics",
+          "score": 0.6693090945625905
+        }
+      ]
+    },
+    {
+      "query": "subclass extends superclass",
+      "split": "train",
+      "kind": "topic",
+      "expected": [
+        "inheritance"
+      ],
+      "baselineTop3": [
+        {
+          "id": "inheritance",
+          "score": 0.8159826185289918
+        },
+        {
+          "id": "polymorphism",
+          "score": 0.5740425636738993
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "inheritance",
+          "score": 0.8520183713343551
+        },
+        {
+          "id": "polymorphism",
+          "score": 0.665267063341423
+        }
+      ]
+    },
+    {
+      "query": "visit tree keys in sorted order",
+      "split": "train",
+      "kind": "paraphrase",
+      "expected": [
+        "bst"
+      ],
+      "baselineTop3": [
+        {
+          "id": "bst",
+          "score": 0.7781051935065992
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "bst",
+          "score": 0.8131647743833099
+        }
+      ]
+    },
+    {
+      "query": "merge sort running time",
+      "split": "test",
+      "kind": "question",
+      "expected": [
+        "sorting"
+      ],
+      "baselineTop3": [
+        {
+          "id": "sorting",
+          "score": 0.7326874078145564
+        },
+        {
+          "id": "binary-search",
+          "score": 0.3294308611334946
+        }
+      ],
+      "improvedTop3": [
+        {
+          "id": "sorting",
+          "score": 0.7667702626707735
+        },
+        {
+          "id": "binary-search",
+          "score": 0.30658485346476805
+        }
+      ]
+    },
+    {
+      "query": "when is midterm 4",
+      "split": "train",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [],
+      "improvedTop3": []
+    },
+    {
+      "query": "what is the program 12 deadline",
+      "split": "test",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [
+        {
+          "id": "late",
+          "score": 0.393570540134632
+        }
+      ],
+      "improvedTop3": []
+    },
+    {
+      "query": "what is the professor phone number",
+      "split": "train",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [
+        {
+          "id": "midterm1",
+          "score": 0.25731929166070594
+        }
+      ],
+      "improvedTop3": []
+    },
+    {
+      "query": "where do I buy the required textbook",
+      "split": "train",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [
+        {
+          "id": "office",
+          "score": 0.2673972370621725
+        }
+      ],
+      "improvedTop3": []
+    },
+    {
+      "query": "what is the final exam date",
+      "split": "train",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [
+        {
+          "id": "grading",
+          "score": 0.37727003912942786
+        },
+        {
+          "id": "midterm1",
+          "score": 0.3519820039704927
+        },
+        {
+          "id": "midterm2",
+          "score": 0.3268931256765437
+        }
+      ],
+      "improvedTop3": []
+    },
+    {
+      "query": "how do I request a parking permit",
+      "split": "test",
+      "kind": "no-answer",
+      "expected": [],
+      "baselineTop3": [
+        {
+          "id": "noise",
+          "score": 0.2804861929796702
+        }
+      ],
+      "improvedTop3": []
+    }
+  ]
+}

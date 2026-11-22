@@ -1,4 +1,6 @@
-// Service worker: routes messages and runs the dig. No parsing or model here; that's the offscreen engine.
+import type { ScoreLinksResult } from '../shared/types';
+import { extensionApi, isFirefox } from '../shared/browser';
+// Routes searches in Firefox's event page or Chrome's service worker.
 import {
   ENOUGH_HITS,
   ENOUGH_STRONG,
@@ -25,8 +27,9 @@ import {
 import { canvasContext, digLink, filterLinks, isCanvas, siteFileKind, skippedLinks } from '../engine/links';
 import { wordCount, MIN_PAGE_WORDS } from '../engine/site';
 import { pageIdentity } from '../engine/identity';
-import { runBestFirst, runBranchBatches } from './queue';
+import { runBestFirst } from './queue';
 import { normalizeSettings } from '../shared/settings';
+import { createCanvasFetch } from './canvas';
 
 const MAX_HIGHLIGHTS = 30;
 /** A JavaScript-built page gets this long in a background tab to render. */
@@ -37,46 +40,67 @@ const isFile = (node: TreeNode): boolean => !!node.fileId || node.kind !== 'page
 
 // ---------- Side panel opening ----------
 
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
+function openPanel(windowId?: number): void {
+  // Keep this call synchronous with the toolbar click or keyboard shortcut.
+  const opened = isFirefox
+    ? extensionApi.sidebarAction!.open()
+    : windowId === undefined ? Promise.resolve() : extensionApi.sidePanel.open({ windowId });
+  void opened.then(() => toPanel({ to: 'panel', type: 'focus-search' })).catch(console.error);
+}
 
-chrome.commands.onCommand.addListener((command, tab) => {
-  if (command !== 'open-search' || tab?.windowId === undefined) return;
-  // Must run synchronously inside the shortcut's user gesture, so no await before it.
-  chrome.sidePanel
-    .open({ windowId: tab.windowId })
-    .then(() => toPanel({ to: 'panel', type: 'focus-search' }))
-    .catch(() => {});
+if (isFirefox) {
+  extensionApi.action.onClicked.addListener(() => openPanel());
+} else {
+  void extensionApi.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
+}
+extensionApi.commands.onCommand.addListener((command, tab) => {
+  if (command === 'open-search') openPanel(tab?.windowId);
 });
 
 // ---------- Messaging helpers ----------
 
 function toPanel(msg: RuntimeMsg): void {
-  chrome.runtime.sendMessage(msg).catch(() => {}); // panel may be closed
+  extensionApi.runtime.sendMessage(msg).catch(() => {}); // panel may be closed
 }
 
 let creating: Promise<void> | null = null;
 async function ensureOffscreen(): Promise<void> {
-  if (await chrome.offscreen.hasDocument()) return;
-  creating ??= chrome.offscreen
+  if (await extensionApi.offscreen.hasDocument()) return;
+  creating ??= extensionApi.offscreen
     .createDocument({
       url: 'src/offscreen/index.html',
-      reasons: [chrome.offscreen.Reason.DOM_PARSER, chrome.offscreen.Reason.BLOBS],
+      reasons: [extensionApi.offscreen.Reason.DOM_PARSER, extensionApi.offscreen.Reason.BLOBS],
       justification: 'Runs the on-device model and parses fetched pages and files.',
     })
     .finally(() => (creating = null));
   await creating;
 }
 
+const canvasFetch = createCanvasFetch((tabId, msg) => extensionApi.tabs.sendMessage(tabId, msg));
+
+let localEngine: Promise<typeof import('../offscreen/index')> | undefined;
 async function toEngine<T>(msg: RuntimeMsg): Promise<T> {
+  if (isFirefox) {
+    // Firefox event pages have a DOM, so parsing and inference can run here.
+    localEngine ??= import('../offscreen/index').catch((error: unknown) => {
+      localEngine = undefined;
+      throw error;
+    });
+    const engine = await localEngine;
+    return new Promise<T>((resolve) => {
+      const pending = engine.handleEngineMessage(msg, (result) => resolve(result as T), handleBackgroundMessage, canvasFetch);
+      if (!pending) resolve(undefined as T);
+    });
+  }
   await ensureOffscreen();
-  return (await chrome.runtime.sendMessage(msg)) as T;
+  return (await extensionApi.runtime.sendMessage(msg)) as T;
 }
 
 /** Makes sure our content script is in the tab (tabs opened before install don't have it). */
 async function pingContent(tabId: number): Promise<boolean> {
   const ping: ContentMsg = { type: 'ping' };
   try {
-    return Boolean(await chrome.tabs.sendMessage(tabId, ping));
+    return Boolean(await extensionApi.tabs.sendMessage(tabId, ping));
   } catch {
     return false; // not injected yet, or still loading
   }
@@ -84,8 +108,8 @@ async function pingContent(tabId: number): Promise<boolean> {
 
 async function ensureContent(tabId: number): Promise<void> {
   if (await pingContent(tabId)) return;
-  const files = chrome.runtime.getManifest().content_scripts?.[0]?.js ?? [];
-  await chrome.scripting.executeScript({ target: { tabId }, files });
+  const files = extensionApi.runtime.getManifest().content_scripts?.[0]?.js ?? [];
+  await extensionApi.scripting.executeScript({ target: { tabId }, files });
   // The built content script is a loader that import()s the real module, so executeScript resolves
   // before the message listener exists. Wait for it to answer before sending the real message.
   const deadline = Date.now() + 5000;
@@ -98,7 +122,7 @@ async function ensureContent(tabId: number): Promise<void> {
 
 async function toTab<T>(tabId: number, msg: ContentMsg): Promise<T> {
   await ensureContent(tabId);
-  return (await chrome.tabs.sendMessage(tabId, msg)) as T;
+  return (await extensionApi.tabs.sendMessage(tabId, msg)) as T;
 }
 
 // ---------- The search ----------
@@ -157,14 +181,14 @@ function emit(node: TreeNode): void {
   toPanel({ to: 'panel', type: 'node', node });
 }
 
-async function search(query: string, windowId: number, autoStop = true): Promise<void> {
+async function search(query: string, windowId: number, autoStop = true, refresh = false): Promise<void> {
   cancelDig();
   const run = ++runId;
   paused = undefined;
   nodes.clear();
   toPanel({ to: 'panel', type: 'reset', query });
 
-  const [tab] = await chrome.tabs.query({ active: true, windowId });
+  const [tab] = await extensionApi.tabs.query({ active: true, windowId });
   if (run !== runId) return;
   if (!tab?.id || !/^https?:/.test(tab.url ?? '')) {
     // LATER: read local PDFs and file:// pages.
@@ -175,10 +199,12 @@ async function search(query: string, windowId: number, autoStop = true): Promise
   highlightedTabs.clear();
   if (run !== runId) return;
 
-  const stored = await chrome.storage.local.get('searchSettings');
+  const stored = await extensionApi.storage.local.get('searchSettings');
   const settings = normalizeSettings(stored.searchSettings);
   if (run !== runId) return;
 
+  if (refresh) await toEngine<EngineAck>({ to: 'offscreen', type: 'refresh-content' });
+  if (run !== runId) return;
   mode = settings.mode;
   readPages = new Set();
   const exact = mode === 'exact';
@@ -210,7 +236,7 @@ async function search(query: string, windowId: number, autoStop = true): Promise
   emit(root);
   status(exact ? 'Scoring this page…' : 'Scoring this page by meaning…', true);
 
-  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: settings.mode, query, url: page.url, blocks: page.blocks, keepCache: settings.keepCache });
+  const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', run, mode: settings.mode, query, url: page.url, title: page.title, blocks: page.blocks, keepCache: settings.keepCache });
   if (run !== runId) return; // a newer search started
   if (res.error) throw new Error(res.error);
 
@@ -231,6 +257,7 @@ async function search(query: string, windowId: number, autoStop = true): Promise
   }
   if (run !== runId) return;
   const context: DigContext = canvasContext(page.url) ?? { origin: new URL(page.url).origin };
+  if (isFirefox && isCanvas(context)) context.sourceTabId = tab.id;
   const where = isCanvas(context) ? 'Canvas' : new URL(page.url).hostname;
   const dig: DigRun = { id: run, query, context, queue: [], seen: new Set([digLink(page.url, page.url, context) ?? page.url]), started: 1, failed: 0, settings };
   status(`Finding ${isCanvas(context) ? 'Canvas ' : ''}links…`, true);
@@ -269,9 +296,8 @@ async function search(query: string, windowId: number, autoStop = true): Promise
     }
   };
   const current = (): boolean => run === runId;
-  if (exact) await runBranchBatches(dig, visit, current, settings.pageBudget);
-  // Semantic stops early once it has a good list; "Keep searching" picks up the same queue.
-  else await runBestFirst(dig, visit, current, settings.pageBudget, 4, () => autoStop && haveEnough());
+  // Exact exhausts its budget/queue; only semantic may pause once it has enough hits.
+  await runBestFirst(dig, visit, current, settings.pageBudget, 4, () => !exact && autoStop && haveEnough());
   finishDig(run, dig, visit, !exact && autoStop);
 }
 
@@ -285,7 +311,7 @@ function finishDig(run: number, dig: DigRun, visit: (entry: DigEntry) => Promise
     status(`${searched} · Stopped early with ${hitCounts().strong} strong matches`, false, true);
     return;
   }
-  status(`${searched}${dig.queue.length ? ` · ${dig.settings.pageBudget}-page limit reached` : ' · Dig complete'}`, false);
+  status(`${searched}${dig.queue.length ? ` · ${dig.settings.pageBudget}-page limit reached` : dig.failed ? ' · Search incomplete. Press Enter to retry.' : ' · Dig complete'}`, false);
 }
 
 /** Continue a paused dig to the end, with no more early stops. If the worker lost it, search again without stopping early. */
@@ -329,6 +355,7 @@ function emitResult(node: TreeNode, result: DigReadResult): void {
 // ---------- JavaScript-built pages ----------
 
 let tabLock: Promise<unknown> = Promise.resolve();
+const readingWindows = new Map<number, number>();
 
 /**
  * Read a page whose fetched HTML was nearly empty by loading it in a minimized, unfocused window,
@@ -343,16 +370,19 @@ async function readInTab(url: string, run: DigRun, node: TreeNode): Promise<DigR
 async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<DigReadResult> {
   // LATER: cache tab-rendered pages too, so JavaScript-built pages also work offline.
   if (run.id !== runId) throw new Error('Search stopped');
-  const win = await chrome.windows.create({ url, state: 'minimized', focused: false });
+  const win = await extensionApi.windows.create({ url, state: 'minimized', focused: false });
   const tabId = win?.tabs?.[0]?.id;
+  if (win?.id !== undefined) readingWindows.set(win.id, run.id);
   try {
+    if (run.id !== runId) throw new Error('Search stopped');
     if (tabId === undefined) throw new Error('Could not open a background tab');
     const deadline = Date.now() + TAB_TIMEOUT;
     let page: PageText | null = null;
     let lastCount = -1;
     while (Date.now() < deadline && run.id === runId) {
       await new Promise((resolve) => setTimeout(resolve, 600));
-      const tab = await chrome.tabs.get(tabId);
+      if (run.id !== runId) throw new Error('Search stopped');
+      const tab = await extensionApi.tabs.get(tabId);
       if (tab.status !== 'complete') continue;
       if (tab.url && new URL(tab.url).origin !== run.context.origin) throw new Error('Redirected off-site; not followed');
       try { page = await toTab<PageText>(tabId, { type: 'extract' }); } catch { continue; }
@@ -363,14 +393,20 @@ async function readInTabNow(url: string, run: DigRun, node: TreeNode): Promise<D
     }
     if (run.id !== runId) throw new Error('Search stopped');
     if (!page) throw new Error('Page did not load in time');
-    const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', mode: run.settings.mode, query: run.query, url: page.url, blocks: page.blocks, keepCache: run.settings.keepCache });
+    const res = await toEngine<ScorePageResult>({ to: 'offscreen', type: 'score-page', run: run.id, mode: run.settings.mode, query: run.query, url: page.url, title: page.title, blocks: page.blocks, keepCache: run.settings.keepCache });
+    if (run.id !== runId) throw new Error('Search stopped');
     if (res.error) throw new Error(res.error);
     const canDig = node.depth < run.settings.maxDepth;
     const candidates = canDig ? filterLinks(page.links, page.url, run.context).filter((link) => !run.seen.has(link.url)) : [];
-    const links = candidates.length ? await toEngine<DigLink[]>({ to: 'offscreen', type: 'score-links', mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context, from: page.url }) : [];
+    const picked: ScoreLinksResult = candidates.length ? await toEngine<ScoreLinksResult>({ to: 'offscreen', type: 'score-links', run: run.id, mode: run.settings.mode, query: run.query, links: candidates, depth: node.depth + 1, context: run.context, from: page.url }) : { links: [] };
+    if (picked.error) throw new Error(picked.error);
+    const links = picked.links;
     return { title: page.title, passages: res.passages, links, skipped: canDig ? skippedLinks(page.links, page.url, run.context, run.settings) : [], finalUrl: page.url, identity: pageIdentity(page.url, page.canonical, page.blocks) };
   } finally {
-    if (win?.id !== undefined) await chrome.windows.remove(win.id).catch(() => {});
+    if (win?.id !== undefined) {
+      readingWindows.delete(win.id);
+      await extensionApi.windows.remove(win.id).catch(() => {});
+    }
   }
 }
 
@@ -383,8 +419,14 @@ function showSkipped(run: DigRun, parent: TreeNode, skipped: SkippedLink[]): voi
 }
 
 function cancelDig(): void {
+  for (const [windowId, run] of readingWindows) {
+    if (run <= runId) {
+      readingWindows.delete(windowId);
+      void extensionApi.windows.remove(windowId).catch(() => {});
+    }
+  }
   const msg: RuntimeMsg = { to: 'offscreen', type: 'cancel-dig', run: runId };
-  void chrome.runtime.sendMessage(msg).catch(() => {});
+  void toEngine(msg).catch(() => {});
 }
 
 function settlePending(): void {
@@ -407,7 +449,7 @@ function stop(clear: boolean): void {
 
 async function clearTab(tabId: number): Promise<void> {
   try {
-    await chrome.tabs.sendMessage(tabId, { type: 'clear-highlights' } satisfies ContentMsg);
+    await extensionApi.tabs.sendMessage(tabId, { type: 'clear-highlights' } satisfies ContentMsg);
   } catch {
     /* no content script there; nothing to clear */
   }
@@ -417,21 +459,21 @@ async function openResult(node: TreeNode, next?: TreeNode): Promise<void> {
   if (!node.hits?.length && !next) return;
   if (node.kind === 'pdf') {
     // A Canvas file opens on its preview page (Canvas's own PDF viewer); its /download URL often saves the file instead.
-    // Other PDFs open in Chrome's viewer at the hit's page. Neither viewer can be scripted, so the passage isn't highlighted.
+    // Other PDFs open in the browser's viewer at the hit's page. Neither viewer can be scripted, so the passage isn't highlighted.
     // LATER: an in-extension pdf.js viewer could highlight inside the file.
     const url = node.fileId ? node.url : node.pageNumber ? `${node.url}#page=${node.pageNumber}` : node.url;
-    await chrome.tabs.create({ url, active: true });
+    await extensionApi.tabs.create({ url, active: true });
     return;
   }
   const run = runId;
   // A bridge opens itself and highlights the link it led on through; a match opens where it was found.
-  const tab = await chrome.tabs.create({ url: next ? node.url : node.parentUrl ?? node.url, active: true });
+  const tab = await extensionApi.tabs.create({ url: next ? node.url : node.parentUrl ?? node.url, active: true });
   if (tab.id === undefined) return;
   const tabId = tab.id;
   // Wait for Canvas to render its body, then retry highlights briefly for delayed content.
   for (let attempt = 0; attempt < 40; attempt++) {
     if (run !== runId) return;
-    const current = await chrome.tabs.get(tabId);
+    const current = await extensionApi.tabs.get(tabId);
     if (current.status === 'complete') {
       const message: ContentMsg = next
         ? { type: 'highlight-file', fileId: next.fileId, url: next.url, title: next.linkTitle ?? next.title }
@@ -447,29 +489,31 @@ async function openResult(node: TreeNode, next?: TreeNode): Promise<void> {
   console.warn('[ctrlf++] Opened result but could not locate its passages', node.url);
 }
 
-chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
+function handleBackgroundMessage(msg: RuntimeMsg, sendResponse: (response?: unknown) => void = () => {}): boolean {
   if (msg.to !== 'sw') return false;
   switch (msg.type) {
     case 'search': {
-      const pending = search(msg.query, msg.windowId);
+      const pending = search(msg.query, msg.windowId, true, msg.refresh);
       const run = runId;
-      pending.catch((e: unknown) => {
+      void pending.catch((e: unknown) => {
         if (run !== runId) return;
         console.error('[ctrlf++] search failed', e);
         settlePending();
-        status('Something went wrong. See the service worker console.', false);
-      });
-      break;
+        status(`Search incomplete: ${e instanceof Error ? e.message : String(e)}. Press Enter to retry.`, false);
+      }).finally(() => sendResponse());
+      // Keep Firefox's event page alive until the search finishes.
+      return true;
     }
     case 'resume': {
       const run = runId;
-      resume(msg.query, msg.windowId).catch((e: unknown) => {
+      void resume(msg.query, msg.windowId).catch((e: unknown) => {
         if (run !== runId) return;
         console.error('[ctrlf++] resume failed', e);
         settlePending();
-        status('Something went wrong. See the service worker console.', false);
-      });
-      break;
+        status(`Search incomplete: ${e instanceof Error ? e.message : String(e)}. Press Enter to retry.`, false);
+      }).finally(() => sendResponse());
+      // Keep Firefox's event page alive until the search finishes.
+      return true;
     }
     case 'clear':
       stop(true);
@@ -478,8 +522,10 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
       stop(false);
       break;
     case 'open-result':
-      void openResult(msg.node, msg.next).catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error));
-      break;
+      void openResult(msg.node, msg.next)
+        .catch((error: unknown) => console.warn('[ctrlf++] Open result failed', error))
+        .finally(() => sendResponse());
+      return true;
     case 'file-progress': {
       if (msg.run !== runId) break;
       const node = nodes.get(msg.url);
@@ -488,19 +534,22 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMsg) => {
     }
   }
   return false;
-});
+}
+extensionApi.runtime.onMessage.addListener((msg: RuntimeMsg, _sender, sendResponse) =>
+  handleBackgroundMessage(msg, sendResponse),
+);
 
 // In semantic mode, load the model as soon as the extension starts (or semantic is chosen),
 // so the first search isn't waiting on it. Exact mode never loads it.
 async function warmup(): Promise<void> {
-  const stored = await chrome.storage.local.get('searchSettings');
+  const stored = await extensionApi.storage.local.get('searchSettings');
   if (normalizeSettings(stored.searchSettings).mode !== 'semantic') return;
   const t0 = performance.now();
   const r = await toEngine<EngineAck>({ to: 'offscreen', type: 'warmup' });
   console.log(`[ctrlf++] engine warmup ${r.ok ? 'ok' : 'FAILED ' + r.error} in ${Math.round(performance.now() - t0)} ms`);
 }
-chrome.runtime.onInstalled.addListener(() => void warmup());
-chrome.runtime.onStartup.addListener(() => void warmup());
-chrome.storage.onChanged.addListener((changes) => {
+extensionApi.runtime.onInstalled.addListener(() => void warmup());
+extensionApi.runtime.onStartup.addListener(() => void warmup());
+extensionApi.storage.onChanged.addListener((changes) => {
   if (changes.searchSettings) void warmup();
 });

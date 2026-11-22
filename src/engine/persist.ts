@@ -4,8 +4,8 @@
 // Runs in the offscreen engine page. Without IndexedDB (unit tests in Node) every call is a no-op.
 
 const DB_NAME = 'ctrlfpp-demo-cache';
-export type StoreName = 'reads' | 'vectors';
-const STORES: StoreName[] = ['reads', 'vectors'];
+export type StoreName = 'reads' | 'vectors-v2';
+const STORES: StoreName[] = ['reads', 'vectors-v2'];
 
 let enabled = false;
 /** Set once the first search told us the setting; until then nothing is read, written or deleted. */
@@ -19,8 +19,11 @@ export const keepingCache = (): boolean => enabled && available();
 
 function open(): Promise<IDBDatabase> {
   db ??= new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => { for (const name of STORES) req.result.createObjectStore(name); };
+    const req = indexedDB.open(DB_NAME, 2);
+    req.onupgradeneeded = () => {
+      if (req.result.objectStoreNames.contains('vectors')) req.result.deleteObjectStore('vectors');
+      for (const name of STORES) if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name);
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });

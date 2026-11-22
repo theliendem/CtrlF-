@@ -5,9 +5,15 @@
   "type": "module",
   "scripts": {
     "test": "node --import ./scripts/register-tests.mjs --test tests/*.test.ts",
-    "dev": "vite",
-    "build": "node scripts/fetch-assets.mjs && tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit"
+    "dev": "node scripts/fetch-assets.mjs && vite build --watch --mode firefox",
+    "build": "npm run build:firefox",
+    "typecheck": "tsc --noEmit",
+    "dev:chrome": "vite --mode chrome",
+    "build:firefox": "node scripts/fetch-assets.mjs && tsc --noEmit && vite build --mode firefox",
+    "build:chrome": "node scripts/fetch-assets.mjs && tsc --noEmit && vite build --mode chrome",
+    "build:all": "npm run build:firefox && npm run build:chrome",
+    "eval:semantic": "node scripts/fetch-assets.mjs && node --import ./scripts/register-tests.mjs scripts/eval-semantic.mjs",
+    "test:models": "node scripts/fetch-assets.mjs && node --import ./scripts/register-tests.mjs --test tests/model-integration.mjs"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^3.0.0",

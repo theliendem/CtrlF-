@@ -17,4 +17,9 @@ After reloading the extension, run a search with matching and nonmatching branch
 
 ## Branch rotation and gradual reveal
 
-Search from Modules with several modules available. The graph should not display a wall of waiting nodes. Nodes appear when their actual reads start. The queue chooses 1–3 random siblings, then switches to another parent when one is available, with up to four reads in flight. A gray parent with hidden waiting children must stay visible. Stop should keep found results, cancel remaining reads, and never reveal the hidden backlog. Exact search still queues all eligible links; the same page/depth limits apply.
+Search from Modules with several modules available. The graph should not display a wall of waiting nodes. Nodes appear when their actual reads start. Both modes choose the highest-priority discovered links, with up to four reads in flight. In Exact, search `midterm 2` and confirm links named for that phrase start before unrelated links; weak links remain queued and are eventually read within the limits. A gray parent with hidden waiting children must stay visible. Stop should keep found results, cancel remaining reads, and never reveal the hidden backlog. Exact search still queues all eligible links; the same page/depth limits apply.
+
+
+## Stop responsiveness
+
+Start a Semantic search with many pages/files, then press Stop during starting-page scoring, active downloads, and file scoring. Expect an immediate stopping indication followed by "Stopped. Results kept." Found matches stay visible, pending nodes settle, and no new reads start. Immediately search again; the new search must not wait for the old queue to drain. A model batch already executing may finish, but cancelled batches must not start. Repeat with Exact and a warmed cache to catch runs that otherwise stay entirely in microtasks. On a JavaScript-built site, Stop should also close any temporary reading window.

@@ -4,7 +4,7 @@ Nov 14, 2026 · Neil Dembla · MadHacks 2026 · Replaces the earlier two-phase P
 
 **Search modes:** Semantic is the default. It scores passages by meaning (on-device MiniLM) plus the query's exact words, and digs best-first through the links closest to the question, as described below. Exact is a settings option: it searches literal phrases (case-insensitive, whitespace-tolerant) and recursively follows every safe supported content link, including files, without relevance filtering or the 15-link cap. Both modes keep the page/depth limits, same-site restrictions and blocked routes.
 
-**Traversal/display update (Neil's request):** Read random groups of 1–3 sibling links, switching parents between groups when another branch is available. Keep up to four reads in flight. Reveal nodes as their reads begin, not when all links are queued; invisible waiting children still protect their ancestors from graph cleanup.
+**Traversal/display update (Neil's request):** Read the highest-priority discovered link next in both modes. Exact ranks link text, URL path words and nearby headings without a model, and retains all eligible links. Semantic uses its existing meaning-based ranking. Keep up to four reads in flight. Reveal nodes as their reads begin, not when all links are queued; invisible waiting children still protect their ancestors from graph cleanup.
 
 ## What it is
 
